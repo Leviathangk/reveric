@@ -1,0 +1,76 @@
+// 职责: 验证第三方供应商种子只执行一次，并保留已有配置与删除记录。
+// 关联文件:
+//   lib/shared/services/initialization/provider_seeds.dart
+//   lib/shared/services/app_initialization.dart
+//   lib/shared/database/daos/ai_provider_dao.dart
+import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:reveric/shared/database/app_database.dart';
+import 'package:reveric/shared/models/ai_provider.dart';
+import 'package:reveric/shared/services/app_initialization.dart';
+import 'package:reveric/shared/services/initialization/provider_seeds.dart';
+
+void main() {
+  late AppDatabase database;
+  setUp(() => database = AppDatabase.forTest(NativeDatabase.memory()));
+  tearDown(() => database.close());
+
+  test(
+    'seeds only DeepSeek once and never recreates deleted providers',
+    () async {
+      final tasks = defaultAppInitializationTasks()
+          .where((task) => task.id == 'default_third_party_providers_v1')
+          .toList();
+      expect(tasks, hasLength(1));
+      await ensureAppInitializationTasks(database: database, tasks: tasks);
+      expect(
+        (await database.aiProviderDao.getAll()).map((p) => p.id),
+        unorderedEquals(['deepseek']),
+      );
+      const key = 'app_initialization.default_third_party_providers_v1';
+      final completedAt = await database.appStateDao.get(key);
+      expect(completedAt, isNotNull);
+      await database.aiProviderDao.softDelete('deepseek');
+      await ensureAppInitializationTasks(database: database, tasks: tasks);
+      expect(await database.appStateDao.get(key), completedAt);
+      expect(await database.aiProviderDao.getById('deepseek'), isNull);
+      expect(
+        await database.aiProviderDao.getAllIncludingDeleted(),
+        hasLength(1),
+      );
+    },
+  );
+
+  test(
+    'upgrade and retry preserve edits, custom providers and tombstones',
+    () async {
+      final configured = aiProviderBuiltinById(
+        'deepseek',
+      )!.copyWith(apiKey: 'test-key', models: ['my-model']);
+      final custom = configured.copyWith(id: 'custom', builtin: false);
+      await database.aiProviderDao.upsert(configured);
+      await database.aiProviderDao.upsert(custom);
+      await database.aiProviderDao.upsert(aiProviderBuiltinById('openai')!);
+      await database.aiProviderDao.softDelete('openai');
+      await seedDefaultThirdPartyProviders(database);
+      await seedDefaultThirdPartyProviders(database);
+      expect(
+        (await database.aiProviderDao.getById('deepseek'))!.apiKey,
+        'test-key',
+      );
+      expect((await database.aiProviderDao.getById('deepseek'))!.models, [
+        'my-model',
+      ]);
+      expect(await database.aiProviderDao.getById('custom'), isNotNull);
+      expect(await database.aiProviderDao.getById('openai'), isNull);
+      await database.aiProviderDao.saveAll(
+        await database.aiProviderDao.getAll(),
+      );
+      expect(
+        await database.aiProviderDao.getAllIncludingDeleted(),
+        hasLength(3),
+      );
+      expect(await database.aiProviderDao.getById('openai'), isNull);
+    },
+  );
+}

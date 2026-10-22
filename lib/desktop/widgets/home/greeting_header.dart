@@ -1,0 +1,161 @@
+// 职责: 桌面端首页问候区 — 时段问候文案与新建/导入快捷操作
+// 关联文件:
+//   lib/desktop/widgets/home/library_home_panel.dart
+//   lib/desktop/widgets/desktop_window_frame.dart
+//   lib/shared/localization/locale_keys.dart
+//   assets/translations/en/home.json
+//   assets/translations/zh-CN/home.json
+//   assets/translations/en/library.json
+//   assets/translations/zh-CN/library.json
+
+import 'package:flutter/material.dart';
+
+import '../../../shared/localization/app_localization.dart';
+import '../../../shared/localization/locale_keys.dart';
+import '../../../shared/theme/theme.dart';
+import '../desktop_window_frame.dart';
+
+String _greetingKey(int hour) {
+  if (hour >= 5 && hour < 12) return LocaleKeys.homeGreetingMorning;
+  if (hour >= 12 && hour < 18) return LocaleKeys.homeGreetingAfternoon;
+  if (hour >= 18 && hour < 23) return LocaleKeys.homeGreetingEvening;
+  return LocaleKeys.homeGreetingNight;
+}
+
+String _greetingShortKey(int hour) {
+  if (hour >= 5 && hour < 12) return LocaleKeys.homeGreetingMorningShort;
+  if (hour >= 12 && hour < 18) return LocaleKeys.homeGreetingAfternoonShort;
+  if (hour >= 18 && hour < 23) return LocaleKeys.homeGreetingEveningShort;
+  return LocaleKeys.homeGreetingNightShort;
+}
+
+class GreetingHeader extends StatelessWidget {
+  const GreetingHeader({
+    super.key,
+    required this.onQuickStart,
+    required this.onCreateNovel,
+    required this.onImportNovel,
+    required this.username,
+    required this.headerGestureExclusionKey,
+  });
+
+  final VoidCallback onQuickStart;
+  final VoidCallback onCreateNovel;
+  final VoidCallback onImportNovel;
+  final String? username;
+  final GlobalKey headerGestureExclusionKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = RevericTheme.colorsOf(context);
+    final typo = RevericTheme.typographyOf(context);
+    final hour = DateTime.now().hour;
+    final name = username;
+
+    // 正在写的作品交给下面的「继续写」区，问候只打招呼。
+    final String headline;
+    if (name == null) {
+      headline = context.t(_greetingKey(hour));
+    } else {
+      headline = context.t(
+        LocaleKeys.homeGreetingPersonalizedSimple,
+        namedArgs: {
+          'greeting': context.t(_greetingShortKey(hour)),
+          'name': name,
+        },
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 问候语保持原味，居于顶部。
+        Padding(
+          padding: EdgeInsets.only(right: DesktopWindowFrame.trailingInset),
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  headline,
+                  style: typo.heading2.copyWith(
+                    color: colors.textPrimary,
+                    fontSize: 26,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: RevericSpacing.sm),
+              RevericIcon(
+                RevericIcons.auto_awesome,
+                size: 24,
+                color: colors.accentAmber,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: RevericSpacing.xl),
+        // 操作区位于问候下方，右对齐；窄窗口按按钮整体换行。
+        // 这个 key 会被 DesktopWindowFrame 用来排除标题栏拖拽命中；
+        // 否则双击按钮可能同时触发窗口缩放。
+        KeyedSubtree(
+          key: headerGestureExclusionKey,
+          child: SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: RevericSpacing.sm,
+              runSpacing: RevericSpacing.sm,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: onImportNovel,
+                  icon: const RevericIcon(RevericIcons.upload, size: 16),
+                  label: Text(context.t(LocaleKeys.libraryImportTxt)),
+                ),
+                // 新建作品 — 次按钮（outlined）：走完整表单对话框。
+                OutlinedButton.icon(
+                  onPressed: onCreateNovel,
+                  icon: const RevericIcon(RevericIcons.add, size: 16),
+                  label: Text(context.t(LocaleKeys.libraryCreateNovel)),
+                ),
+                // 快速开书 — 主按钮（accent）：占位建书后进编辑器走创作向导。
+                Material(
+                  color: colors.accent,
+                  borderRadius: BorderRadius.circular(RevericRadius.medium),
+                  child: InkWell(
+                    onTap: onQuickStart,
+                    borderRadius: BorderRadius.circular(RevericRadius.medium),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: RevericSpacing.x3l,
+                        vertical: RevericSpacing.lg,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          RevericIcon(
+                            RevericIcons.auto_awesome,
+                            size: 16,
+                            color: colors.onAccent,
+                          ),
+                          const SizedBox(width: RevericSpacing.xs),
+                          Text(
+                            context.t(LocaleKeys.libraryQuickStart),
+                            style: typo.uiSemibold.copyWith(
+                              color: colors.onAccent,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

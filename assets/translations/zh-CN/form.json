@@ -1,0 +1,12 @@
+{
+  "form.required": "此项为必填项",
+  "form.invalid_email": "邮箱格式不正确",
+  "form.invalid_phone": "手机号格式不正确",
+  "form.invalid_pattern": "格式不正确",
+  "form.min_length": "至少需要 {length} 个字符",
+  "form.max_length": "最多 {length} 个字符",
+  "form.min_items": "至少需要 {count} 项",
+  "form.max_items": "最多 {count} 项",
+  "form.date_before": "必须早于 {date}",
+  "form.date_after": "必须晚于 {date}"
+}
