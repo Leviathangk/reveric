@@ -18,6 +18,9 @@ import 'package:reveric/shared/models/production/media.dart';
 import 'package:reveric/shared/services/production/image_service.dart';
 import 'package:reveric/shared/services/production/audio_service.dart';
 import 'dart:convert';
+import 'package:reveric/shared/models/audio/request.dart';
+import 'package:reveric/shared/services/production/audio_generate_orchestrator.dart';
+import 'package:reveric/shared/services/production/voices.dart';
 import 'dart:io';
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:image/image.dart' as img;
@@ -206,6 +209,198 @@ void main() {
         expect(copy.style?['panorama'], isNull);
       }
       expect(await appDb.select(appDb.generationTasks).get(), isEmpty);
+    },
+  );
+
+  test(
+    'speech voice and delivery persist, copy and freeze in the generated request',
+    () async {
+      const model = 'google/gemini-3.8-flash-tts';
+      await appDb
+          .into(appDb.aiProviders)
+          .insert(
+            app.AiProvidersCompanion.insert(
+              id: 'speech',
+              name: 'Speech',
+              type: 'openrouter',
+              enabled: const Value(true),
+              audioModels: const Value([model]),
+            ),
+          );
+      final board = await service.ensureCanvas(episode);
+      final node = await service.addAudio(board.id);
+      await service.saveAudio(
+        nodeId: node.id,
+        prompt: '我们出发吧。',
+        providerId: 'speech',
+        modelId: model,
+        inputs: [],
+        overlay: overlay,
+        parameters: const AudioRequestDefaults(
+          voice: ConfigValue('Kore'),
+          instructions: ConfigValue('温柔'),
+        ),
+      );
+      final preview = await ProductionAudioGenerateOrchestrator().preview(
+        service,
+        node.id,
+      );
+      expect(preview.request.parameters.voice, 'Kore');
+      expect(preview.request.parameters.instructions, '温柔');
+      expect(preview.request.prompt, '我们出发吧。');
+      final copy = await service.copyVideo(node.id, overlay: overlay);
+      final copied = await ProductionAudioGenerateOrchestrator().preview(
+        service,
+        copy.id,
+      );
+      expect(
+        copied.request.parameters.toJson(),
+        preview.request.parameters.toJson(),
+      );
+      await service.saveAudio(
+        nodeId: node.id,
+        prompt: '新台词',
+        providerId: 'speech',
+        modelId: model,
+        inputs: [],
+        overlay: overlay,
+        parameters: const AudioRequestDefaults(
+          voice: ConfigValue('Puck'),
+          instructions: ConfigValue('平静'),
+        ),
+      );
+      expect(preview.request.parameters.voice, 'Kore');
+      expect(
+        (await ProductionAudioGenerateOrchestrator().preview(
+          service,
+          node.id,
+        )).request.parameters.voice,
+        'Puck',
+      );
+    },
+  );
+
+  test(
+    'character voices share across canvases and survive unrelated character edits',
+    () async {
+      final content = NovelContentService(db);
+      final characterId = await content.createCharacterProfile(name: 'Actor');
+      await asset('normal', type: 'audio');
+      await asset('young', type: 'audio');
+      await asset('picture');
+      await service.addCharacterVoice(characterId, 'normal');
+      await service.addCharacterVoice(characterId, 'normal');
+      await service.addCharacterVoice(characterId, 'young');
+      await service.renameCharacterVoice(
+        characterId,
+        'normal',
+        '  Normal voice  ',
+      );
+      await content.updateCharacterProfile(
+        entryId: characterId,
+        name: 'Actor renamed',
+        role: 'supporting',
+        gender: 'unknown',
+        biography: '',
+        description: '',
+      );
+      expect((await db.characterProfileDao.getById(characterId))!.voices, [
+        const CharacterVoice(assetId: 'normal', name: 'Normal voice'),
+        const CharacterVoice(assetId: 'young', name: 'young'),
+      ]);
+      final firstCanvas = await service.shots.ensureCanvas(episode);
+      final secondEpisode = await ScreenplayService(db).createEpisode(
+        seasonId: (await db.screenplayDao.getEpisode(episode))!.seasonId,
+        title: 'Second',
+      );
+      final secondCanvas = await service.shots.ensureCanvas(secondEpisode);
+      for (final board in [firstCanvas, secondCanvas]) {
+        final node = await service.addSubject(
+          board.id,
+          characterId: characterId,
+        );
+        final input = ProductionInput.node(
+          node.id,
+          VideoInputRole.reference_image,
+        ).withVoice('normal');
+        expect((await service.inputCharacter(input))!.voices!.length, 2);
+        final bare = ProductionInput.node(
+          node.id,
+          VideoInputRole.reference_image,
+        );
+        expect((await service.withDefaultVoice(bare)).voiceAssetId, 'normal');
+        expect(
+          (await service.withDefaultVoice(
+            bare.withVoice('young'),
+          )).voiceAssetId,
+          'young',
+        );
+        await service.requireInputVoice(input, requireBinding: true);
+        expect(ProductionInput.fromJson(input.toJson()).voiceAssetId, 'normal');
+        if (board.id == firstCanvas.id) {
+          final target = await service.ensureShotNode(shot.id);
+          await service.save(
+            nodeId: target.id,
+            request: request('A line'),
+            providerId: null,
+            inputs: [input],
+            overlay: overlay,
+          );
+          expect(
+            (await service.inputs(target.id)).single.voiceAssetId,
+            'normal',
+          );
+          final names = await service.audioInputNames([
+            input,
+            ProductionInput.asset('young', VideoInputRole.reference_audio),
+          ]);
+          expect(names.audio, ['young']);
+          expect(names.voices, ['Actor renamed · Normal voice']);
+          final copy = await service.copyVideo(target.id, overlay: overlay);
+          expect((await service.inputs(copy.id)).single.voiceAssetId, 'normal');
+          await expectLater(
+            service.save(
+              nodeId: target.id,
+              request: request('A line'),
+              providerId: null,
+              inputs: [input.withVoice('picture')],
+              overlay: overlay,
+            ),
+            throwsA(isA<StoryboardException>()),
+          );
+          expect(
+            (await service.inputs(target.id)).single.voiceAssetId,
+            'normal',
+          );
+        }
+      }
+      await expectLater(
+        service.addCharacterVoice(characterId, 'picture'),
+        throwsA(isA<StoryboardException>()),
+      );
+      await service.removeCharacterVoice(characterId, 'normal');
+      expect(
+        (await db.characterProfileDao.getById(
+          characterId,
+        ))!.voices!.single.assetId,
+        'young',
+      );
+      expect(await appDb.assetDao.getAsset('normal'), isNotNull);
+      await service.removeCharacterVoice(characterId, 'young');
+      expect(
+        (await db.characterProfileDao.getById(characterId))!.voices,
+        isEmpty,
+      );
+      final silent = await service.addSubject(
+        firstCanvas.id,
+        characterId: characterId,
+      );
+      expect(
+        (await service.withDefaultVoice(
+          ProductionInput.node(silent.id, VideoInputRole.reference_image),
+        )).voiceAssetId,
+        isNull,
+      );
     },
   );
 

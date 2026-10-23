@@ -55,7 +55,14 @@ void main() {
         10 * 1024 * 1024,
       );
       expect(router.capabilities.references['image']!.maxCount, 1);
-      expect(audioModelsForProvider('openrouter'), [routerId]);
+      expect(
+        audioModelsForProvider('openrouter'),
+        containsAll([
+          routerId,
+          'minimax/speech-2.8-hd',
+          'qwen/qwen-audio-3.0-tts-plus',
+        ]),
+      );
       expect(audioModelsForProvider('volcengine'), [nativeId]);
     },
   );

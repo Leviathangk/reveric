@@ -28,6 +28,12 @@ class AiProviderDao extends DatabaseAccessor<AppDatabase>
         .get();
   }
 
+  Stream<List<AiProvider>> watchAll() =>
+      (select(aiProviders)
+            ..where((table) => table.deletedAt.equals(notDeletedSentinel))
+            ..orderBy([(table) => OrderingTerm.asc(table.updatedAt)]))
+          .watch();
+
   Future<AiProvider?> getById(String id) async {
     return await (select(aiProviders)..where(
           (table) =>

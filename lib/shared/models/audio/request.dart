@@ -160,6 +160,19 @@ class AudioCapabilities {
         request.prompt.runes.length > model.maxPromptCharacters) {
       throw const AudioException('audio_prompt_length');
     }
+    if (model.speech &&
+        request.references.isEmpty &&
+        (request.parameters.voice?.trim().isEmpty ?? true)) {
+      throw const AudioException('audio_voice_required');
+    }
+    if ((request.parameters.instructions?.isNotEmpty ?? false) &&
+        !model.supportsInstructions) {
+      throw const AudioException('invalid_config');
+    }
+    if ((request.parameters.voice?.isNotEmpty ?? false) &&
+        request.references.isNotEmpty) {
+      throw const AudioException('invalid_reference');
+    }
     validateSelection(request.references.map((r) => r.kind));
     for (final ref in request.references) {
       validateReference(ref);

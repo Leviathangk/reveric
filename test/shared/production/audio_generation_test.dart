@@ -4,6 +4,9 @@
 //   lib/shared/services/production/audio_generate_orchestrator.dart
 //   lib/shared/services/backup_service.dart
 import 'dart:async';
+import 'package:reveric/shared/services/production/voices.dart';
+import 'package:reveric/shared/services/ai/video/client.dart' show videoContent;
+import 'package:reveric/shared/models/video/task_result.dart';
 import 'dart:convert';
 import 'package:reveric/shared/models/audio/exception.dart';
 import 'package:reveric/shared/models/audio/channels.dart';
@@ -61,8 +64,8 @@ class _Media extends MediaService {
         hasAudio: false,
         hasVideo: true,
         videoCodec: 'png',
-        width: 100,
-        height: 100,
+        width: 512,
+        height: 512,
       );
     }
     return MediaInfo(
@@ -699,6 +702,161 @@ void main() {
       );
     },
   );
+  test(
+    'character voices expand into stable video slots and preserve submitted snapshots',
+    () async {
+      await source('hero-photo', 'image');
+      await source('other-photo', 'image');
+      await source('hero-voice', 'audio');
+      await source('other-voice', 'audio');
+      await source('music', 'audio');
+      await db
+          .into(db.characterProfiles)
+          .insert(
+            CharacterProfilesCompanion.insert(
+              id: 'hero',
+              name: 'Hero',
+              photos: const Value([SubjectPhoto(assetId: 'hero-photo')]),
+            ),
+          );
+      await db
+          .into(db.characterProfiles)
+          .insert(
+            CharacterProfilesCompanion.insert(
+              id: 'other',
+              name: 'Other',
+              photos: const Value([SubjectPhoto(assetId: 'other-photo')]),
+            ),
+          );
+      await canvas.addCharacterVoice('hero', 'hero-voice');
+      await canvas.addCharacterVoice('other', 'other-voice');
+      final hero = await canvas.addSubject(node.canvasId, characterId: 'hero');
+      final other = await canvas.addSubject(
+        node.canvasId,
+        characterId: 'other',
+      );
+      await appDb
+          .into(appDb.aiProviders)
+          .insert(
+            app.AiProvidersCompanion.insert(
+              id: 'video',
+              name: 'Video',
+              type: 'doubao',
+              enabled: const Value(true),
+              videoModels: const Value(['doubao-seedance-2-5-260628']),
+            ),
+          );
+      final episode = (await canvas.shots.getShot(node.clipId!))!.episodeId;
+      final first = ProductionInput.node(
+        hero.id,
+        VideoInputRole.reference_image,
+      ).withVoice('hero-voice');
+      final second = ProductionInput.node(
+        other.id,
+        VideoInputRole.reference_image,
+      ).withVoice('other-voice');
+      final music = ProductionInput.asset(
+        'music',
+        VideoInputRole.reference_audio,
+      );
+      final video = await canvas.shots.createVideo(
+        episode,
+        values: {
+          'prompt': 'A conversation',
+          'duration_ms': 6000,
+          'provider_id': 'video',
+          'model_id': 'doubao-seedance-2-5-260628',
+          'resolution': '720p',
+          'ratio': '16:9',
+        },
+      );
+      final target = await canvas.ensureShotNode(video.id);
+      Future<ProductionPreview> videoPreview(
+        List<ProductionInput> inputs,
+      ) async {
+        await canvas.shots.restoreInputs(
+          video.id,
+          inputs.map((i) => i.toJson()).toList(),
+        );
+        return ProductionGenerateOrchestrator().preview(canvas, target.id);
+      }
+
+      final frozen = await videoPreview([music, first, second]);
+      expect(frozen.inputs.map((i) => i.assetId), [
+        'music',
+        'hero-photo',
+        'hero-voice',
+        'other-photo',
+        'other-voice',
+      ]);
+      expect(frozen.request.prompt, contains('图片1 中的角色使用 音频2 的音色'));
+      expect(frozen.request.prompt, contains('图片2 中的角色使用 音频3 的音色'));
+      final reordered = await videoPreview([second, first, music]);
+      expect(reordered.request.prompt, contains('图片1 中的角色使用 音频1 的音色'));
+      expect(reordered.request.referenceSlots[1].assetId, 'other-voice');
+      expect(reordered.request.referenceSlots[3].assetId, 'hero-voice');
+      final wire = videoContent(reordered.request, [
+        for (final input in reordered.inputs)
+          VideoReference(
+            role: input.role,
+            url: Uri.https('media.example', '/${input.assetId}'),
+            mimeType: input.mimeType,
+            fileSize: 64,
+            mediaInfo: const VideoMediaInfo(durationMs: 3000),
+          ),
+      ]);
+      expect(wire[2], {
+        'type': 'audio_url',
+        'audio_url': {'url': 'https://media.example/other-voice'},
+        'role': 'reference_audio',
+      });
+      await canvas.removeCharacterVoice('hero', 'hero-voice');
+      await videoPreview([first]);
+      expect(frozen.request.referenceSlots[2].assetId, 'hero-voice');
+      expect(frozen.request.prompt, contains('音频2'));
+      await appDb
+          .into(appDb.aiProviders)
+          .insert(
+            app.AiProvidersCompanion.insert(
+              id: 'unsupported-video',
+              name: 'No audio',
+              type: 'openrouter',
+              enabled: const Value(true),
+              videoModels: const Value(['bytedance/seedance-2.0']),
+            ),
+          );
+      await canvas.shots.apply(video.id, {
+        ...canvas.shots.snapshot((await canvas.shots.getShot(video.id))!),
+        'provider_id': 'unsupported-video',
+        'model_id': 'bytedance/seedance-2.0',
+      });
+      await expectLater(
+        videoPreview([first]),
+        throwsA(
+          isA<VideoException>().having((e) => e.field, 'field', 'audio_count'),
+        ),
+      );
+      await canvas.shots.apply(video.id, {
+        ...canvas.shots.snapshot((await canvas.shots.getShot(video.id))!),
+        'provider_id': 'video',
+        'model_id': 'doubao-seedance-2-5-260628',
+      });
+      media.duration = const Duration(minutes: 10);
+      await expectLater(videoPreview([first]), throwsA(isA<VideoException>()));
+      media.duration = const Duration(seconds: 3);
+      await canvas.shots.apply(video.id, {
+        ...canvas.shots.snapshot((await canvas.shots.getShot(video.id))!),
+        'reference_mode': 'first_last_frame',
+      });
+      await expectLater(
+        videoPreview([first.withRole(VideoInputRole.first_frame)]),
+        throwsA(
+          isA<VideoException>().having((e) => e.field, 'field', 'voice_mode'),
+        ),
+      );
+    },
+  );
+
   test(
     'initial file write failure persists receipt and restart downloads without generating',
     () async {

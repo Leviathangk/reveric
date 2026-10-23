@@ -12,6 +12,7 @@
 //   .agents/rules/hooks.md
 //   .agents/rules/design-system.md
 
+import '../../../shared/hooks/use_ai_providers.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
@@ -43,6 +44,8 @@ import 'storage_dialog.dart';
 import '../storyboard/edit_form.dart' show ShotField;
 import 'prompt_controller.dart';
 import 'input_preview.dart';
+import 'character_input.dart';
+import '../../../shared/services/production/voices.dart';
 import 'edit_session.dart';
 import 'prompt_field.dart';
 import 'support.dart';
@@ -167,11 +170,7 @@ class _ComposerForm extends HookConsumerWidget {
       form,
       () => form.getValue<(String, String)>(ShotField.model),
     );
-    final providers = useFuture(
-      useMemoized(() => service.library.database.aiProviderDao.getAll(), [
-        service,
-      ]),
-    );
+    final providers = useAiProviders(service.library.database);
     final selectedProvider = providers.data
         ?.where((p) => p.id == modelSelection?.$1)
         .firstOrNull;
@@ -194,7 +193,7 @@ class _ComposerForm extends HookConsumerWidget {
     final overlay = ref.watch(workingOverlayServiceProvider(path));
     String value(ShotField field) => form.getValue<String>(field) ?? '';
     String signature() =>
-        '${value(ShotField.title)}|${prompt.source}|${inputs.value.map((i) => '${i.identity}:${i.role.name}:${i.sourceNodeId}').join('|')}|${form.getValue<(String, String)>(ShotField.model)}|${value(ShotField.mode)}|${value(ShotField.ratio)}|${value(ShotField.resolution)}|${value(ShotField.duration)}';
+        '${value(ShotField.title)}|${prompt.source}|${inputs.value.map((i) => '${i.identity}:${i.role.name}:${i.sourceNodeId}:${i.voiceAssetId}').join('|')}|${form.getValue<(String, String)>(ShotField.model)}|${value(ShotField.mode)}|${value(ShotField.ratio)}|${value(ShotField.resolution)}|${value(ShotField.duration)}';
     if (saved.value.isEmpty) {
       saved.value = signature();
     }
@@ -474,6 +473,43 @@ class _ComposerForm extends HookConsumerWidget {
       () => value(ShotField.resolution),
     );
     final allowed = productionRoles(mode);
+    final audioKey = inputs.value
+        .where(
+          (i) => i.role.kind == VideoMediaKind.audio || i.voiceAssetId != null,
+        )
+        .map((i) => '${i.identity}:${i.role.name}:${i.voiceAssetId}')
+        .join('|');
+    final audioNames = useFuture(
+      useMemoized(
+        () => service.audioInputNames(
+          inputs.value.where((i) => allowed.contains(i.role)).toList(),
+        ),
+        [service, audioKey, mode],
+      ),
+    );
+    String tooManyAudio() {
+      final untitled = context.t(LocaleKeys.commonUntitled);
+      final separator = Localizations.localeOf(context).languageCode == 'zh'
+          ? '、'
+          : ', ';
+      String join(List<String?> names) =>
+          names.map((n) => n ?? untitled).join(separator);
+      final names = audioNames.data;
+      return [
+        context.t(LocaleKeys.productionGenerateTooManyAudio),
+        if (names != null && names.audio.isNotEmpty)
+          context.t(
+            LocaleKeys.productionGenerateAudioInputs,
+            namedArgs: {'names': join(names.audio)},
+          ),
+        if (names != null && names.voices.isNotEmpty)
+          context.t(
+            LocaleKeys.productionGenerateVoiceInputs,
+            namedArgs: {'names': join(names.voices)},
+          ),
+      ].join('\n');
+    }
+
     String? generationBlockedReason({bool draft = false}) {
       if (busy.value || sourceBusy) {
         return context.t(LocaleKeys.productionGenerateBusy);
@@ -498,9 +534,13 @@ class _ComposerForm extends HookConsumerWidget {
       if (provider.apiKey.trim().isEmpty) {
         return context.t(LocaleKeys.productionGenerateProviderRequired);
       }
-      final activeInputs = inputs.value
-          .where((input) => allowed.contains(input.role))
-          .toList();
+      if (productionUsesFrames(mode) &&
+          inputs.value.any((i) => i.voiceAssetId != null)) {
+        return context.t(LocaleKeys.productionVoiceMode);
+      }
+      final activeInputs = productionInputsWithVoices(
+        inputs.value,
+      ).where((input) => allowed.contains(input.role)).toList();
       final roles = activeInputs
           .map((input) => productionSubmitRole(mode, input.role))
           .toList();
@@ -543,6 +583,9 @@ class _ComposerForm extends HookConsumerWidget {
         }
         if (e.field == 'references') {
           return context.t(LocaleKeys.productionGenerateFramesRequired);
+        }
+        if (e.field == 'audio_count') {
+          return tooManyAudio();
         }
         if (e.field?.endsWith('_count') ?? false) {
           return context.t(LocaleKeys.productionGenerateTooManyInputs);
@@ -660,31 +703,42 @@ class _ComposerForm extends HookConsumerWidget {
                         runSpacing: RevericSpacing.sm,
                         children: [
                           for (var i = 0; i < inputs.value.length; i++)
-                            ProductionInputTile(
+                            ProductionCharacterInput(
                               key: ValueKey(inputs.value[i].identity),
                               service: service,
                               input: inputs.value[i],
-                              mode: mode,
-                              valid: allowed.contains(inputs.value[i].role),
-                              onRole: (r) {
+                              framesMode: frames,
+                              onChanged: (input) {
                                 final next = [...inputs.value];
-                                next[i] = next[i].withRole(r);
+                                next[i] = input;
                                 inputs.value = next;
                               },
-                              onMove: inputs.value.length < 2
-                                  ? null
-                                  : (delta) {
-                                      final to = i + delta;
-                                      if (to < 0 || to >= inputs.value.length) {
-                                        return;
-                                      }
-                                      final next = [...inputs.value];
-                                      next.insert(to, next.removeAt(i));
-                                      inputs.value = next;
-                                    },
-                              onRemove: () {
-                                inputs.value = [...inputs.value]..removeAt(i);
-                              },
+                              child: ProductionInputTile(
+                                service: service,
+                                input: inputs.value[i],
+                                mode: mode,
+                                valid: allowed.contains(inputs.value[i].role),
+                                onRole: (r) {
+                                  final next = [...inputs.value];
+                                  next[i] = next[i].withRole(r);
+                                  inputs.value = next;
+                                },
+                                onMove: inputs.value.length < 2
+                                    ? null
+                                    : (delta) {
+                                        final to = i + delta;
+                                        if (to < 0 ||
+                                            to >= inputs.value.length) {
+                                          return;
+                                        }
+                                        final next = [...inputs.value];
+                                        next.insert(to, next.removeAt(i));
+                                        inputs.value = next;
+                                      },
+                                onRemove: () {
+                                  inputs.value = [...inputs.value]..removeAt(i);
+                                },
+                              ),
                             ),
                         ],
                       ),

@@ -17,6 +17,7 @@ import '../models/collections/filter.dart';
 import '../models/chapter_comment.dart';
 import '../models/character_behavior_tag.dart';
 import '../models/subject_photo.dart';
+import '../models/character_voice.dart';
 import '../models/outline_draft.dart';
 import '../models/entity_relation_history.dart';
 import '../models/video/request.dart';
@@ -76,6 +77,32 @@ class VideoRequestConverter extends TypeConverter<VideoRequest, String> {
       VideoRequest.fromJson(jsonDecode(column) as Map<String, dynamic>);
   @override
   String toSql(VideoRequest value) => jsonEncode(value.toJson());
+}
+
+class CharacterVoiceListConverter
+    extends TypeConverter<List<CharacterVoice>, String>
+    with JsonTypeConverter2<List<CharacterVoice>, String, List<Object?>> {
+  const CharacterVoiceListConverter();
+  @override
+  List<CharacterVoice> fromSql(String column) =>
+      fromJson(jsonDecode(column) as List);
+  @override
+  String toSql(List<CharacterVoice> value) => jsonEncode(toJson(value));
+  @override
+  List<CharacterVoice> fromJson(List<Object?> json) {
+    final voices = json.map(CharacterVoice.fromJson).toList();
+    if (voices.map((v) => v.assetId).toSet().length != voices.length) {
+      throw const FormatException('Duplicate character voice');
+    }
+    return List.unmodifiable(voices);
+  }
+
+  @override
+  List<Object?> toJson(List<CharacterVoice> value) {
+    final json = value.map((v) => v.toJson()).toList();
+    fromJson(json);
+    return json;
+  }
 }
 
 class SubjectPhotoListConverter

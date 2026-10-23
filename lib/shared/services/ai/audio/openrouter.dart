@@ -38,6 +38,10 @@ class OpenRouterAudioClient extends AudioClient {
     return {
       'model': request.modelId,
       'input': request.prompt,
+      if (request.parameters.voice?.isNotEmpty == true)
+        'voice': request.parameters.voice,
+      if (request.parameters.instructions?.isNotEmpty == true)
+        'instructions': request.parameters.instructions,
       'response_format': request.parameters.responseFormat,
       if (references.isNotEmpty)
         'input_references': [

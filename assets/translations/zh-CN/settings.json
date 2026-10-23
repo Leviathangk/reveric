@@ -1,5 +1,5 @@
 {
-  "settings.provider_openrouter_audio_hint": "OpenRouter Seed Audio 共用此渠道的 API Key，支持语音、音效和环境音，可添加音频或图片参考，输出为 MP3。",
+  "settings.provider_openrouter_audio_hint": "从 OpenRouter 获取语音模型，共用此渠道的 API Key。音色选择、演绎说明和参考音频支持取决于模型。",
   "settings.provider_type_volcengine": "火山引擎",
   "settings.provider_volcengine_audio_hint": "音频使用同一 API Key，请先在火山引擎开通豆包语音权限。",
   "settings.provider_model_id_hint": "输入模型 ID",
@@ -491,7 +491,7 @@
   "settings.usage_session_not_found": "该会话暂无用量记录",
   "settings.usage_open_current_session": "查看当前会话用量",
   "settings.provider_audio_models_label": "音频模型",
-  "settings.provider_minimax_audio_hint": "使用 MiniMax API Key，输出为 MP3 / 44.1 kHz。",
+  "settings.provider_minimax_audio_hint": "支持 MiniMax 配乐及语音合成，共用此渠道的 API Key，输出为 MP3。",
   "settings.provider_asset_section": "素材库认证",
   "settings.provider_asset_project_label": "项目名称",
   "settings.provider_asset_project_hint": "默认 default",

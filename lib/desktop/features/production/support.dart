@@ -94,12 +94,16 @@ Future<void> productionRun(
             context.t(switch (error) {
               VideoException(messageKey: final key?) ||
               AudioException(messageKey: final key?) => key,
+              VideoException(field: 'voice_mode') =>
+                LocaleKeys.productionVoiceMode,
               VideoException(field: 'draft_expired') =>
                 LocaleKeys.productionDraftExpiredHint,
               VideoException(field: 'draft_active_task') =>
                 LocaleKeys.productionDraftPendingHint,
               VideoException(field: 'draft') =>
                 LocaleKeys.productionDraftUnavailable,
+              AudioException(code: 'audio_voice_required') =>
+                LocaleKeys.productionSpeechVoiceRequired,
               AudioException(code: 'audio_output_unavailable') =>
                 LocaleKeys.productionAudioOutputUnavailable,
               AudioException(code: 'audio_prompt_length') =>

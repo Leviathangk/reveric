@@ -12,6 +12,7 @@
 //   .agents/rules/hooks.md
 //   .agents/rules/design-system.md
 
+import '../../../shared/hooks/use_ai_providers.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -31,8 +32,7 @@ import 'support.dart';
 
 /// 已启用、填好凭据的素材认证渠道；读取中为 null。
 List<AiProvider>? useCertificationProviders(AppDatabase database) =>
-    useFuture(useMemoized(() => database.aiProviderDao.getAll(), [database]))
-        .data
+    useAiProviders(database).data
         ?.where((p) => p.enabled && providerSupportsAssetCertification(p))
         .toList();
 

@@ -98,6 +98,15 @@ SelectedMediaBackup collectSelectedMedia({
         )) {
           storyboardAssetIds.add(row['avatar_asset_id'] as String);
         }
+        for (final row in content.select(
+          'SELECT voices FROM character_profiles WHERE voices IS NOT NULL',
+        )) {
+          storyboardAssetIds.addAll(
+            const CharacterVoiceListConverter()
+                .fromSql(row['voices'] as String)
+                .map((voice) => voice.assetId),
+          );
+        }
         for (final entry in {
           'screenplays': 'style_id',
           'production_clips': 'style_selection',
@@ -117,6 +126,9 @@ SelectedMediaBackup collectSelectedMedia({
           for (final input in const ProductionInputsConverter().fromSql(
             row['inputs'] as String,
           )) {
+            if (input.voiceAssetId != null) {
+              storyboardAssetIds.add(input.voiceAssetId!);
+            }
             if (input.refType == ProductionInputType.asset) {
               storyboardAssetIds.add(input.refId);
             }
@@ -157,6 +169,9 @@ SelectedMediaBackup collectSelectedMedia({
                     final reference = ProductionInput.fromJson(
                       Map<String, dynamic>.from(input as Map),
                     );
+                    if (reference.voiceAssetId != null) {
+                      storyboardAssetIds.add(reference.voiceAssetId!);
+                    }
                     if (reference.refType == ProductionInputType.asset) {
                       storyboardAssetIds.add(reference.refId);
                       continue;

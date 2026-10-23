@@ -127,7 +127,7 @@ void main() {
     () async {
       for (final sample in [
         ('volcengine', ['seed-audio-1.0']),
-        ('minimax', ['music-3.0', 'music-2.6']),
+        ('minimax', ['speech-2.8-hd', 'music-3.0', 'music-2.6']),
       ]) {
         final provider = aiProviderBuiltinById(
           'openai',
@@ -138,6 +138,58 @@ void main() {
         );
         expect(models, sample.$2);
       }
+    },
+  );
+
+  test(
+    'OpenRouter audio discovery requests speech and excludes chat/music models',
+    () async {
+      final provider = aiProviderBuiltinById('openai')!.copyWith(
+        type: 'openrouter',
+        baseUrl: 'https://proxy.example/api/v1',
+        apiKey: 'key',
+      );
+      final models = await http.runWithClient(
+        () => fetchProviderModels(provider, kind: AiModelKind.audio),
+        () => MockClient((r) async {
+          expect(
+            r.url.toString(),
+            'https://openrouter.ai/api/v1/models?output_modalities=speech',
+          );
+          return http.Response(
+            jsonEncode({
+              'data': [
+                {
+                  'id': 'minimax/speech-2.8-hd',
+                  'architecture': {
+                    'output_modalities': ['speech'],
+                  },
+                },
+                {
+                  'id': 'qwen/qwen-audio-3.0-tts-plus',
+                  'architecture': {
+                    'output_modalities': ['speech'],
+                  },
+                },
+                {
+                  'id': 'music-only',
+                  'architecture': {
+                    'output_modalities': ['audio'],
+                  },
+                },
+                {
+                  'id': 'chat',
+                  'architecture': {
+                    'output_modalities': ['text'],
+                  },
+                },
+              ],
+            }),
+            200,
+          );
+        }),
+      );
+      expect(models, ['minimax/speech-2.8-hd', 'qwen/qwen-audio-3.0-tts-plus']);
     },
   );
 

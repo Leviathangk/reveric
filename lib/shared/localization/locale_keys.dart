@@ -270,6 +270,37 @@ abstract final class LocaleKeys {
       'screenplay.production.addCharacterHint';
   static const productionAddLocationHint =
       'screenplay.production.addLocationHint';
+  static const productionSpeechVoiceRequired =
+      'screenplay.production.speechVoiceRequired';
+  static const productionSpeechText = 'screenplay.production.speechText';
+  static const productionSpeechCustomVoice =
+      'screenplay.production.speechCustomVoice';
+  static const productionSpeechVoiceId = 'screenplay.production.speechVoiceId';
+  static const productionSpeechVoiceIdHint =
+      'screenplay.production.speechVoiceIdHint';
+  static const productionSpeechInstructions =
+      'screenplay.production.speechInstructions';
+  static const productionSpeechInstructionsHint =
+      'screenplay.production.speechInstructionsHint';
+  static const productionSpeechUsingReference =
+      'screenplay.production.speechUsingReference';
+  static const productionBuiltinVoices = 'screenplay.production.builtinVoices';
+  static const productionVoiceWarmFemale =
+      'screenplay.production.voiceWarmFemale';
+  static const productionVoiceCoolFemale =
+      'screenplay.production.voiceCoolFemale';
+  static const productionVoiceBrightGirl =
+      'screenplay.production.voiceBrightGirl';
+  static const productionVoiceClearBoy = 'screenplay.production.voiceClearBoy';
+  static const productionVoiceWarmMale = 'screenplay.production.voiceWarmMale';
+  static const productionVoiceDeepMale = 'screenplay.production.voiceDeepMale';
+  static const productionVoiceWeatheredElder =
+      'screenplay.production.voiceWeatheredElder';
+  static const productionVoices = 'screenplay.production.voices';
+  static const productionVoicesManage = 'screenplay.production.voicesManage';
+  static const productionVoicesHint = 'screenplay.production.voicesHint';
+  static const productionVoicesEmpty = 'screenplay.production.voicesEmpty';
+  static const productionVoiceMode = 'screenplay.production.voiceMode';
   static const productionSubjectProfile =
       'screenplay.production.subjectProfile';
   static const productionPhotosEmpty = 'screenplay.production.photosEmpty';
@@ -346,6 +377,12 @@ abstract final class LocaleKeys {
       'screenplay.production.generateFramesRequired';
   static const productionGenerateVisualReferenceRequired =
       'screenplay.production.generateVisualReferenceRequired';
+  static const productionGenerateTooManyAudio =
+      'screenplay.production.generateTooManyAudio';
+  static const productionGenerateAudioInputs =
+      'screenplay.production.generateAudioInputs';
+  static const productionGenerateVoiceInputs =
+      'screenplay.production.generateVoiceInputs';
   static const productionGenerateTooManyInputs =
       'screenplay.production.generateTooManyInputs';
   static const productionGenerateInvalidField =

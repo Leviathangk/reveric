@@ -16,6 +16,7 @@
 //   .agents/rules/form.md
 //   .agents/rules/text-input-ime.md
 //   .agents/rules/design-system.md
+import '../../../shared/hooks/use_ai_providers.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -147,11 +148,7 @@ class _ImageForm extends HookConsumerWidget {
       form,
       () => form.getValue<ImageGenerationPreset>(ShotField.imagePreset)!,
     );
-    final providers = useFuture(
-      useMemoized(() => service.library.database.aiProviderDao.getAll(), [
-        service,
-      ]),
-    );
+    final providers = useAiProviders(service.library.database);
     final provider = providers.data?.where((p) => p.id == model.$1).firstOrNull;
     final capability = provider == null
         ? null

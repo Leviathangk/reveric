@@ -17,6 +17,7 @@
 //   .agents/rules/design-system.md
 //   .agents/rules/performance.md
 
+import '../../../shared/hooks/use_ai_providers.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -276,11 +277,7 @@ class ProductionBoard extends HookConsumerWidget {
       ),
     ).data;
     final modes = clipInfo;
-    final audioProviders = useFuture(
-      useMemoized(() => service.library.database.aiProviderDao.getAll(), [
-        service,
-      ]),
-    ).data;
+    final audioProviders = useAiProviders(service.library.database).data;
     final audioProviderTypes = {
       for (final p in audioProviders ?? []) p.id: p.type,
     };

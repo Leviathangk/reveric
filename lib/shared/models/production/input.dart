@@ -14,6 +14,7 @@ class ProductionInput {
     required this.refType,
     required this.refId,
     required this.role,
+    this.voiceAssetId,
   });
 
   factory ProductionInput.asset(String assetId, VideoInputRole role) =>
@@ -37,19 +38,37 @@ class ProductionInput {
   final String refId;
   final VideoInputRole role;
 
+  /// 本次视频生成选用的角色音色；角色的共享音色集合不决定本次选择。
+  final String? voiceAssetId;
+  String get voiceInputId => '$id:voice';
+
   String get identity => id;
   String get sourceIdentity => '${refType.name}:$refId:${role.name}';
   String? get sourceNodeId =>
       refType == ProductionInputType.node ? refId : null;
 
-  ProductionInput withRole(VideoInputRole value) =>
-      ProductionInput(id: id, refType: refType, refId: refId, role: value);
+  ProductionInput withRole(VideoInputRole value) => ProductionInput(
+    id: id,
+    refType: refType,
+    refId: refId,
+    role: value,
+    voiceAssetId: voiceAssetId,
+  );
+
+  ProductionInput withVoice(String? assetId) => ProductionInput(
+    id: id,
+    refType: refType,
+    refId: refId,
+    role: role,
+    voiceAssetId: assetId,
+  );
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'ref_type': refType.name,
     'ref_id': refId,
     'role': role.name,
+    if (voiceAssetId != null) 'voice_asset_id': voiceAssetId,
   };
 
   factory ProductionInput.fromJson(Map<String, dynamic> json) {
@@ -63,10 +82,19 @@ class ProductionInput {
       refType: ProductionInputType.values.byName(json['ref_type'] as String),
       refId: refId,
       role: VideoInputRole.values.byName(json['role'] as String),
+      voiceAssetId: json['voice_asset_id'] as String?,
     );
   }
 
   static void validateList(List<ProductionInput> inputs) {
+    for (final input in inputs) {
+      if (input.voiceAssetId != null &&
+          (input.voiceAssetId!.trim().isEmpty ||
+              input.refType != ProductionInputType.node ||
+              input.role.kind != VideoMediaKind.image)) {
+        throw const FormatException('Voice requires a character image input');
+      }
+    }
     if (inputs.map((i) => i.id).toSet().length != inputs.length ||
         inputs.map((i) => i.sourceIdentity).toSet().length != inputs.length) {
       throw const FormatException('Duplicate production input');

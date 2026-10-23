@@ -5,6 +5,7 @@
 //   lib/desktop/features/production/image_node.dart
 //   lib/shared/services/production/canvas_service.dart
 import 'dart:io';
+import 'package:reveric/desktop/features/production/voices.dart';
 import 'dart:convert';
 import 'package:drift/drift.dart' show Value;
 import 'package:reveric/shared/models/production/asset_content.dart';
@@ -65,6 +66,87 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await EasyLocalization.ensureInitialized();
   });
+
+  testWidgets(
+    'shared voices can be renamed and unlinked',
+    (tester) async {
+      final db = NovelContentDatabase.forTest(NativeDatabase.memory());
+      final main = app.AppDatabase.forTest(NativeDatabase.memory());
+      final service = ProductionCanvasService(
+        StoryboardService(db),
+        MediaLibraryService(
+          main,
+          MediaService(FfmpegRunner()),
+          Directory.systemTemp,
+        ),
+        'work',
+      );
+      try {
+        await db
+            .into(db.characterProfiles)
+            .insert(
+              CharacterProfilesCompanion.insert(
+                id: 'hero',
+                name: 'Hero',
+                voices: const Value([
+                  CharacterVoice(assetId: 'one', name: 'Normal'),
+                  CharacterVoice(assetId: 'two', name: 'Young'),
+                ]),
+              ),
+            );
+        await tester.pumpWidget(
+          _wrap(
+            Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showProductionVoices(context, service, 'hero'),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Open'));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Normal'), findsOneWidget);
+        expect(find.text('Young'), findsOneWidget);
+        await tester.tap(find.byTooltip('Rename').first);
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), 'Calm');
+        await tester.tap(find.text('Save'));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Calm'), findsOneWidget);
+        expect(
+          (await db.characterProfileDao.getById('hero'))!.voices!.first.name,
+          'Calm',
+        );
+        final second = find.byKey(const ValueKey('voice-two'));
+        await tester.tap(
+          find.descendant(of: second, matching: find.byTooltip('Remove')),
+        );
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Young'), findsNothing);
+        expect(tester.takeException(), isNull);
+      } finally {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpAndSettle();
+        await db.close();
+        await main.close();
+      }
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.windows,
+      TargetPlatform.macOS,
+    }),
+  );
 
   testWidgets(
     'reference input renders the asset image when its id is not a file path',

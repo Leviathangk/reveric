@@ -11,6 +11,7 @@
 // 遵循的 Rules:
 //   .agents/rules/hooks.md
 //   .agents/rules/form.md
+import '../../../shared/hooks/use_ai_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -35,6 +36,8 @@ enum ShotField<T> implements FieldSchema {
   prompt<String>(),
   model<(String, String)>(),
   imagePreset<ImageGenerationPreset>(),
+  audioVoice<String>(),
+  audioInstructions<String>(),
   mode<String>(),
   duration<String>(),
   ratio<String>(),
@@ -63,9 +66,7 @@ class ShotEditForm extends HookConsumerWidget {
     final service = ref.watch(storyboardServiceProvider(path));
     final overlay = ref.watch(workingOverlayServiceProvider(path));
     final appDb = ref.watch(appDatabaseProvider);
-    final providers = useFuture(
-      useMemoized(() => appDb.aiProviderDao.getAll(), [appDb]),
-    );
+    final providers = useAiProviders(appDb);
     final saving = useState(false);
     final error = useState<String?>(null);
     final form = useForm<ShotField>(

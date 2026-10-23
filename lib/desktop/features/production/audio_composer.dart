@@ -13,6 +13,7 @@
 //   .agents/rules/form.md
 //   .agents/rules/text-input-ime.md
 //   .agents/rules/design-system.md
+import '../../../shared/hooks/use_ai_providers.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -28,6 +29,7 @@ import '../../../shared/localization/locale_keys.dart';
 import '../../../shared/logger/app_logger.dart';
 import '../../../shared/models/ai_provider.dart';
 import '../../../shared/models/audio/request.dart';
+import '../../../shared/models/audio/settings.dart';
 import '../../../shared/models/audio/channels.dart';
 import '../../../shared/services/production/audio_generate_orchestrator.dart';
 import '../../../shared/models/video/request.dart';
@@ -38,6 +40,7 @@ import '../canvas/widgets/glass.dart';
 import '../storyboard/edit_form.dart' show ShotField;
 import 'edit_session.dart';
 import 'audio_submit.dart';
+import 'speech_options.dart';
 import 'input_preview.dart';
 import 'prompt_controller.dart';
 import 'composer_toolbar.dart';
@@ -124,6 +127,20 @@ class _AudioForm extends HookConsumerWidget {
       listen: false,
       initialValues: {
         ShotField.title: initial.clip.title,
+        ShotField.audioVoice:
+            audioParametersFromStyle(
+              node.style,
+              initial.clip.providerId,
+              initial.clip.modelId,
+            ).voice ??
+            '',
+        ShotField.audioInstructions:
+            audioParametersFromStyle(
+              node.style,
+              initial.clip.providerId,
+              initial.clip.modelId,
+            ).instructions ??
+            '',
         ShotField.model: (
           initial.clip.providerId ?? '',
           initial.clip.modelId ?? '',
@@ -137,17 +154,22 @@ class _AudioForm extends HookConsumerWidget {
       form,
       () => form.getValue<(String, String)>(ShotField.model)!,
     );
-    final providers = useFuture(
-      useMemoized(() => service.library.database.aiProviderDao.getAll(), [
-        service,
-      ]),
-    );
+    final providers = useAiProviders(service.library.database);
     final provider = providers.data?.where((p) => p.id == model.$1).firstOrNull;
     final capability =
         provider == null ||
             !AudioCapabilities(model.$2).supportsProvider(provider)
         ? null
         : AudioCapabilities.forProvider(model.$2, provider);
+    final voice = useListenableSelector(
+      form,
+      () => form.getValue<String>(ShotField.audioVoice) ?? '',
+    );
+    final instructions = useListenableSelector(
+      form,
+      () => form.getValue<String>(ShotField.audioInstructions) ?? '',
+    );
+    final showInstructions = useState(false);
     final inputKinds = inputs.value.map((i) => i.role.kind.name).toList();
     final imageMode = inputKinds.contains('image');
     final referenceTypes = {
@@ -172,6 +194,12 @@ class _AudioForm extends HookConsumerWidget {
     if (blockedReason == null && !capability!.accepts(inputKinds)) {
       blockedReason = context.t(LocaleKeys.productionAudioReferenceInvalid);
     }
+    if (blockedReason == null &&
+        capability!.model.speech &&
+        inputs.value.isEmpty &&
+        voice.trim().isEmpty) {
+      blockedReason = context.t(LocaleKeys.productionSpeechVoiceRequired);
+    }
     final saved = useRef('');
     final pending = useRef<Timer?>(null);
     final writing = useRef<Future<bool>?>(null);
@@ -179,7 +207,7 @@ class _AudioForm extends HookConsumerWidget {
     final overlay = ref.watch(workingOverlayServiceProvider(path));
     String value(ShotField key) => form.getValue<String>(key) ?? '';
     String signature() =>
-        '${prompt.source}|${value(ShotField.title)}|${form.getValue<(String, String)>(ShotField.model)}|${value(ShotField.ratio)}|${value(ShotField.resolution)}|${inputs.value.map((r) => '${r.identity}:${r.sourceNodeId}').join(',')}';
+        '${value(ShotField.audioVoice)}|${value(ShotField.audioInstructions)}|${prompt.source}|${value(ShotField.title)}|${form.getValue<(String, String)>(ShotField.model)}|${value(ShotField.ratio)}|${value(ShotField.resolution)}|${inputs.value.map((r) => '${r.identity}:${r.sourceNodeId}').join(',')}';
     if (saved.value.isEmpty) {
       saved.value = signature();
     }
@@ -202,6 +230,19 @@ class _AudioForm extends HookConsumerWidget {
           providerId: selection.$1.isEmpty ? null : selection.$1,
           modelId: selection.$2.isEmpty ? null : selection.$2,
           inputs: inputs.value,
+          parameters: AudioRequestDefaults(
+            voice: ConfigValue(
+              inputs.value.isEmpty &&
+                      value(ShotField.audioVoice).trim().isNotEmpty
+                  ? value(ShotField.audioVoice).trim()
+                  : null,
+            ),
+            instructions: ConfigValue(
+              value(ShotField.audioInstructions).trim().isNotEmpty
+                  ? value(ShotField.audioInstructions).trim()
+                  : null,
+            ),
+          ),
           overlay: overlay,
         );
         saved.value = version;
@@ -301,7 +342,9 @@ class _AudioForm extends HookConsumerWidget {
         return;
       }
       inputs.value = next;
-      if (reference && asset.type == 'audio') {
+      if (reference &&
+          capability?.model.supportsAudioReferencePlaceholders == true &&
+          asset.type == 'audio') {
         prompt.insertReference(input.id, asset.name);
       }
     }
@@ -320,7 +363,7 @@ class _AudioForm extends HookConsumerWidget {
     Future<void> reference() async {
       if (imageMode ||
           capability == null ||
-          capability.model.references.isEmpty) {
+          !capability.model.supportsAudioReferencePlaceholders) {
         return;
       }
       final box = context.findRenderObject()! as RenderBox;
@@ -450,13 +493,23 @@ class _AudioForm extends HookConsumerWidget {
                     controller: prompt,
                     hintText: imageMode
                         ? context.t(LocaleKeys.productionAudioImagePrompt)
-                        : context.t(LocaleKeys.productionAudioPrompt),
+                        : context.t(
+                            capability?.model.speech == true
+                                ? LocaleKeys.productionSpeechText
+                                : LocaleKeys.productionAudioPrompt,
+                          ),
                     footer: false,
                     maxLines: null,
                     onReference: () => productionRun(context, reference),
                   ),
                 ),
               ),
+              if (capability?.model.supportsInstructions == true &&
+                  (showInstructions.value || instructions.isNotEmpty))
+                ProductionSpeechInstructions(
+                  // 只有用户点开时抢焦点；带着已有说明打开节点时焦点留在台词。
+                  autofocus: instructions.isEmpty,
+                ),
               if (capability != null)
                 ValueListenableBuilder<TextEditingValue>(
                   valueListenable: prompt,
@@ -475,7 +528,8 @@ class _AudioForm extends HookConsumerWidget {
                     );
                   },
                 ),
-              if (capability != null && capability.model.references.isNotEmpty)
+              if (capability != null &&
+                  capability.model.supportsAudioReferencePlaceholders)
                 Text(
                   context.t(
                     LocaleKeys.productionAudioReferenceHint,
@@ -522,7 +576,7 @@ class _AudioForm extends HookConsumerWidget {
                     onTap:
                         imageMode ||
                             capability == null ||
-                            capability.model.references.isEmpty
+                            !capability.model.supportsAudioReferencePlaceholders
                         ? null
                         : () => productionRun(context, reference),
                   ),
@@ -577,11 +631,43 @@ class _AudioForm extends HookConsumerWidget {
                                         subtitle: p.name,
                                       ),
                               ],
-                              onChanged: (value) => changed?.call(value),
+                              onChanged: (value) {
+                                final picked = providers.data!.firstWhere(
+                                  (p) => p.id == value.$1,
+                                );
+                                final next = AudioCapabilities.forProvider(
+                                  value.$2,
+                                  picked,
+                                ).model;
+                                form.updateValue(
+                                  ShotField.audioVoice,
+                                  next.voices.firstOrNull ?? '',
+                                );
+                                form.updateValue(
+                                  ShotField.audioInstructions,
+                                  '',
+                                );
+                                changed?.call(value);
+                              },
                             ),
                       ),
                     ),
                   ),
+                  if (capability?.model.speech == true)
+                    ProductionSpeechVoiceSelect(
+                      capability: capability!.model,
+                      hasReference: inputs.value.isNotEmpty,
+                    ),
+                  if (capability?.model.supportsInstructions == true)
+                    ProductionToolButton(
+                      icon: RevericIcons.theater_comedy_outlined,
+                      tooltip: context.t(
+                        LocaleKeys.productionSpeechInstructions,
+                      ),
+                      open: showInstructions.value || instructions.isNotEmpty,
+                      onTap: () =>
+                          showInstructions.value = !showInstructions.value,
+                    ),
                 ],
               ),
             ],

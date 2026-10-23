@@ -137,6 +137,18 @@ class $CharacterProfilesTable extends CharacterProfiles
       ).withConverter<List<SubjectPhoto>?>(
         $CharacterProfilesTable.$converterphotosn,
       );
+  @override
+  late final GeneratedColumnWithTypeConverter<List<CharacterVoice>?, String>
+  voices =
+      GeneratedColumn<String>(
+        'voices',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<List<CharacterVoice>?>(
+        $CharacterProfilesTable.$convertervoicesn,
+      );
   static const VerificationMeta _identityMeta = const VerificationMeta(
     'identity',
   );
@@ -283,6 +295,7 @@ class $CharacterProfilesTable extends CharacterProfiles
     currentState,
     avatarAssetId,
     photos,
+    voices,
     identity,
     age,
     motivation,
@@ -500,6 +513,12 @@ class $CharacterProfilesTable extends CharacterProfiles
           data['${effectivePrefix}photos'],
         ),
       ),
+      voices: $CharacterProfilesTable.$convertervoicesn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}voices'],
+        ),
+      ),
       identity: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}identity'],
@@ -562,6 +581,10 @@ class $CharacterProfilesTable extends CharacterProfiles
   $converterphotos = const SubjectPhotoListConverter();
   static JsonTypeConverter2<List<SubjectPhoto>?, String?, List<Object?>?>
   $converterphotosn = JsonTypeConverter2.asNullable($converterphotos);
+  static JsonTypeConverter2<List<CharacterVoice>, String, List<Object?>>
+  $convertervoices = const CharacterVoiceListConverter();
+  static JsonTypeConverter2<List<CharacterVoice>?, String?, List<Object?>?>
+  $convertervoicesn = JsonTypeConverter2.asNullable($convertervoices);
   static TypeConverter<List<CharacterBehaviorTag>, String>
   $converterbehaviorTags = const CharacterBehaviorTagListConverter();
 }
@@ -598,6 +621,9 @@ class CharacterProfile extends DataClass
 
   /// 角色照片集，保存图片资产和名称。
   final List<SubjectPhoto>? photos;
+
+  /// 角色跨集共用的参考音频及名称。
+  final List<CharacterVoice>? voices;
 
   /// 角色身份/称号
   final String identity;
@@ -636,6 +662,7 @@ class CharacterProfile extends DataClass
     required this.currentState,
     this.avatarAssetId,
     this.photos,
+    this.voices,
     required this.identity,
     required this.age,
     required this.motivation,
@@ -677,6 +704,11 @@ class CharacterProfile extends DataClass
         $CharacterProfilesTable.$converterphotosn.toSql(photos),
       );
     }
+    if (!nullToAbsent || voices != null) {
+      map['voices'] = Variable<String>(
+        $CharacterProfilesTable.$convertervoicesn.toSql(voices),
+      );
+    }
     map['identity'] = Variable<String>(identity);
     map['age'] = Variable<String>(age);
     map['motivation'] = Variable<String>(motivation);
@@ -715,6 +747,9 @@ class CharacterProfile extends DataClass
       photos: photos == null && nullToAbsent
           ? const Value.absent()
           : Value(photos),
+      voices: voices == null && nullToAbsent
+          ? const Value.absent()
+          : Value(voices),
       identity: Value(identity),
       age: Value(age),
       motivation: Value(motivation),
@@ -751,6 +786,9 @@ class CharacterProfile extends DataClass
       photos: $CharacterProfilesTable.$converterphotosn.fromJson(
         serializer.fromJson<List<Object?>?>(json['photos']),
       ),
+      voices: $CharacterProfilesTable.$convertervoicesn.fromJson(
+        serializer.fromJson<List<Object?>?>(json['voices']),
+      ),
       identity: serializer.fromJson<String>(json['identity']),
       age: serializer.fromJson<String>(json['age']),
       motivation: serializer.fromJson<String>(json['motivation']),
@@ -786,6 +824,9 @@ class CharacterProfile extends DataClass
       'photos': serializer.toJson<List<Object?>?>(
         $CharacterProfilesTable.$converterphotosn.toJson(photos),
       ),
+      'voices': serializer.toJson<List<Object?>?>(
+        $CharacterProfilesTable.$convertervoicesn.toJson(voices),
+      ),
       'identity': serializer.toJson<String>(identity),
       'age': serializer.toJson<String>(age),
       'motivation': serializer.toJson<String>(motivation),
@@ -815,6 +856,7 @@ class CharacterProfile extends DataClass
     String? currentState,
     Value<String?> avatarAssetId = const Value.absent(),
     Value<List<SubjectPhoto>?> photos = const Value.absent(),
+    Value<List<CharacterVoice>?> voices = const Value.absent(),
     String? identity,
     String? age,
     String? motivation,
@@ -841,6 +883,7 @@ class CharacterProfile extends DataClass
         ? avatarAssetId.value
         : this.avatarAssetId,
     photos: photos.present ? photos.value : this.photos,
+    voices: voices.present ? voices.value : this.voices,
     identity: identity ?? this.identity,
     age: age ?? this.age,
     motivation: motivation ?? this.motivation,
@@ -877,6 +920,7 @@ class CharacterProfile extends DataClass
           ? data.avatarAssetId.value
           : this.avatarAssetId,
       photos: data.photos.present ? data.photos.value : this.photos,
+      voices: data.voices.present ? data.voices.value : this.voices,
       identity: data.identity.present ? data.identity.value : this.identity,
       age: data.age.present ? data.age.value : this.age,
       motivation: data.motivation.present
@@ -914,6 +958,7 @@ class CharacterProfile extends DataClass
           ..write('currentState: $currentState, ')
           ..write('avatarAssetId: $avatarAssetId, ')
           ..write('photos: $photos, ')
+          ..write('voices: $voices, ')
           ..write('identity: $identity, ')
           ..write('age: $age, ')
           ..write('motivation: $motivation, ')
@@ -943,6 +988,7 @@ class CharacterProfile extends DataClass
     currentState,
     avatarAssetId,
     photos,
+    voices,
     identity,
     age,
     motivation,
@@ -971,6 +1017,7 @@ class CharacterProfile extends DataClass
           other.currentState == this.currentState &&
           other.avatarAssetId == this.avatarAssetId &&
           other.photos == this.photos &&
+          other.voices == this.voices &&
           other.identity == this.identity &&
           other.age == this.age &&
           other.motivation == this.motivation &&
@@ -997,6 +1044,7 @@ class CharacterProfilesCompanion extends UpdateCompanion<CharacterProfile> {
   final Value<String> currentState;
   final Value<String?> avatarAssetId;
   final Value<List<SubjectPhoto>?> photos;
+  final Value<List<CharacterVoice>?> voices;
   final Value<String> identity;
   final Value<String> age;
   final Value<String> motivation;
@@ -1022,6 +1070,7 @@ class CharacterProfilesCompanion extends UpdateCompanion<CharacterProfile> {
     this.currentState = const Value.absent(),
     this.avatarAssetId = const Value.absent(),
     this.photos = const Value.absent(),
+    this.voices = const Value.absent(),
     this.identity = const Value.absent(),
     this.age = const Value.absent(),
     this.motivation = const Value.absent(),
@@ -1048,6 +1097,7 @@ class CharacterProfilesCompanion extends UpdateCompanion<CharacterProfile> {
     this.currentState = const Value.absent(),
     this.avatarAssetId = const Value.absent(),
     this.photos = const Value.absent(),
+    this.voices = const Value.absent(),
     this.identity = const Value.absent(),
     this.age = const Value.absent(),
     this.motivation = const Value.absent(),
@@ -1075,6 +1125,7 @@ class CharacterProfilesCompanion extends UpdateCompanion<CharacterProfile> {
     Expression<String>? currentState,
     Expression<String>? avatarAssetId,
     Expression<String>? photos,
+    Expression<String>? voices,
     Expression<String>? identity,
     Expression<String>? age,
     Expression<String>? motivation,
@@ -1101,6 +1152,7 @@ class CharacterProfilesCompanion extends UpdateCompanion<CharacterProfile> {
       if (currentState != null) 'current_state': currentState,
       if (avatarAssetId != null) 'avatar_asset_id': avatarAssetId,
       if (photos != null) 'photos': photos,
+      if (voices != null) 'voices': voices,
       if (identity != null) 'identity': identity,
       if (age != null) 'age': age,
       if (motivation != null) 'motivation': motivation,
@@ -1130,6 +1182,7 @@ class CharacterProfilesCompanion extends UpdateCompanion<CharacterProfile> {
     Value<String>? currentState,
     Value<String?>? avatarAssetId,
     Value<List<SubjectPhoto>?>? photos,
+    Value<List<CharacterVoice>?>? voices,
     Value<String>? identity,
     Value<String>? age,
     Value<String>? motivation,
@@ -1156,6 +1209,7 @@ class CharacterProfilesCompanion extends UpdateCompanion<CharacterProfile> {
       currentState: currentState ?? this.currentState,
       avatarAssetId: avatarAssetId ?? this.avatarAssetId,
       photos: photos ?? this.photos,
+      voices: voices ?? this.voices,
       identity: identity ?? this.identity,
       age: age ?? this.age,
       motivation: motivation ?? this.motivation,
@@ -1214,6 +1268,11 @@ class CharacterProfilesCompanion extends UpdateCompanion<CharacterProfile> {
     if (photos.present) {
       map['photos'] = Variable<String>(
         $CharacterProfilesTable.$converterphotosn.toSql(photos.value),
+      );
+    }
+    if (voices.present) {
+      map['voices'] = Variable<String>(
+        $CharacterProfilesTable.$convertervoicesn.toSql(voices.value),
       );
     }
     if (identity.present) {
@@ -1276,6 +1335,7 @@ class CharacterProfilesCompanion extends UpdateCompanion<CharacterProfile> {
           ..write('currentState: $currentState, ')
           ..write('avatarAssetId: $avatarAssetId, ')
           ..write('photos: $photos, ')
+          ..write('voices: $voices, ')
           ..write('identity: $identity, ')
           ..write('age: $age, ')
           ..write('motivation: $motivation, ')
@@ -22974,6 +23034,7 @@ typedef $$CharacterProfilesTableCreateCompanionBuilder =
       Value<String> currentState,
       Value<String?> avatarAssetId,
       Value<List<SubjectPhoto>?> photos,
+      Value<List<CharacterVoice>?> voices,
       Value<String> identity,
       Value<String> age,
       Value<String> motivation,
@@ -23001,6 +23062,7 @@ typedef $$CharacterProfilesTableUpdateCompanionBuilder =
       Value<String> currentState,
       Value<String?> avatarAssetId,
       Value<List<SubjectPhoto>?> photos,
+      Value<List<CharacterVoice>?> voices,
       Value<String> identity,
       Value<String> age,
       Value<String> motivation,
@@ -23088,6 +23150,16 @@ class $$CharacterProfilesTableFilterComposer
   >
   get photos => $composableBuilder(
     column: $table.photos,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    List<CharacterVoice>?,
+    List<CharacterVoice>,
+    String
+  >
+  get voices => $composableBuilder(
+    column: $table.voices,
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
@@ -23221,6 +23293,11 @@ class $$CharacterProfilesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get voices => $composableBuilder(
+    column: $table.voices,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get identity => $composableBuilder(
     column: $table.identity,
     builder: (column) => ColumnOrderings(column),
@@ -23330,6 +23407,9 @@ class $$CharacterProfilesTableAnnotationComposer
   GeneratedColumnWithTypeConverter<List<SubjectPhoto>?, String> get photos =>
       $composableBuilder(column: $table.photos, builder: (column) => column);
 
+  GeneratedColumnWithTypeConverter<List<CharacterVoice>?, String> get voices =>
+      $composableBuilder(column: $table.voices, builder: (column) => column);
+
   GeneratedColumn<String> get identity =>
       $composableBuilder(column: $table.identity, builder: (column) => column);
 
@@ -23425,6 +23505,7 @@ class $$CharacterProfilesTableTableManager
                 Value<String> currentState = const Value.absent(),
                 Value<String?> avatarAssetId = const Value.absent(),
                 Value<List<SubjectPhoto>?> photos = const Value.absent(),
+                Value<List<CharacterVoice>?> voices = const Value.absent(),
                 Value<String> identity = const Value.absent(),
                 Value<String> age = const Value.absent(),
                 Value<String> motivation = const Value.absent(),
@@ -23451,6 +23532,7 @@ class $$CharacterProfilesTableTableManager
                 currentState: currentState,
                 avatarAssetId: avatarAssetId,
                 photos: photos,
+                voices: voices,
                 identity: identity,
                 age: age,
                 motivation: motivation,
@@ -23478,6 +23560,7 @@ class $$CharacterProfilesTableTableManager
                 Value<String> currentState = const Value.absent(),
                 Value<String?> avatarAssetId = const Value.absent(),
                 Value<List<SubjectPhoto>?> photos = const Value.absent(),
+                Value<List<CharacterVoice>?> voices = const Value.absent(),
                 Value<String> identity = const Value.absent(),
                 Value<String> age = const Value.absent(),
                 Value<String> motivation = const Value.absent(),
@@ -23504,6 +23587,7 @@ class $$CharacterProfilesTableTableManager
                 currentState: currentState,
                 avatarAssetId: avatarAssetId,
                 photos: photos,
+                voices: voices,
                 identity: identity,
                 age: age,
                 motivation: motivation,

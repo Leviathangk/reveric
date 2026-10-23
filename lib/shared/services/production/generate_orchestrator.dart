@@ -17,6 +17,7 @@ import '../ai/video/draft.dart';
 import '../ai/video/task_service.dart';
 import '../storyboard/service.dart';
 import 'canvas_service.dart';
+import 'voices.dart';
 
 VideoProtocol productionProtocol(String type) =>
     aiProviderTypeConfigFor(type)?.videoProtocol ??
@@ -68,6 +69,22 @@ VideoMode productionSubmitMode(
           ? VideoMode.first_last_frame
           : VideoMode.first_frame)
     : (roles.isEmpty ? VideoMode.text : VideoMode.reference);
+
+/// 以稳定身份展开角色选中的音色，编号与普通音频共同按最终输入顺序分配。
+List<ProductionInput> productionInputsWithVoices(
+  List<ProductionInput> inputs,
+) => [
+  for (final input in inputs) ...[
+    input,
+    if (input.voiceAssetId != null)
+      ProductionInput(
+        id: input.voiceInputId,
+        refType: ProductionInputType.asset,
+        refId: input.voiceAssetId!,
+        role: VideoInputRole.reference_audio,
+      ),
+  ],
+];
 
 class ResolvedProductionInput {
   const ResolvedProductionInput(this.input, this.assetId);
@@ -150,13 +167,33 @@ VideoRequest compileProductionPrompt(
           _ => throw StateError('Unexpected converted production role'),
         },
   ];
+  final voiceInstructions = <String>[];
+  for (final input in inputs) {
+    if (input.input.voiceAssetId == null) {
+      continue;
+    }
+    final imageSlot = slots.singleWhere((s) => s.inputId == input.id);
+    final audioSlot = slots
+        .where((s) => s.inputId == input.input.voiceInputId)
+        .firstOrNull;
+    if (audioSlot == null) {
+      throw const StoryboardException('invalid_reference');
+    }
+    voiceInstructions.add(
+      '${imageSlot.slot} 中的角色使用 ${audioSlot.slot} 的音色。参考音频仅提供声线，台词与情绪以本次提示词为准。',
+    );
+  }
   final defaults = lookupVideoChannelModel(
     providerType,
     raw.modelId,
   )?.requestDefaults;
   return VideoRequest(
     modelId: raw.modelId,
-    prompt: [text, ...frameInstructions].where((s) => s.isNotEmpty).join('\n'),
+    prompt: [
+      text,
+      ...frameInstructions,
+      ...voiceInstructions,
+    ].where((s) => s.isNotEmpty).join('\n'),
     mode: raw.mode,
     resolution: raw.resolution,
     ratio: raw.ratio,
@@ -224,11 +261,20 @@ class ProductionGenerateOrchestrator {
       );
     }
     final savedInputs = await service.inputs(nodeId);
+    for (final input in savedInputs.where((i) => i.voiceAssetId != null)) {
+      if (productionUsesFrames(raw.mode)) {
+        throw const VideoException(
+          VideoErrorCode.invalid_request,
+          field: 'voice_mode',
+        );
+      }
+      await service.requireInputVoice(input);
+    }
     final ordered = <ResolvedProductionInput>[];
     final inputs = <VideoSourceInput>[];
     final references = <VideoReference>[];
     final allowed = productionRoles(raw.mode);
-    for (final input in savedInputs) {
+    for (final input in productionInputsWithVoices(savedInputs)) {
       if (!allowed.contains(input.role)) {
         continue;
       }

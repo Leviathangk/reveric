@@ -44,6 +44,7 @@ import 'group_service.dart';
 export 'group_service.dart';
 import 'ffmpeg_runner.dart';
 import 'media_file.dart';
+import 'voices.dart';
 export 'media_file.dart';
 
 bool canAdoptProductionTask(GenerationTask task) =>
@@ -651,6 +652,7 @@ class ProductionCanvasService {
             refType: input.refType,
             refId: input.refId,
             role: input.role,
+            voiceAssetId: input.voiceAssetId,
           ),
         )
         .toList();
@@ -675,11 +677,15 @@ class ProductionCanvasService {
       ...shots.snapshot(copy),
       'prompt': copiedPrompt,
     });
-    if (clip.kind == 'image' && node.style?['imageGeneration'] != null) {
+    final settingsKey = clip.kind == 'audio'
+        ? 'audioGeneration'
+        : 'imageGeneration';
+    if ({'image', 'audio'}.contains(clip.kind) &&
+        node.style?[settingsKey] != null) {
       await db.canvasDao.updateActiveNodeFields(
         target.id,
         CanvasNodesCompanion(
-          style: Value({'imageGeneration': node.style!['imageGeneration']}),
+          style: Value({settingsKey: node.style![settingsKey]}),
         ),
       );
     }
@@ -1271,20 +1277,39 @@ class ProductionCanvasService {
     required String? modelId,
     required List<ProductionInput> inputs,
     required WorkingOverlayService overlay,
-  }) => saveDraft(
-    nodeId: nodeId,
-    inputs: inputs,
-    overlay: overlay,
-    values: {
-      'prompt': prompt,
-      'provider_id': providerId,
-      'model_id': modelId,
-      'reference_mode': 'reference',
-      'duration_ms': null,
-      'ratio': '1:1',
-      'resolution': '24k',
-    },
-  );
+    AudioRequestDefaults? parameters,
+  }) => write(nodeId, () async {
+    await saveDraft(
+      nodeId: nodeId,
+      inputs: inputs,
+      overlay: overlay,
+      values: {
+        'prompt': prompt,
+        'provider_id': providerId,
+        'model_id': modelId,
+        'reference_mode': 'reference',
+        'duration_ms': null,
+        'ratio': '1:1',
+        'resolution': '24k',
+      },
+    );
+    if (parameters != null) {
+      final node = await requireNode(nodeId);
+      await db.canvasDao.updateActiveNodeFields(
+        nodeId,
+        CanvasNodesCompanion(
+          style: Value({
+            ...?node.style,
+            'audioGeneration': {
+              'provider_id': providerId,
+              'model_id': modelId,
+              'parameters': parameters.toJson(),
+            },
+          }),
+        ),
+      );
+    }
+  });
 
   Future<void> saveDraft({
     required String nodeId,
@@ -1404,6 +1429,20 @@ class ProductionCanvasService {
                 old.id == input.id &&
                 old.sourceIdentity == input.sourceIdentity,
           );
+      if (input.voiceAssetId != null) {
+        if (node.type != canvasNodeTypeVideo) {
+          throw const StoryboardException('invalid_reference');
+        }
+        final sameVoice =
+            unchanged &&
+            existing.any(
+              (old) =>
+                  old.id == input.id && old.voiceAssetId == input.voiceAssetId,
+            );
+        if (!sameVoice) {
+          await requireInputVoice(input, requireBinding: true);
+        }
+      }
       if (input.refType == ProductionInputType.node) {
         final source = await db.canvasDao.getNodeById(input.refId);
         if (source == null && unchanged) {

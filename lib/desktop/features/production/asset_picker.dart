@@ -36,6 +36,7 @@ import '../../../shared/theme/theme.dart';
 import '../asset/library_menu_item.dart';
 import 'node_card.dart' show ProductionAssetThumb;
 import 'support.dart' show productionRun;
+import 'builtin_voices.dart';
 
 /// 类型标签顺序与文案；只列调用方允许的类型。
 const _typeLabels = {
@@ -172,6 +173,31 @@ class ProductionAssetPicker extends HookWidget {
                   )
                 else
                   const Spacer(),
+                if (types.contains('audio')) ...[
+                  RevericButton.secondary(
+                    label: context.t(LocaleKeys.productionBuiltinVoices),
+                    icon: RevericIcons.music_notes,
+                    onPressed: importing.value
+                        ? null
+                        : () async {
+                            importing.value = true;
+                            try {
+                              final asset = await pickProductionBuiltinVoice(
+                                context,
+                                service,
+                              );
+                              if (asset != null && context.mounted) {
+                                Navigator.of(context).pop(asset);
+                              }
+                            } finally {
+                              if (context.mounted) {
+                                importing.value = false;
+                              }
+                            }
+                          },
+                  ),
+                  const SizedBox(width: RevericSpacing.sm),
+                ],
                 if (extensions.isNotEmpty)
                   RevericButton.secondary(
                     label: context.t(LocaleKeys.commonImport),

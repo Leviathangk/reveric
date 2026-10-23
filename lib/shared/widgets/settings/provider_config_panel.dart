@@ -754,7 +754,8 @@ Future<List<String>> fetchProviderModels(
   AiProvider config, {
   AiModelKind kind = AiModelKind.chat,
 }) async {
-  if (kind == AiModelKind.audio) {
+  if (kind == AiModelKind.audio &&
+      config.typeEnum != AiProviderType.openrouter) {
     return audioModelsForProvider(config.type);
   }
   if (kind == AiModelKind.video) {
@@ -808,6 +809,8 @@ Future<List<String>> fetchProviderModels(
               '$basePath/${kind == AiModelKind.embedding ? 'embeddings/models' : 'models'}',
           queryParameters: kind == AiModelKind.chat
               ? {'output_modalities': 'text'}
+              : kind == AiModelKind.audio
+              ? {'output_modalities': 'speech'}
               : null,
         );
         headers = {'Authorization': 'Bearer ${config.effectiveApiKey}'};
@@ -844,10 +847,29 @@ Future<List<String>> fetchProviderModels(
             .toList(),
       _ =>
         (body['data'] as List<dynamic>)
+            .where(
+              (m) =>
+                  config.typeEnum != AiProviderType.openrouter ||
+                  kind != AiModelKind.audio ||
+                  ((m
+                                  as Map<
+                                    String,
+                                    dynamic
+                                  >)['architecture']?['output_modalities']
+                              as List? ??
+                          [])
+                      .contains('speech'),
+            )
             .map((m) => (m as Map<String, dynamic>)['id'] as String)
             .toList(),
     };
 
+    if (config.typeEnum == AiProviderType.openrouter &&
+        kind == AiModelKind.audio) {
+      models.removeWhere(
+        (id) => lookupAudioChannelModel(config.type, id) == null,
+      );
+    }
     models.sort();
     return models;
   } finally {

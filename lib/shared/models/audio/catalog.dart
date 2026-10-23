@@ -5,6 +5,7 @@
 
 import '../model_config.dart' show ModelIdRecognizer;
 import 'config.dart';
+import 'speech.dart';
 export 'config.dart';
 
 class AudioModelCatalogEntry {
@@ -29,7 +30,7 @@ const _minimaxMusicModel = AudioModelCatalogEntry(
 
 // https://docs.byteplus.com/en/docs/byteplusvoice/seedaudio-01
 // https://platform.minimax.io/docs/api-reference/music-generation
-const audioModelsCatalog = <String, AudioModelCatalogEntry>{
+final audioModelsCatalog = <String, AudioModelCatalogEntry>{
   'seed-audio-1.0': AudioModelCatalogEntry(
     capabilities: AudioModelCapabilities(
       maxPromptCharacters: 3000,
@@ -60,6 +61,11 @@ const audioModelsCatalog = <String, AudioModelCatalogEntry>{
       sampleRate: ConfigValue(24000),
     ),
   ),
+  for (final entry in speechModels.entries)
+    entry.key: AudioModelCatalogEntry(
+      capabilities: entry.value,
+      requestDefaults: AudioRequestDefaults(responseFormat: ConfigValue('mp3')),
+    ),
   'music-3.0': _minimaxMusicModel,
   'music-2.6': _minimaxMusicModel,
 };

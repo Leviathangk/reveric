@@ -1,4 +1,4 @@
-// 职责: 编解码 MiniMax 音乐生成协议和业务错误回执。
+// 职责: 编解码 MiniMax 配乐与语音合成协议和业务错误回执。
 // 关联文件:
 //   lib/shared/services/ai/audio/client.dart
 //   lib/shared/models/audio/request.dart
@@ -10,6 +10,7 @@ import 'dart:typed_data';
 import '../../../localization/locale_keys.dart';
 import '../../../models/audio/exception.dart';
 import '../../../models/audio/request.dart';
+import '../../../models/audio/channels.dart';
 import '../media_diagnostics.dart';
 import 'client.dart';
 
@@ -37,6 +38,21 @@ class MinimaxAudioClient extends AudioClient {
   }
 
   @override
+  Uri submissionUrl(AudioRequest request) {
+    if (lookupAudioChannelModel(
+          providerType,
+          request.modelId,
+        )?.capabilities.speech !=
+        true) {
+      return requestUrl;
+    }
+    final path = endpoint.path.replaceFirst(RegExp(r'/+$'), '');
+    return endpoint.replace(
+      path: '$path${path.endsWith('/v1') ? '' : '/v1'}/t2a_v2',
+    );
+  }
+
+  @override
   Map<String, dynamic> encode(
     AudioRequest request, {
     List<Uint8List> references = const [],
@@ -47,13 +63,23 @@ class MinimaxAudioClient extends AudioClient {
     if (references.isNotEmpty) {
       throw const AudioException('invalid_config');
     }
+    final speech = request.modelId.startsWith('speech-');
     return {
       'model': request.modelId,
-      'prompt': request.prompt,
+      if (speech) ...{
+        'text': request.prompt,
+        'voice_setting': {
+          'voice_id': request.parameters.voice,
+          'speed': 1,
+          'vol': 1,
+          'pitch': 0,
+        },
+        'language_boost': 'auto',
+      } else
+        'prompt': request.prompt,
       'stream': false,
       'output_format': 'hex',
-      // 制作只需要配乐与音效，固定生成无人声的纯音乐。
-      'is_instrumental': true,
+      if (!speech) 'is_instrumental': true,
       'audio_setting': {
         if (request.parameters.sampleRate != null)
           'sample_rate': request.parameters.sampleRate,

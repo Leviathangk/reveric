@@ -11,6 +11,7 @@ import 'dart:typed_data';
 import '../../database/novel_content_database.dart';
 import '../../models/ai_provider.dart';
 import '../../models/audio/request.dart';
+import '../../models/audio/settings.dart';
 import '../../models/generation/task.dart';
 import '../../models/storyboard/prompt.dart';
 import '../../models/video/request.dart';
@@ -123,7 +124,17 @@ class ProductionAudioGenerateOrchestrator {
       inputs,
       providerId: provider.id,
     );
-    final prompt = compileAudioPrompt(clip.prompt, references);
+    final capability = AudioCapabilities.forProvider(clip.modelId!, provider);
+    final prompt = compileAudioPrompt(
+      clip.prompt,
+      references,
+      placeholders: capability.model.supportsAudioReferencePlaceholders,
+    );
+    final parameters = audioParametersFromStyle(
+      node.style,
+      clip.providerId,
+      clip.modelId,
+    );
     final request = resolveAudioRequest(
       provider.type,
       AudioRequest(
@@ -132,6 +143,7 @@ class ProductionAudioGenerateOrchestrator {
         prompt: prompt,
         originalPrompt: clip.prompt,
         references: references,
+        parameters: parameters,
       ),
     );
     return ProductionAudioPreview(service.novelId, node.id, clip.id, request);
@@ -240,7 +252,11 @@ Future<List<AudioReference>> resolveAudioReferences(
   return references;
 }
 
-String compileAudioPrompt(String source, List<AudioReference> references) {
+String compileAudioPrompt(
+  String source,
+  List<AudioReference> references, {
+  bool placeholders = true,
+}) {
   final parsed = StoryboardPrompt.parse(source);
   final text = parsed.parts.map((part) {
     if (!part.isReference) {
@@ -250,7 +266,7 @@ String compileAudioPrompt(String source, List<AudioReference> references) {
     if (index < 0 || references[index].kind != 'audio') {
       throw const AudioException('invalid_reference');
     }
-    return '@Audio${index + 1}';
+    return placeholders ? '@Audio${index + 1}' : '';
   }).join();
   return text;
 }

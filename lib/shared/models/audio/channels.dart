@@ -7,6 +7,7 @@
 
 import '../ai_provider.dart' show ModelIdSource, aiProviderTypeConfigFor;
 import 'catalog.dart';
+import 'speech.dart';
 
 enum AudioProtocol { seed_audio, minimax_music, openrouter_speech }
 
@@ -36,15 +37,23 @@ class AudioChannelModel {
       model.requestDefaults.merge(_requestDefaults);
 }
 
-const audioChannelModels = <AudioProtocol, Map<String, AudioChannelModel>>{
+final audioChannelModels = <AudioProtocol, Map<String, AudioChannelModel>>{
   AudioProtocol.seed_audio: {
     'seed-audio-1.0': AudioChannelModel(catalogId: 'seed-audio-1.0'),
   },
   AudioProtocol.minimax_music: {
+    'speech-2.8-hd': const AudioChannelModel(
+      catalogId: 'minimax/speech-2.8-hd',
+      requestDefaults: AudioRequestDefaults(
+        sampleRate: ConfigValue(32000),
+        bitrate: ConfigValue(128000),
+      ),
+    ),
     'music-3.0': AudioChannelModel(catalogId: 'music-3.0'),
     'music-2.6': AudioChannelModel(catalogId: 'music-2.6'),
   },
   AudioProtocol.openrouter_speech: {
+    for (final id in speechModels.keys) id: AudioChannelModel(catalogId: id),
     'bytedance-seed/seed-audio-1-0': AudioChannelModel(
       catalogId: 'seed-audio-1.0',
       capabilities: AudioModelCapabilities(

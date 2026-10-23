@@ -45,6 +45,7 @@ import '../../../shared/models/production/image_request.dart';
 import '../../../shared/models/audio/channels.dart';
 import '../../../shared/services/production/audio_generate_orchestrator.dart';
 import '../../../shared/services/production/generate_orchestrator.dart';
+import '../../../shared/services/production/voices.dart';
 import '../../../shared/components/reveric_context_menu.dart';
 import '../../../shared/providers/screenplay_providers.dart';
 import '../../../shared/providers/screenplay_workspace_state_provider.dart';
@@ -938,13 +939,16 @@ class _EpisodeRegion extends HookConsumerWidget {
             overlay: ref.read(workingOverlayServiceProvider(path)),
           );
         } else {
+          final fresh = !existing.any((e) => e.identity == input.identity);
           await service.save(
             nodeId: target.id,
             request: request,
             providerId: shot.providerId,
             inputs: [
               ...existing.where((e) => e.identity != input.identity),
-              input,
+              fresh && !productionUsesFrames(request.mode)
+                  ? await service.withDefaultVoice(input)
+                  : input,
             ],
             overlay: ref.read(workingOverlayServiceProvider(path)),
           );

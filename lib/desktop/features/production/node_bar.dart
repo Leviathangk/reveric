@@ -48,6 +48,7 @@ import 'node_card.dart' show ProductionSegmentTag;
 import 'popover.dart';
 import 'upload.dart';
 import 'subject_picker.dart';
+import 'voices.dart';
 import 'support.dart';
 
 class ProductionNodeBar extends HookConsumerWidget {
@@ -516,6 +517,16 @@ class ProductionNodeBar extends HookConsumerWidget {
                           icon: RevericIcons.visibility_outlined,
                           label: context.t(LocaleKeys.commonView),
                           onTap: onPreview,
+                        ),
+                      if (clip?.characterId != null)
+                        _BarButton(
+                          icon: RevericIcons.music_notes,
+                          label: context.t(LocaleKeys.productionVoices),
+                          onTap: () => showProductionVoices(
+                            context,
+                            service,
+                            clip!.characterId!,
+                          ),
                         ),
                       if (clip?.hasSubject == true)
                         _BarButton(

@@ -187,6 +187,7 @@ flutter:
     - assets/images/background/
     - assets/images/demo/
     - assets/images/production_styles/
+    - assets/audio/voices/
     - assets/images/agent_avatars/dark/
     - assets/images/agent_avatars/light/
     # Bundled Control Skills 与按需读取的 references

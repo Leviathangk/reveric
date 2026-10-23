@@ -156,6 +156,7 @@ class StoryboardEditOrchestrator {
             refType: input.refType,
             refId: input.refId,
             role: input.role,
+            voiceAssetId: input.voiceAssetId,
           ),
         )
         .toList();

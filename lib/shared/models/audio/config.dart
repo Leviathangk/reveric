@@ -44,11 +44,24 @@ class AudioModelCapabilities {
     bool? allowsMixedReferences,
     ConfigValue<int>? maxOutputDurationMs,
     bool? supportsAudioReferencePlaceholders,
-  }) : _maxPromptCharacters = maxPromptCharacters,
+    bool? speech,
+    bool? supportsInstructions,
+    List<String>? voices,
+  }) : _speech = speech,
+       _supportsInstructions = supportsInstructions,
+       _voices = voices,
+       _maxPromptCharacters = maxPromptCharacters,
        _references = references,
        _allowsMixedReferences = allowsMixedReferences,
        _maxOutputDurationMs = maxOutputDurationMs,
        _supportsAudioReferencePlaceholders = supportsAudioReferencePlaceholders;
+
+  final bool? _speech;
+  bool get speech => _speech ?? false;
+  final bool? _supportsInstructions;
+  bool get supportsInstructions => _supportsInstructions ?? false;
+  final List<String>? _voices;
+  List<String> get voices => _voices ?? const [];
 
   final int? _maxPromptCharacters;
   int get maxPromptCharacters => _maxPromptCharacters ?? 0;
@@ -70,6 +83,10 @@ class AudioModelCapabilities {
   AudioModelCapabilities merge(
     AudioModelCapabilities overrides,
   ) => AudioModelCapabilities(
+    speech: overrides._speech ?? _speech,
+    supportsInstructions:
+        overrides._supportsInstructions ?? _supportsInstructions,
+    voices: overrides._voices ?? _voices,
     maxPromptCharacters: overrides._maxPromptCharacters ?? _maxPromptCharacters,
     references: mergeModelReferences(
       _references,
@@ -87,13 +104,21 @@ class AudioModelCapabilities {
 
 class AudioRequestDefaults {
   const AudioRequestDefaults({
+    ConfigValue<String>? voice,
+    ConfigValue<String>? instructions,
     ConfigValue<String>? responseFormat,
     ConfigValue<int>? sampleRate,
     ConfigValue<int>? bitrate,
-  }) : _responseFormat = responseFormat,
+  }) : _voice = voice,
+       _instructions = instructions,
+       _responseFormat = responseFormat,
        _sampleRate = sampleRate,
        _bitrate = bitrate;
 
+  final ConfigValue<String>? _voice;
+  String? get voice => _voice?.value;
+  final ConfigValue<String>? _instructions;
+  String? get instructions => _instructions?.value;
   final ConfigValue<String>? _responseFormat;
   String? get responseFormat => _responseFormat?.value;
   final ConfigValue<int>? _sampleRate;
@@ -103,12 +128,16 @@ class AudioRequestDefaults {
 
   AudioRequestDefaults merge(AudioRequestDefaults overrides) =>
       AudioRequestDefaults(
+        voice: overrides._voice ?? _voice,
+        instructions: overrides._instructions ?? _instructions,
         responseFormat: overrides._responseFormat ?? _responseFormat,
         sampleRate: overrides._sampleRate ?? _sampleRate,
         bitrate: overrides._bitrate ?? _bitrate,
       );
 
   Map<String, dynamic> toJson() => {
+    if (_voice != null) 'voice': voice,
+    if (_instructions != null) 'instructions': instructions,
     if (_responseFormat != null) 'response_format': responseFormat,
     if (_sampleRate != null) 'sample_rate': sampleRate,
     if (_bitrate != null) 'bitrate': bitrate,
@@ -116,6 +145,12 @@ class AudioRequestDefaults {
 
   factory AudioRequestDefaults.fromJson(Map<String, dynamic> json) =>
       AudioRequestDefaults(
+        voice: json.containsKey('voice')
+            ? ConfigValue(json['voice'] as String?)
+            : null,
+        instructions: json.containsKey('instructions')
+            ? ConfigValue(json['instructions'] as String?)
+            : null,
         responseFormat: json.containsKey('response_format')
             ? ConfigValue(json['response_format'] as String?)
             : null,

@@ -29,6 +29,8 @@ import 'package:drift/native.dart';
 import 'package:meta/meta.dart';
 
 import 'type_converters.dart';
+import '../models/character_voice.dart';
+export '../models/character_voice.dart';
 export 'app_database.dart' show notDeletedSentinel;
 export '../models/chapter.dart' show Chapter;
 export '../models/entity_relation_history.dart' show RelationSummary;
@@ -549,6 +551,10 @@ class CharacterProfiles extends Table {
   /// 角色照片集，保存图片资产和名称。
   TextColumn get photos =>
       text().map(const SubjectPhotoListConverter()).nullable()();
+
+  /// 角色跨集共用的参考音频及名称。
+  TextColumn get voices =>
+      text().map(const CharacterVoiceListConverter()).nullable()();
 
   /// 角色身份/称号
   TextColumn get identity => text().withDefault(const Constant(''))();

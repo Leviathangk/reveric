@@ -40,6 +40,7 @@ abstract class AudioClient {
   AudioRequestDefaults get unlistedModelDefaults;
 
   Uri get requestUrl;
+  Uri submissionUrl(AudioRequest request) => requestUrl;
   Map<String, String> get headers;
   Map<String, dynamic> encode(
     AudioRequest request, {
@@ -66,7 +67,7 @@ abstract class AudioClient {
     request = lookupAudioChannelModel(providerType, request.modelId) == null
         ? request.withDefaults(unlistedModelDefaults)
         : resolveAudioRequest(providerType, request);
-    final endpoint = requestUrl;
+    final endpoint = submissionUrl(request);
     if (!{'http', 'https'}.contains(endpoint.scheme) ||
         endpoint.host.isEmpty ||
         endpoint.userInfo.isNotEmpty ||

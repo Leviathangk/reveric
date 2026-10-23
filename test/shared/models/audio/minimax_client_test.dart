@@ -171,7 +171,11 @@ void main() {
       AudioCapabilities('seed-audio-1.0').supportsProvider(provider),
       isFalse,
     );
-    expect(audioModelsForProvider('minimax'), ['music-3.0', 'music-2.6']);
+    expect(audioModelsForProvider('minimax'), [
+      'speech-2.8-hd',
+      'music-3.0',
+      'music-2.6',
+    ]);
     expect(audioModelsForProvider('volcengine'), ['seed-audio-1.0']);
   });
 }
