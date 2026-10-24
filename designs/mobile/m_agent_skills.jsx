@@ -85,7 +85,7 @@ const MSK_MARKET = [
 /* ---------------- atoms ---------------- */
 function MSkTag({ icon, children, tone }) {
   const map = {
-    accent: { c: 'var(--accent-warm)', bg: 'rgba(40,60,95,.13)' },
+    accent: { c: 'var(--accent-warm)', bg: 'color-mix(in srgb, var(--accent) 13%, transparent)' },
     muted: { c: 'var(--text-muted)', bg: 'var(--surface-dim)' },
   };
   const s = map[tone] || map.muted;
@@ -109,7 +109,7 @@ function MSkToast({ text }) {
   return (
     <div className="pop-in" style={{ position: 'absolute', left: '50%', bottom: 'calc(env(safe-area-inset-bottom,0px) + 24px)',
       transform: 'translateX(-50%)', zIndex: 90, display: 'flex', alignItems: 'center', gap: 8,
-      padding: '10px 16px', background: 'var(--text-primary)', color: 'var(--canvas)', borderRadius: 'var(--r-full)',
+      padding: '10px 16px', background: 'var(--text-primary)', color: 'var(--canvas)', borderRadius: 'var(--r-pill)',
       boxShadow: 'var(--shadow-float)', fontSize: 13, fontWeight: 600, maxWidth: '82%' }}>
       <I.checkCircle s={15} c="var(--accent-amber)" />{text}
     </div>
@@ -120,9 +120,9 @@ function MSkToast({ text }) {
 function MSkInstalledCard({ item, onToggle, onActions, onUpgrade, onRevoked }) {
   const blocked = !!item.executionBlockedReason;
   return (
-    <div className="card" style={{ padding: '13px 14px', ...(blocked ? { borderColor: 'var(--warning)', background: 'rgba(217,119,6,.05)' } : {}) }}>
+    <div className="card" style={{ padding: '13px 14px', ...(blocked ? { borderColor: 'var(--warning)', background: 'color-mix(in srgb, var(--warning-text) 5%, transparent)' } : {}) }}>
       <div className="row gap8" style={{ marginBottom: 6, alignItems: 'center' }}>
-        <span className="serif" style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--text-primary)',
+        <span className="display" style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--text-primary)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
         <Switch on={item.enabled} onToggle={() => onToggle(item.id)} />
         <button className="press" onClick={() => onActions(item)} aria-label="更多"
@@ -139,14 +139,14 @@ function MSkInstalledCard({ item, onToggle, onActions, onUpgrade, onRevoked }) {
         display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.desc}</p>
       {item.upgradeVersion && !blocked && (
         <button className="press" onClick={() => onUpgrade(item)}
-          style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 10px',
-            border: 'none', borderRadius: 'var(--r-md)', background: 'rgba(40,60,95,.14)', color: 'var(--accent-warm)',
+          style={{ marginTop: 10, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px',
+            border: 'none', borderRadius: 'var(--r-pill)', background: 'color-mix(in srgb, var(--accent) 14%, transparent)', color: 'var(--accent-warm)',
             fontSize: 12, fontWeight: 600 }}><I.refresh s={13} />可升级到 v{item.upgradeVersion}</button>
       )}
       {blocked && (
         <button className="press" onClick={() => onRevoked(item)}
           style={{ marginTop: 10, display: 'flex', width: '100%', alignItems: 'center', gap: 6, padding: '8px 10px',
-            border: 'none', borderRadius: 'var(--r-md)', background: 'rgba(217,119,6,.12)', color: 'var(--warning)',
+            border: 'none', borderRadius: 'var(--r-md)', background: 'color-mix(in srgb, var(--warning-text) 12%, transparent)', color: 'var(--warning)',
             fontSize: 12, fontWeight: 600, textAlign: 'left' }}><I.warn s={14} />已被撤销 · 运行时跳过执行<I.chevR s={14} style={{ marginLeft: 'auto' }} /></button>
       )}
     </div>
@@ -159,9 +159,9 @@ function MSkSourceCard({ item, badgeIcon, version, onInstall }) {
   return (
     <div className="card" style={{ padding: '13px 14px' }}>
       <div className="row gap10" style={{ marginBottom: 8, alignItems: 'center' }}>
-        <div style={{ width: 34, height: 34, borderRadius: 9, flex: '0 0 auto', background: 'rgba(40,60,95,.13)',
+        <div style={{ width: 34, height: 34, borderRadius: 'var(--r-md)', flex: '0 0 auto', background: 'color-mix(in srgb, var(--accent) 13%, transparent)',
           color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Cmp s={17} /></div>
-        <span className="serif" style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--text-primary)',
+        <span className="display" style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--text-primary)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
         {version && <MSkTag>v{version}</MSkTag>}
       </div>
@@ -184,9 +184,9 @@ function MSkMarketCard({ item, onOpen }) {
   return (
     <div className="card press" onClick={() => onOpen(item)} style={{ padding: '13px 14px' }}>
       <div className="row gap10" style={{ marginBottom: 8, alignItems: 'center' }}>
-        <div style={{ width: 34, height: 34, borderRadius: 9, flex: '0 0 auto', background: 'rgba(40,60,95,.13)',
+        <div style={{ width: 34, height: 34, borderRadius: 'var(--r-md)', flex: '0 0 auto', background: 'color-mix(in srgb, var(--accent) 13%, transparent)',
           color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><I.storefront s={17} /></div>
-        <span className="serif" style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--text-primary)',
+        <span className="display" style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, color: 'var(--text-primary)',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
         <I.chevR s={17} c="var(--text-subtle)" />
       </div>
@@ -209,10 +209,10 @@ function MSkMarketDetail({ item, onBack, onInstall }) {
       <PageHead title={item.name} onBack={onBack} scrolled={scrolled} center />
       <div className="viewport" ref={ref} style={{ padding: '10px 18px 28px' }}>
         <div className="row gap12" style={{ alignItems: 'center', marginBottom: 14 }}>
-          <div style={{ width: 52, height: 52, borderRadius: 13, flex: '0 0 auto', background: 'rgba(40,60,95,.13)',
+          <div style={{ width: 52, height: 52, borderRadius: 'var(--r-xl)', flex: '0 0 auto', background: 'color-mix(in srgb, var(--accent) 13%, transparent)',
             color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><I.storefront s={26} /></div>
           <div className="col" style={{ flex: 1, gap: 3, minWidth: 0 }}>
-            <span className="serif" style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>{item.name}</span>
+            <span className="display" style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>{item.name}</span>
             <span className="row gap8" style={{ fontSize: 12, color: 'var(--text-muted)' }}>
               <span className="row gap4"><I.user s={12} />{item.author}</span>
               <span className="row gap4"><I.history s={12} />{item.installs.toLocaleString()} 次安装</span>
@@ -229,9 +229,9 @@ function MSkMarketDetail({ item, onBack, onInstall }) {
         </div>
 
         <SectionLabel text="使用时机" />
-        <p className="serif" style={{ margin: '0 0 18px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.8 }}>{item.whenToUse}</p>
+        <p style={{ margin: '0 0 18px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.75 }}>{item.whenToUse}</p>
         <SectionLabel text="描述" />
-        <p className="serif" style={{ margin: '0 0 18px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.8 }}>{item.desc}</p>
+        <p style={{ margin: '0 0 18px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.75 }}>{item.desc}</p>
 
         <SectionLabel text="版本记录" />
         <div className="col gap8">
@@ -279,7 +279,7 @@ function MSkConflictSheet({ item, installed, onClose, onOverwrite, onRename }) {
   return (
     <Sheet onClose={onClose} max="70%">
       <SheetHeader
-        iconBox={<div style={{ width: 34, height: 34, borderRadius: 9, flex: '0 0 auto', background: 'rgba(217,119,6,.12)', color: 'var(--warning)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><I.warn s={18} /></div>}
+        iconBox={<div style={{ width: 34, height: 34, borderRadius: 'var(--r-md)', flex: '0 0 auto', background: 'color-mix(in srgb, var(--warning-text) 12%, transparent)', color: 'var(--warning)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><I.warn s={18} /></div>}
         title="调用名冲突" sub={`已存在调用名 “${existing ? existing.callName : ''}”`} />
       <div style={{ overflowY: 'auto', padding: '14px 18px calc(env(safe-area-inset-bottom,0px) + 20px)' }}>
         <p style={{ margin: '0 0 16px', fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.65 }}>
@@ -303,7 +303,7 @@ function MSkConfirmSheet({ icon, iconColor, iconBg, title, sub, body, extra, con
   return (
     <Sheet onClose={onClose} max="72%">
       <SheetHeader
-        iconBox={<div style={{ width: 34, height: 34, borderRadius: 9, flex: '0 0 auto', background: iconBg || 'rgba(40,60,95,.13)', color: iconColor || 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Cmp s={18} /></div>}
+        iconBox={<div style={{ width: 34, height: 34, borderRadius: 'var(--r-md)', flex: '0 0 auto', background: iconBg || 'color-mix(in srgb, var(--accent) 13%, transparent)', color: iconColor || 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Cmp s={18} /></div>}
         title={title} sub={sub} />
       <div style={{ overflowY: 'auto', padding: '14px 18px calc(env(safe-area-inset-bottom,0px) + 20px)' }}>
         {body && <p style={{ margin: '0 0 14px', fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.7 }}>{body}</p>}
@@ -321,9 +321,9 @@ function MSkCreateSheet({ onClose, onConfirm }) {
   return (
     <Sheet onClose={onClose} max="88%">
       <SheetHeader
-        iconBox={<div style={{ width: 34, height: 34, borderRadius: 9, flex: '0 0 auto', background: 'rgba(40,60,95,.13)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><I.pencil s={18} /></div>}
+        iconBox={<div style={{ width: 34, height: 34, borderRadius: 'var(--r-md)', flex: '0 0 auto', background: 'color-mix(in srgb, var(--accent) 13%, transparent)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><I.pencil s={18} /></div>}
         title="创建本地技能" sub="本地创建的技能直接安装到当前小说"
-        right={<button className="press" onClick={onConfirm} style={{ height: 32, padding: '0 14px', borderRadius: 'var(--r-lg)', background: 'var(--accent)', color: '#fff', border: 'none', fontSize: 13, fontWeight: 600 }}>创建</button>} />
+        right={<button className="press" onClick={onConfirm} style={{ height: 32, padding: '0 16px', borderRadius: 'var(--r-pill)', background: 'var(--accent)', color: 'var(--on-accent)', border: 'none', fontSize: 13, fontWeight: 600 }}>创建</button>} />
       <div style={{ overflowY: 'auto', padding: '14px 18px calc(env(safe-area-inset-bottom,0px) + 20px)' }}>
         <Field label="名称"><input className="tinput" placeholder="技能名称" /></Field>
         <Field label="调用名" hint="本小说内唯一,小写字母与下划线"><input className="tinput" placeholder="expand_scene" style={{ fontFamily: 'var(--mono)' }} /></Field>
@@ -353,14 +353,14 @@ function MSkRowActionsSheet({ item, onClose, onAction }) {
   return (
     <Sheet onClose={onClose} max="50%">
       <SheetHeader
-        iconBox={<div style={{ width: 34, height: 34, borderRadius: 9, flex: '0 0 auto', background: 'var(--surface-dim)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><I.spark s={18} /></div>}
+        iconBox={<div style={{ width: 34, height: 34, borderRadius: 'var(--r-md)', flex: '0 0 auto', background: 'var(--surface-dim)', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><I.spark s={18} /></div>}
         title={item.name} sub={item.callName} />
       <div style={{ padding: '6px 10px calc(env(safe-area-inset-bottom,0px) + 16px)' }}>
         {rows.map(r => {
           const Cmp = I[r.icon];
           return (
             <div key={r.k} className="srow press" onClick={() => onAction(r.k, item)}>
-              <div className="sicon" style={{ background: r.danger ? 'rgba(197,48,48,.10)' : 'var(--surface-dim)', color: r.danger ? 'var(--error)' : 'var(--text-secondary)' }}><Cmp s={17} /></div>
+              <div className="sicon" style={{ background: r.danger ? 'color-mix(in srgb, var(--error) 10%, transparent)' : 'var(--surface-dim)', color: r.danger ? 'var(--error)' : 'var(--text-secondary)' }}><Cmp s={17} /></div>
               <span style={{ flex: 1, fontSize: 14.5, fontWeight: 500, color: r.danger ? 'var(--error)' : 'var(--text-primary)' }}>{r.label}</span>
             </div>
           );
@@ -521,7 +521,7 @@ function SkillSetupScreen({ novel, home, onBack }) {
           onConfirm={() => { close(); flash(`已保存“${sheet.item.name}”到技能库。`); }} onClose={close} />
       )}
       {sheet && sheet.type === 'revoked' && (
-        <MSkConfirmSheet icon="warn" iconColor="var(--warning)" iconBg="rgba(217,119,6,.12)" title="该技能已被撤销" sub={sheet.item.name}
+        <MSkConfirmSheet icon="warn" iconColor="var(--warning)" iconBg="color-mix(in srgb, var(--warning-text) 12%, transparent)" title="该技能已被撤销" sub={sheet.item.name}
           body={sheet.item.executionBlockedReason + ' 本地内容已保留,但运行时会跳过执行,直到安装一个未被撤销的版本。'}
           confirmLabel="知道了" onConfirm={close} onClose={close} />
       )}

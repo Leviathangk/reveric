@@ -382,10 +382,10 @@ class _ForeshadowingMarkdownTabButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: selected ? colors.selected : colors.surfaceContainer,
-      borderRadius: BorderRadius.circular(RevericRadius.medium),
+      borderRadius: BorderRadius.circular(RevericRadius.capsule),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(RevericRadius.medium),
+        borderRadius: BorderRadius.circular(RevericRadius.capsule),
         hoverColor: colors.hover,
         child: Padding(
           padding: const EdgeInsets.symmetric(

@@ -48,5 +48,7 @@ back button returns to the library.
   and using its filename minus `.svg`.
 - Hover/selected/focus colors are token‑driven (`--hover`, `--selected`,
   `--accent`).
-- Cards have **no shadow** by default. The 1px `border-input` + tonal
-  `surface` is the entire elevation system.
+- Cards and panels float: `--card-border` + `--shadow-card` +
+  `--radius-2xl` on `surface`. Chrome (sidebars, toolbars, inputs, list
+  rows) stays flat. Titles use `--font-display` (sans); Georgia is only
+  for manuscript prose.

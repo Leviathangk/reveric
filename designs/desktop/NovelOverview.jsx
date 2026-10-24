@@ -6,10 +6,10 @@
 
 // 封面渐变(取自 LibraryView 的 COVER_BG;此处仅需 bg,故内联一份精简映射)。
 const OV_COVER_BG = {
-  ink: "linear-gradient(160deg, #d9c8a6 0%, #b89558 60%, #6a5740 100%)",
-  mountains: "linear-gradient(180deg, #cdb993 0%, #7e8698 65%, #2e3647 100%)",
-  stars: "linear-gradient(180deg, #2b2418 0%, #4a3f35 100%)",
-  tree: "linear-gradient(180deg, #eef0f8 0%, #8897d1 100%)",
+  ink: "linear-gradient(160deg, #3E524C 0%, #2D3A36 55%, #1C2623 100%)",
+  mountains: "linear-gradient(180deg, #CDD6DB 0%, #7E8D99 60%, #3A4551 100%)",
+  stars: "linear-gradient(180deg, #2B2834 0%, #4B4558 100%)",
+  tree: "linear-gradient(160deg, #D3E0DA 0%, #6F9D8D 60%, #2E6656 100%)",
 };
 
 function OvStat({ label, value }) {
@@ -28,10 +28,10 @@ function OvSecondaryAction({ icon, label, onClick }) {
       onClick={onClick}
       style={{
         display: "inline-flex", alignItems: "center", gap: 6,
-        padding: "6px 12px", borderRadius: "var(--radius-full)",
+        padding: "6px 12px", borderRadius: "var(--radius-button)",
         background: "color-mix(in srgb, var(--surface) 70%, transparent)",
         border: "1px solid var(--border-subtle)", cursor: "pointer",
-        color: "var(--text-secondary)", font: "500 12px/1.3 var(--sans)",
+        color: "var(--text-secondary)", font: "500 12px/1.3 var(--font-sans)",
       }}
     >
       <Icon name={icon} size={14} color="var(--text-muted)" />
@@ -45,10 +45,10 @@ function OvContinueHero({ lastWroteLabel, lastSentence, continueLabel, onSelectS
   return (
     <div style={{
       position: "relative", overflow: "hidden",
-      background: "var(--surface-high)", border: "1px solid var(--border-input)",
-      borderRadius: "var(--radius-2xl)", padding: 28,
+      background: "var(--surface)", border: "1px solid var(--card-border)",
+      boxShadow: "var(--shadow-card)", borderRadius: "var(--radius-2xl)", padding: 28,
     }}>
-      {/* 暖色装饰光晕 */}
+      {/* 装饰光晕 */}
       <div style={{
         position: "absolute", right: -40, top: -30, width: 240, height: 240,
         borderRadius: "50%", pointerEvents: "none",
@@ -57,11 +57,11 @@ function OvContinueHero({ lastWroteLabel, lastSentence, continueLabel, onSelectS
       <div style={{ position: "relative" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Icon name="plant" size={18} color="var(--accent-warm)" />
-          <span style={{ font: "600 13px/1.4 var(--sans)", color: "var(--accent-warm)" }}>继续写作</span>
+          <span style={{ font: "600 13px/1.4 var(--font-sans)", color: "var(--accent-warm)" }}>继续写作</span>
         </div>
         <div style={{ marginTop: 16, fontSize: 12, color: "var(--text-muted)" }}>{lastWroteLabel}</div>
         <div style={{
-          marginTop: 8, font: "700 22px/1.5 var(--serif)", color: "var(--text-primary)",
+          marginTop: 8, font: "700 22px/1.5 var(--font-serif)", color: "var(--text-primary)",
         }}>
           {lastSentence}
         </div>
@@ -74,9 +74,9 @@ function OvContinueHero({ lastWroteLabel, lastSentence, continueLabel, onSelectS
             onClick={() => onSelectSection("chapters")}
             style={{
               display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "10px 20px", borderRadius: "var(--radius-full)", border: 0,
+              padding: "10px 20px", borderRadius: "var(--radius-button)", border: 0,
               background: "var(--accent)", color: "var(--on-accent)",
-              font: "600 13px/1.4 var(--sans)", cursor: "pointer",
+              font: "600 13px/1.4 var(--font-sans)", cursor: "pointer",
             }}
           >
             <Icon name="pencil-simple" size={16} />
@@ -97,12 +97,12 @@ function OvContinueHero({ lastWroteLabel, lastSentence, continueLabel, onSelectS
 function OvProjectIntro({ novel, stats }) {
   return (
     <div style={{
-      background: "var(--surface-high)", border: "1px solid var(--border-input)",
-      borderRadius: "var(--radius-2xl)", padding: 20,
+      background: "var(--surface)", border: "1px solid var(--card-border)",
+      boxShadow: "var(--shadow-card)", borderRadius: "var(--radius-2xl)", padding: 20,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <Icon name="book-open" size={16} color="var(--accent-warm)" />
-        <span style={{ font: "600 13px/1.4 var(--sans)", color: "var(--text-primary)", flex: 1 }}>作品简介</span>
+        <span style={{ font: "600 13px/1.4 var(--font-sans)", color: "var(--text-primary)", flex: 1 }}>作品简介</span>
         {novel.description && (
           <button className="m-icon-btn m-icon-btn--ghost" title="复制">
             <Icon name="copy" size={14} color="var(--text-muted)" />
@@ -117,7 +117,7 @@ function OvProjectIntro({ novel, stats }) {
         }} />
         <div style={{
           flex: 1, minWidth: 0, maxHeight: 116, overflow: "auto",
-          font: "400 14px/1.7 var(--serif)", color: "var(--text-secondary)",
+          font: "400 14px/1.7 var(--font-serif)", color: "var(--text-secondary)",
         }}>
           {novel.description || "暂无简介"}
         </div>
@@ -143,18 +143,18 @@ function OvStickyNote({ note, background, accent, angle }) {
       flex: "1 1 180px", maxWidth: 240, minWidth: 160, height: 168,
       transform: `rotate(${angle}deg)`,
       padding: 16, borderRadius: "var(--radius-large)", background,
-      boxShadow: "0 4px 12px rgba(31,42,61,0.06)",
+      boxShadow: "0 4px 12px color-mix(in srgb, var(--shadow-base) 6%, transparent)",
       display: "flex", flexDirection: "column",
     }}>
       <div style={{
-        flex: 1, overflow: "hidden", font: "400 13px/1.5 var(--serif)", color: "var(--text-primary)",
+        flex: 1, overflow: "hidden", font: "400 13px/1.5 var(--font-sans)", color: "var(--text-primary)",
         display: "-webkit-box", WebkitLineClamp: 4, WebkitBoxOrient: "vertical",
       }}>
         {note.body}
       </div>
       <div style={{
-        marginTop: 8, textAlign: "right", fontStyle: "italic",
-        font: "500 11px/1.3 var(--sans)", color: accent,
+        marginTop: 8, textAlign: "right",
+        font: "500 11px/1.3 var(--font-sans)", color: accent,
       }}>
         — {note.tag}
       </div>
@@ -172,12 +172,12 @@ function OvSnippets({ notes, onSelectSection }) {
   const angles = [-2.3, 1.1, -0.9];
   return (
     <div style={{
-      background: "var(--surface-high)", border: "1px solid var(--border-input)",
-      borderRadius: "var(--radius-2xl)", padding: 20,
+      background: "var(--surface)", border: "1px solid var(--card-border)",
+      boxShadow: "var(--shadow-card)", borderRadius: "var(--radius-2xl)", padding: 20,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
         <Icon name="sparkle" size={16} color="var(--accent-warm)" />
-        <span style={{ font: "600 13px/1.4 var(--sans)", color: "var(--text-primary)", flex: 1 }}>
+        <span style={{ font: "600 13px/1.4 var(--font-sans)", color: "var(--text-primary)", flex: 1 }}>
           创作片段 / 灵感便签
         </span>
         <button
@@ -186,7 +186,7 @@ function OvSnippets({ notes, onSelectSection }) {
           style={{
             display: "inline-flex", alignItems: "center", gap: 2, padding: 4,
             background: "transparent", border: 0, cursor: "pointer",
-            font: "500 12px/1.3 var(--sans)", color: "var(--accent-warm)",
+            font: "500 12px/1.3 var(--font-sans)", color: "var(--accent-warm)",
           }}
         >
           查看更多
@@ -216,7 +216,7 @@ function OvEntryCard({ spec, onClick }) {
       onClick={onClick}
       style={{
         textAlign: "left", cursor: "pointer", padding: 20,
-        borderRadius: "var(--radius-pill)", border: "1px solid var(--border-subtle)",
+        borderRadius: "var(--radius-2xl)", border: "1px solid var(--card-border)",
         background: `linear-gradient(135deg, color-mix(in srgb, ${spec.tint} 14%, transparent), color-mix(in srgb, ${spec.tint} 4%, transparent))`,
         display: "flex", flexDirection: "column", gap: 12,
       }}
@@ -228,9 +228,9 @@ function OvEntryCard({ spec, onClick }) {
       }}>
         <Icon name={spec.icon} size={20} color={spec.tint} />
       </span>
-      <div style={{ font: "600 14px/1.4 var(--sans)", color: "var(--text-primary)" }}>{spec.title}</div>
+      <div style={{ font: "600 14px/1.4 var(--font-sans)", color: "var(--text-primary)" }}>{spec.title}</div>
       <div style={{
-        font: "400 12px/1.5 var(--sans)", color: "var(--text-muted)",
+        font: "400 12px/1.5 var(--font-sans)", color: "var(--text-muted)",
         display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
       }}>
         {spec.hint}
@@ -255,7 +255,7 @@ function OvWritingEntries({ onSelectSection }) {
   ];
   return (
     <div>
-      <div style={{ font: "700 20px/1.3 var(--serif)", color: "var(--text-primary)", marginBottom: 12 }}>
+      <div style={{ font: "700 20px/1.3 var(--font-display)", letterSpacing: "-0.01em", color: "var(--text-primary)", marginBottom: 12 }}>
         写作入口
       </div>
       <div style={{
@@ -325,7 +325,7 @@ function NovelOverview({ novel, onSelectSection }) {
           {/* 标题 + 状态 + 标签 */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ font: "700 28px/1.3 var(--serif)", color: "var(--text-primary)" }}>{novel.title}</div>
+              <div style={{ font: "700 28px/1.3 var(--font-display)", letterSpacing: "-0.02em", color: "var(--text-primary)" }}>{novel.title}</div>
               <button className="m-icon-btn m-icon-btn--ghost" title="编辑作品信息">
                 <Icon name="pencil-simple" size={16} color="var(--text-muted)" />
               </button>
@@ -336,7 +336,7 @@ function NovelOverview({ novel, onSelectSection }) {
                 borderRadius: "var(--radius-pill)",
                 background: "color-mix(in srgb, var(--accent-warm) 16%, transparent)",
                 border: "1px solid color-mix(in srgb, var(--accent-warm) 50%, transparent)",
-                font: "600 11px/1.3 var(--sans)", color: "var(--accent-warm)",
+                font: "600 11px/1.3 var(--font-sans)", color: "var(--accent-warm)",
               }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent-warm)" }} />
                 创作中
@@ -345,7 +345,7 @@ function NovelOverview({ novel, onSelectSection }) {
                 <span key={t} style={{
                   padding: "3px 10px", borderRadius: "var(--radius-pill)",
                   background: "var(--surface-container)", border: "1px solid var(--border-subtle)",
-                  font: "400 11px/1.3 var(--sans)", color: "var(--text-secondary)",
+                  font: "400 11px/1.3 var(--font-sans)", color: "var(--text-secondary)",
                 }}>
                   {t}
                 </span>

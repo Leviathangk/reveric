@@ -264,7 +264,6 @@ class BackgroundAgents extends HookConsumerWidget {
         RevericSpacing.sm,
       ),
       borderRadius: BorderRadius.circular(RevericRadius.large),
-      borderColor: colors.borderSubtle,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -88,7 +88,7 @@ function WorkspaceScreen({novel, onExit, onOpenChat,
         <div className="row" style={{justifyContent:'space-between', padding:'8px 12px 8px', gap:6}}>
           <IconBtn icon="chevL" size={24} onClick={onExit}/>
           <div className="col" style={{alignItems:'center', flex:1, minWidth:0}}>
-            <span className="serif" style={{fontSize:15.5, fontWeight:700, color:'var(--text-primary)',
+            <span className="display" style={{fontSize:15.5, fontWeight:700, color:'var(--text-primary)',
               whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'100%'}}>{novel.title}</span>
             <span style={{fontSize:11, color:'var(--text-muted)'}}>{subtitle}</span>
           </div>
@@ -154,14 +154,14 @@ function OverviewBody({novel, onScroll, onOpenSection, onContinueWriting, onOpen
 /* AI 配置 — 本作品级智能体规则与技能入口（对齐桌面端 rail 的 AI 分区） */
 function Ov_AgentConfig({onOpenAgentRules, onOpenAgentSkills}){
   const rows = [
-    {icon:'shield', bg:'rgba(59,81,130,.14)', c:'var(--accent-warm)',
+    {icon:'shield', bg:'color-mix(in srgb, var(--accent-warm) 14%, transparent)', c:'var(--accent-warm)',
       label:'智能体规则', hint:'约束主笔的文风、视角与底线', val:NOVEL_AGENT_RULES.length+' 条', onTap:onOpenAgentRules},
-    {icon:'spark', bg:'rgba(40,60,95,.13)', c:'var(--accent)',
+    {icon:'spark', bg:'color-mix(in srgb, var(--accent) 13%, transparent)', c:'var(--accent)',
       label:'智能体技能', hint:'本作品专属的可调用技能', val:NOVEL_AGENT_SKILLS.length+' 个', onTap:onOpenAgentSkills},
   ];
   return (
     <div className="col" style={{gap:12}}>
-      <span className="serif" style={{fontSize:18, fontWeight:700, color:'var(--text-primary)'}}>AI 配置</span>
+      <span className="display" style={{fontSize:18, fontWeight:700, color:'var(--text-primary)', letterSpacing:'-0.01em'}}>AI 配置</span>
       <div className="slist">
         {rows.map(r=>{
           const Cmp = I[r.icon];
@@ -187,7 +187,7 @@ function Ov_Title({novel, onEditNovel}){
   return (
     <div className="col" style={{gap:10}}>
       <div className="row" style={{gap:6}}>
-        <span className="serif" style={{flex:1, fontSize:26, fontWeight:700, color:'var(--text-primary)', letterSpacing:.3}}>{novel.title}</span>
+        <span className="display" style={{flex:1, fontSize:26, fontWeight:700, color:'var(--text-primary)', letterSpacing:'-0.02em'}}>{novel.title}</span>
         <button className="press" onClick={onEditNovel} style={{width:34,height:34,display:'flex',alignItems:'center',
           justifyContent:'center',color:'var(--text-secondary)',background:'transparent',border:'none'}}><I.pencil s={20}/></button>
       </div>
@@ -211,14 +211,13 @@ function Ov_ContinueHero({novel, onContinueWriting, onOpenSection, onOpenChat, o
   // 一键进 AI 对话（作品级），不必再钻进章节；点 chip 带不同意图进同一对话。
   const quickPrompts = ['接着第 4 章写', '理一理后续剧情', '挑一处设定漏洞'];
   return (
-    <div style={{padding:16, borderRadius:'var(--r-full)', border:'1px solid var(--border-subtle)',
-      background:'linear-gradient(135deg, rgba(59,81,130,.10), rgba(136,151,209,.04))'}}>
+    <div className="card" style={{padding:18}}>
       <div className="row gap6">
         <I.leaf s={16} c="var(--accent-warm)"/>
         <span style={{fontSize:13.5, fontWeight:600, color:'var(--accent-warm)'}}>继续写作</span>
       </div>
       <div style={{fontSize:12, color:'var(--text-muted)', marginTop:12}}>上次写到 · 第 3 章</div>
-      <div className="serif" style={{fontSize:16.5, fontWeight:700, color:'var(--text-primary)', lineHeight:1.6, marginTop:6}}>{last}</div>
+      <div className="serif" style={{fontSize:16.5, fontWeight:500, color:'var(--text-primary)', lineHeight:1.6, marginTop:6}}>{last}</div>
       <div style={{fontSize:12, color:'var(--text-muted)', marginTop:6}}>接着这里写下去，或让 AI 帮你。</div>
 
       {/* 自己写：主按钮 */}
@@ -239,7 +238,7 @@ function Ov_ContinueHero({novel, onContinueWriting, onOpenSection, onOpenChat, o
       <div className="row gap6" style={{flexWrap:'wrap', marginTop:10}}>
         {quickPrompts.map(p=>(
           <span key={p} className="press" onClick={onOpenChat} style={{height:28, padding:'0 11px', display:'inline-flex', alignItems:'center',
-            borderRadius:'var(--r-pill)', background:'rgba(40,60,95,.10)', border:'1px solid var(--border-subtle)',
+            borderRadius:'var(--r-pill)', background:'var(--selected)', border:'1px solid transparent',
             fontSize:12, color:'var(--accent-warm)', fontWeight:600}}>{p}</span>
         ))}
       </div>
@@ -260,7 +259,7 @@ function Ov_SecondaryAction({icon, label, onTap}){
   const Cmp = I[icon]||I.file;
   return (
     <button className="press" onClick={onTap} style={{height:34, padding:'0 14px', display:'flex', alignItems:'center', gap:6,
-      borderRadius:'var(--r-pill)', border:'1px solid var(--border-subtle)', background:'rgba(252,251,249,.7)',
+      borderRadius:'var(--r-pill)', border:'1px solid var(--border)', background:'var(--surface)',
       color:'var(--text-secondary)', fontSize:12.5, cursor:'pointer'}}>
       <Cmp s={14} c="var(--text-muted)"/>{label}</button>
   );
@@ -270,7 +269,7 @@ function Ov_SecondaryAction({icon, label, onTap}){
 function Ov_ProjectIntro({novel}){
   const stats = [['章节',novel.chapters],['设定',WORLD.length],['角色',CHARACTERS.length],['笔记',FORESHADOW.length]];
   return (
-    <div className="card" style={{padding:16, background:'var(--surface-high)', borderRadius:'var(--r-full)'}}>
+    <div className="card" style={{padding:16}}>
       <div className="row gap6">
         <I.books s={16} c="var(--accent-warm)"/>
         <span style={{flex:1, fontSize:14, fontWeight:600, color:'var(--text-primary)'}}>项目简介</span>
@@ -282,7 +281,7 @@ function Ov_ProjectIntro({novel}){
           display:'-webkit-box', WebkitLineClamp:6, WebkitBoxOrient:'vertical', overflow:'hidden'}}>{novel.desc||'尚无简介'}</div>
       </div>
       <div className="row" style={{flexWrap:'wrap', gap:'8px 18px', marginTop:14, padding:'11px 14px',
-        borderRadius:'var(--r-xl)', background:'var(--surface)', border:'1px solid var(--border-subtle)'}}>
+        borderRadius:'var(--r-xl)', background:'var(--surface-container)'}}>
         {stats.map(([label,val])=>(
           <span key={label} className="row gap4">
             <span style={{fontSize:12.5, color:'var(--text-muted)'}}>{label}</span>
@@ -297,15 +296,15 @@ function Ov_ProjectIntro({novel}){
 /* 灵感片段 — 伏笔 setup + 世界观正文，便签卡片堆叠 */
 function Ov_Snippets({onOpenSection}){
   const tones = [
-    {bg:'rgba(136,151,209,.18)', c:'var(--accent-amber)', tag:'灵感'},
-    {bg:'rgba(40,60,95,.12)', c:'var(--accent)', tag:'设定'},
-    {bg:'rgba(59,81,130,.16)', c:'var(--accent-warm)', tag:'关系'},
+    {bg:'color-mix(in srgb, var(--accent-warm) 18%, transparent)', c:'var(--accent-amber)', tag:'灵感'},
+    {bg:'color-mix(in srgb, var(--accent) 12%, transparent)', c:'var(--accent)', tag:'设定'},
+    {bg:'color-mix(in srgb, var(--accent-warm) 16%, transparent)', c:'var(--accent-warm)', tag:'关系'},
   ];
   const notes = [];
   for(const f of FORESHADOW){ if(notes.length>=3) break; if(f.note) notes.push(f.note); }
   for(const w of WORLD){ if(notes.length>=3) break; if(w.desc) notes.push(w.desc); }
   return (
-    <div className="card" style={{padding:16, background:'var(--surface-high)', borderRadius:'var(--r-full)'}}>
+    <div className="card" style={{padding:16}}>
       <div className="row gap6">
         <I.spark s={16} c="var(--accent-warm)"/>
         <span style={{flex:1, fontSize:14, fontWeight:600, color:'var(--text-primary)'}}>灵感片段</span>
@@ -320,7 +319,7 @@ function Ov_Snippets({onOpenSection}){
             <div key={i} style={{padding:14, borderRadius:'var(--r-xl)', background:t.bg}}>
               <div style={{fontSize:12.5, color:'var(--text-primary)', lineHeight:1.55,
                 display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', overflow:'hidden'}}>{body}</div>
-              <div style={{textAlign:'right', marginTop:8, fontSize:11, fontStyle:'italic', color:t.c}}>— {t.tag}</div>
+              <div style={{textAlign:'right', marginTop:8, fontSize:11, fontWeight:600, color:t.c}}>— {t.tag}</div>
             </div>
           );
         })}
@@ -332,22 +331,21 @@ function Ov_Snippets({onOpenSection}){
 /* 写作入口 — 4 张卡片（2×2） */
 function Ov_WritingEntries({onOpenSection}){
   const entries = [
-    {icon:'fileEdit', title:'正文写作', hint:'打开当前章节，接着写下去', hex:'#8897D1', k:'chapters'},
-    {icon:'globe',    title:'设定',   hint:'地理、制度、历史与器物设定', hex:'#283C5F', k:'world'},
-    {icon:'scroll',   title:'大纲剧情', hint:'卷章脉络与情节节点', hex:'#3B5182', k:'outline'},
-    {icon:'users',    title:'人物',     hint:'角色档案、关系与弧光', hex:'#283C5F', k:'characters'},
+    {icon:'fileEdit', title:'正文写作', hint:'打开当前章节，接着写下去', hex:'var(--accent-amber)', k:'chapters'},
+    {icon:'globe',    title:'设定',   hint:'地理、制度、历史与器物设定', hex:'var(--accent)', k:'world'},
+    {icon:'scroll',   title:'大纲剧情', hint:'卷章脉络与情节节点', hex:'var(--accent-warm)', k:'outline'},
+    {icon:'users',    title:'人物',     hint:'角色档案、关系与弧光', hex:'var(--info)', k:'characters'},
   ];
   return (
     <div className="col" style={{gap:12}}>
-      <span className="serif" style={{fontSize:18, fontWeight:700, color:'var(--text-primary)'}}>写作入口</span>
+      <span className="display" style={{fontSize:18, fontWeight:700, color:'var(--text-primary)', letterSpacing:'-0.01em'}}>写作入口</span>
       <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:10}}>
         {entries.map(e=>{
           const Cmp = I[e.icon]||I.file;
           return (
-            <div key={e.k} className="press" onClick={()=>onOpenSection(e.k)}
-              style={{padding:14, borderRadius:'var(--r-full)', border:'1px solid var(--border-subtle)',
-                background:`linear-gradient(135deg, ${tint(e.hex,.14)}, ${tint(e.hex,.04)})`}}>
-              <div style={{width:36, height:36, borderRadius:'var(--r-xl)', background:'rgba(252,251,249,.85)',
+            <div key={e.k} className="card press" onClick={()=>onOpenSection(e.k)}
+              style={{padding:14}}>
+              <div style={{width:36, height:36, borderRadius:'var(--r-lg)', background:tint(e.hex,.12),
                 display:'flex', alignItems:'center', justifyContent:'center', color:e.hex}}><Cmp s={20}/></div>
               <div style={{fontSize:14, fontWeight:600, color:'var(--text-primary)', marginTop:12}}>{e.title}</div>
               <div style={{fontSize:11.5, color:'var(--text-muted)', lineHeight:1.5, marginTop:4,
@@ -413,8 +411,9 @@ function SwipeRow({onDelete, children}){
     },
   });
   return (
-    // 外层铺实心红底：行身左滑时整块红色直接贴着卡片露出，不会出现淡色似缝隙的区域
-    <div style={{position:'relative', overflow:'hidden', borderRadius:'var(--r-2xl)', background:'var(--error)'}}>
+    // 外层铺实心红底：行身左滑时整块红色直接贴着卡片露出，不会出现淡色似缝隙的区域；
+    // 收起时不铺，免得红色从卡片圆角的抗锯齿边缘透出来
+    <div style={{position:'relative', overflow:'hidden', borderRadius:'var(--r-2xl)', background:open?'var(--error)':'transparent', boxShadow:'var(--shadow-card)'}}>
       {/* 删除按钮固定在行身后，左滑露出；实心红底由外层提供，图标文字用白色 */}
       <button onClick={onDelete} style={{position:'absolute', top:0, right:0, bottom:0, width:REVEAL, border:'none',
         background:'transparent', color:'var(--on-accent)', display:'flex', flexDirection:'column',
@@ -455,9 +454,9 @@ function ChaptersBody({onScroll, onOpenChapter}){
               {items.map(ch=>(
                 <SwipeRow key={ch.id} onDelete={()=>del(ch.id)}>
                   <div className="card press" onClick={()=>onOpenChapter(ch)} style={{padding:'12px 14px', display:'flex', alignItems:'center', gap:12}}>
-                    <span className="serif" style={{width:30, textAlign:'center', fontSize:16, fontWeight:700, color:ch.active?'var(--accent-warm)':'var(--text-subtle)', flex:'0 0 auto'}}>{ch.n}</span>
+                    <span className="display" style={{width:30, textAlign:'center', fontSize:16, fontWeight:700, color:ch.active?'var(--accent-warm)':'var(--text-subtle)', flex:'0 0 auto'}}>{ch.n}</span>
                     <div className="col" style={{flex:1, gap:3, minWidth:0}}>
-                      <span className="serif" style={{fontSize:15, fontWeight:700, color:ch.words?'var(--text-primary)':'var(--text-subtle)'}}>{ch.t}</span>
+                      <span className="display" style={{fontSize:15, fontWeight:700, color:ch.words?'var(--text-primary)':'var(--text-subtle)'}}>{ch.t}</span>
                       <span style={{fontSize:11.5, color:'var(--text-subtle)'}}>{ch.words?fmt(ch.words)+' 字':'尚未开始'}</span>
                     </div>
                     <StateChip state={ch.state} small/>
@@ -488,7 +487,7 @@ function OutlineBody({onScroll, onOpenDetail}){
               <div className="card press" onClick={()=>onOpenDetail && onOpenDetail(o)} style={{padding:'13px 14px'}}>
                 <div className="row gap8" style={{marginBottom:7}}>
                   <span style={{width:8,height:8,borderRadius:'50%',background:st.hex,flex:'0 0 auto'}}></span>
-                  <span className="serif" style={{flex:1, fontSize:15, fontWeight:700, color:'var(--text-primary)'}}>{o.title}</span>
+                  <span className="display" style={{flex:1, fontSize:15, fontWeight:700, color:'var(--text-primary)'}}>{o.title}</span>
                   <span style={{fontSize:11.5, color:st.hex, fontWeight:600}}>{st.label}</span>
                 </div>
                 <p style={{margin:0, fontSize:12.5, color:'var(--text-muted)', lineHeight:1.6,
@@ -521,8 +520,8 @@ function CharactersBody({onScroll, onOpenDetail}){
               <Avatar label={ch.name[0]} size={46} tint={ch.tint} fs={19}/>
               <div className="col" style={{flex:1, gap:3, minWidth:0}}>
                 <div className="row gap6">
-                  <span className="serif" style={{fontSize:15.5, fontWeight:700}}>{ch.name}</span>
-                  {ch.tag && <span className="chip" style={{height:18,fontSize:10,padding:'0 7px',background:'rgba(40,60,95,.12)',color:'var(--accent-warm)'}}>{ch.tag}</span>}
+                  <span className="display" style={{fontSize:15.5, fontWeight:700}}>{ch.name}</span>
+                  {ch.tag && <span className="chip" style={{height:18,fontSize:10,padding:'0 7px',background:'color-mix(in srgb, var(--accent) 12%, transparent)',color:'var(--accent-warm)'}}>{ch.tag}</span>}
                 </div>
                 <span style={{fontSize:11.5, color:'var(--text-muted)'}}>{ch.role}</span>
                 <span style={{fontSize:12, color:'var(--text-secondary)', lineHeight:1.5, marginTop:1,
@@ -551,7 +550,7 @@ function WorldBody({onScroll, onOpenDetail}){
               <div className="card press" onClick={()=>onOpenDetail(w)} style={{padding:'13px 14px', display:'flex', gap:12, alignItems:'center'}}>
                 <EntityIcon icon={w.icon} hex={w.tint} s={42} is={21}/>
                 <div className="col" style={{flex:1, gap:3, minWidth:0}}>
-                  <div className="row gap6"><span className="serif" style={{fontSize:14.5, fontWeight:700}}>{w.name}</span>
+                  <div className="row gap6"><span className="display" style={{fontSize:14.5, fontWeight:700}}>{w.name}</span>
                     <span className="chip" style={{height:18,fontSize:10,padding:'0 7px',background:'var(--surface-dim)',color:'var(--text-muted)'}}>{w.cat}</span></div>
                   <span style={{fontSize:12, color:'var(--text-muted)', lineHeight:1.5,
                     display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden'}}>{w.desc}</span>
@@ -571,7 +570,7 @@ function WorldBody({onScroll, onOpenDetail}){
 
 /* ---------- 伏笔台账 ---------- */
 function ForeshadowBody({onScroll, onOpenDetail}){
-  const tone = (s)=> s==='closed'?{c:'var(--success)',bg:'rgba(74,124,89,.12)',t:'已回收'}:{c:'var(--warning)',bg:'rgba(217,119,6,.12)',t:'待回收'};
+  const tone = (s)=> s==='closed'?{c:'var(--success)',bg:'color-mix(in srgb, var(--success) 12%, transparent)',t:'已回收'}:{c:'var(--warning)',bg:'color-mix(in srgb, var(--warning-text) 12%, transparent)',t:'待回收'};
   const [deleted, setDeleted] = useState([]);
   const del = (id)=> setDeleted(d=> d.includes(id) ? d : [...d, id]);
   const items = FORESHADOW.filter(f=>!deleted.includes(f.id));
@@ -585,7 +584,7 @@ function ForeshadowBody({onScroll, onOpenDetail}){
               <div className="card press" onClick={()=>onOpenDetail && onOpenDetail(f)} style={{padding:'13px 14px'}}>
                 <div className="row gap8" style={{marginBottom:8}}>
                   <I.flag s={16} c={tn.c}/>
-                  <span className="serif" style={{fontSize:14.5, fontWeight:700, flex:1}}>{f.name}</span>
+                  <span className="display" style={{fontSize:14.5, fontWeight:700, flex:1}}>{f.name}</span>
                   <span className="chip" style={{height:20,fontSize:10.5,padding:'0 8px',color:tn.c,background:tn.bg,fontWeight:600}}>{tn.t}</span>
                 </div>
                 <div className="row gap6" style={{marginBottom:8}}>
@@ -605,10 +604,10 @@ function ForeshadowBody({onScroll, onOpenDetail}){
 
 /* ---------- 图鉴（势力 / 生物 / 物品 / 技能） ---------- */
 const COMPENDIUM_GROUPS = [
-  {k:'faction', label:'势力', icon:'shield', tint:'#4C6E91', entries:FACTIONS},
-  {k:'creature', label:'生物', icon:'leaf', tint:'#5E7060', entries:CREATURES},
-  {k:'item', label:'物品', icon:'diamond', tint:'#8A6E4B', entries:ITEMS},
-  {k:'skill', label:'技能', icon:'spark', tint:'#283C5F', entries:COMPENDIUM_SKILLS},
+  {k:'faction', label:'势力', icon:'shield', tint:'var(--info)', entries:FACTIONS},
+  {k:'creature', label:'生物', icon:'leaf', tint:'#4E7F6E', entries:CREATURES},
+  {k:'item', label:'物品', icon:'diamond', tint:'#6E5D6B', entries:ITEMS},
+  {k:'skill', label:'技能', icon:'spark', tint:'var(--accent)', entries:COMPENDIUM_SKILLS},
 ];
 
 function CompendiumBody({onScroll, onOpenDetail}){
@@ -626,7 +625,7 @@ function CompendiumBody({onScroll, onOpenDetail}){
   return (
     <div className="viewport" onScroll={onScroll} style={{padding:'12px 18px 32px'}} data-screen-label="compendium-list">
       <label style={{height:44, display:'flex', alignItems:'center', gap:9, padding:'0 4px 0 12px',
-        border:'1px solid var(--border-input)', borderRadius:'var(--r-xl)', background:'var(--surface-high)'}}>
+        border:'1px solid var(--border-input)', borderRadius:'var(--r-pill)', background:'var(--surface-high)'}}>
         <I.search s={17} c="var(--text-subtle)"/>
         <input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索图鉴"
           style={{flex:1, minWidth:0, border:'none', outline:'none', background:'transparent',
@@ -647,7 +646,7 @@ function CompendiumBody({onScroll, onOpenDetail}){
         })}
       </div>
 
-      <div className="slist" style={{boxShadow:'none'}}>
+      <div className="slist">
         {visibleGroups.map((g,groupIndex)=>{
           const matches=g.entries.filter(e=>!query.trim() || (e.name+' '+e.desc+' '+(e.sub||'')).toLowerCase().includes(query.trim().toLowerCase()));
           if(!matches.length) return null;
@@ -656,7 +655,7 @@ function CompendiumBody({onScroll, onOpenDetail}){
           return <React.Fragment key={g.k}>
             <button className="srow press" onClick={()=>toggleGroup(g.k)}
               style={{width:'100%',border:0,borderTop:groupIndex?'1px solid var(--border-subtle)':'none',background:'var(--surface)',fontFamily:'var(--sans)'}}>
-              <span style={{width:30,height:30,borderRadius:9,display:'grid',placeItems:'center',background:tint(g.tint,.12),color:g.tint}}><Cmp s={16}/></span>
+              <span style={{width:30,height:30,borderRadius:'var(--r-md)',display:'grid',placeItems:'center',background:tint(g.tint,.12),color:g.tint}}><Cmp s={16}/></span>
               <span style={{flex:1,textAlign:'left',fontSize:14,fontWeight:650,color:'var(--text-primary)'}}>{g.label}</span>
               <span style={{fontSize:12,color:'var(--text-muted)'}}>{matches.length}</span>
               <I.chevR s={16} c="var(--text-subtle)" style={{transform:open?'rotate(90deg)':'none',transition:'transform .16s'}}/>
@@ -666,7 +665,7 @@ function CompendiumBody({onScroll, onOpenDetail}){
                 borderTop:'1px solid var(--border-subtle)',background:'var(--surface-high)'}}>
               <span style={{width:3,height:30,borderRadius:2,background:g.tint,opacity:.65}}></span>
               <div style={{flex:1,minWidth:0}}>
-                <div className="row gap6"><span className="serif" style={{fontSize:14,fontWeight:700}}>{e.name}</span>
+                <div className="row gap6"><span className="display" style={{fontSize:14,fontWeight:700}}>{e.name}</span>
                   {e.sub && <span style={{fontSize:10.5,color:'var(--text-muted)'}}>{e.sub}</span>}</div>
                 <div style={{fontSize:11.5,color:'var(--text-muted)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',marginTop:3}}>{e.desc}</div>
               </div>
@@ -692,9 +691,9 @@ function EntityListBody({onScroll, list, onOpenDetail}){
         {items.map(e=>(
           <SwipeRow key={e.id} onDelete={()=>del(e.id)}>
             <div className="card press" onClick={()=>onOpenDetail && onOpenDetail(e)} style={{padding:'13px 14px', display:'flex', gap:12, alignItems:'center'}}>
-              <div style={{width:42,height:42,borderRadius:10,flex:'0 0 auto',background:e.tint,boxShadow:'inset 0 0 0 1px rgba(255,255,255,.12)'}}></div>
+              <div style={{width:42,height:42,borderRadius:'var(--r-lg)',flex:'0 0 auto',background:e.tint,boxShadow:'inset 0 0 0 1px rgba(255,255,255,.12)'}}></div>
               <div className="col" style={{flex:1, gap:3, minWidth:0}}>
-                <div className="row gap6"><span className="serif" style={{fontSize:14.5, fontWeight:700}}>{e.name}</span>
+                <div className="row gap6"><span className="display" style={{fontSize:14.5, fontWeight:700}}>{e.name}</span>
                   {e.sub && <span className="chip" style={{height:18,fontSize:10,padding:'0 7px',background:'var(--surface-dim)',color:'var(--text-muted)'}}>{e.sub}</span>}</div>
                 <span style={{fontSize:12, color:'var(--text-muted)', lineHeight:1.5}}>{e.desc}</span>
               </div>
@@ -721,7 +720,7 @@ function MaterialsBody({onScroll, onOpenDetail}){
             return (
               <SwipeRow key={m.id} onDelete={()=>del(m.id)}>
                 <div className="srow" onClick={()=>onOpenDetail && onOpenDetail(m)}>
-                  <div className="sicon" style={{background:'rgba(40,60,95,.13)', color:'var(--accent-warm)'}}><Cmp s={18}/></div>
+                  <div className="sicon" style={{background:'color-mix(in srgb, var(--accent) 13%, transparent)', color:'var(--accent-warm)'}}><Cmp s={18}/></div>
                   <div className="col" style={{flex:1}}>
                     <span style={{fontSize:14, fontWeight:500}}>{m.name}</span>
                     <span style={{fontSize:11.5, color:'var(--text-subtle)'}}>{m.sub}</span>
@@ -757,7 +756,7 @@ function GraphBody(){
           const active = sel && (e.a===sel||e.b===sel);
           return (
             <g key={i}>
-              <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={active?'var(--accent)':'#CFC4B4'} strokeWidth={active?'0.7':'0.4'}/>
+              <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={active?'var(--accent)':'var(--text-subtle)'} strokeWidth={active?'0.7':'0.4'}/>
               <text x={(a.x+b.x)/2} y={(a.y+b.y)/2 - 0.8} fontSize="2.4" textAnchor="middle"
                 fill={active?'var(--accent-warm)':'var(--text-subtle)'} style={{fontFamily:'var(--sans)'}}>{e.label}</text>
             </g>
@@ -773,16 +772,16 @@ function GraphBody(){
           <button key={n.id} className="press" onClick={()=>setSel(on?null:n.id)} style={{position:'absolute',
             left:n.x+'%', top:n.y+'%', transform:'translate(-50%,-50%)', width:d, height:d, borderRadius:'50%',
             background:n.tint, border:'2px solid '+(on?'var(--accent)':'rgba(255,255,255,.6)'),
-            boxShadow:on?'0 0 0 4px rgba(40,60,95,.25), var(--shadow-card)':'var(--shadow-card)',
+            boxShadow:on?'0 0 0 4px color-mix(in srgb, var(--accent) 25%, transparent), var(--shadow-card)':'var(--shadow-card)',
             display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:1, color:'#fff', cursor:'pointer'}}>
             <Cmp s={d*0.34}/>
-            <span style={{fontSize:Math.max(8,d*0.16), fontWeight:700, fontFamily:'var(--serif)', lineHeight:1}}>{n.label}</span>
+            <span style={{fontSize:Math.max(8,d*0.16), fontWeight:700, fontFamily:'var(--display)', lineHeight:1}}>{n.label}</span>
           </button>
         );
       })}
       <div className="row gap8" style={{position:'absolute', left:14, top:12, flexWrap:'wrap', maxWidth:'70%'}}>
         {Object.entries(KIND_META).map(([k,m])=>(
-          <span key={k} className="chip" style={{height:22,fontSize:10.5,padding:'0 8px',background:'rgba(254,252,249,.86)',color:'var(--text-secondary)'}}>{m.label}</span>
+          <span key={k} className="chip" style={{height:22,fontSize:10.5,padding:'0 8px',background:'color-mix(in srgb, var(--canvas) 86%, transparent)',color:'var(--text-secondary)'}}>{m.label}</span>
         ))}
       </div>
       {selNode && (
@@ -790,7 +789,7 @@ function GraphBody(){
           <div className="card" style={{padding:'13px 14px', display:'flex', gap:12, alignItems:'center', boxShadow:'var(--shadow-float)'}}>
             <Avatar label={selNode.label[0]} size={42} tint={selNode.tint} fs={17}/>
             <div className="col" style={{flex:1, gap:2}}>
-              <span className="serif" style={{fontSize:15, fontWeight:700}}>{selNode.label}</span>
+              <span className="display" style={{fontSize:15, fontWeight:700}}>{selNode.label}</span>
               <span style={{fontSize:11.5, color:'var(--text-muted)'}}>{KIND_META[selNode.kind].label} · {GRAPH.edges.filter(e=>e.a===selNode.id||e.b===selNode.id).length} 个关系</span>
             </div>
             <button className="btn-ghost press" style={{height:34, padding:'0 12px'}}>查看 <I.chevR s={14}/></button>
@@ -816,7 +815,7 @@ function EditorScreen({novel, chapter, onBack, onOpenChat}){
         <div className="row" style={{justifyContent:'space-between', padding:'8px 12px 8px', gap:6}}>
           <IconBtn icon="chevL" size={24} onClick={onBack}/>
           <div className="col" style={{alignItems:'center', flex:1, minWidth:0}}>
-            <span className="serif" style={{fontSize:14.5, fontWeight:700, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'100%'}}>{novel.title}</span>
+            <span className="display" style={{fontSize:14.5, fontWeight:700, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'100%'}}>{novel.title}</span>
             <span style={{fontSize:11, color:'var(--text-muted)'}}>第 {parseInt(c.n)} 章 · 已保存</span>
           </div>
           <IconBtn icon="history" onClick={()=>{}}/>
@@ -826,11 +825,11 @@ function EditorScreen({novel, chapter, onBack, onOpenChat}){
 
       <div className="viewport" ref={ref} style={{padding:'14px 22px 120px'}}>
         <div className="row gap8" style={{marginBottom:8}}>
-          <span className="chip" style={{background:'rgba(59,81,130,.12)', color:'var(--accent-warm)', height:24}}>卷一 · 河上人</span>
+          <span className="chip" style={{background:'color-mix(in srgb, var(--accent-warm) 12%, transparent)', color:'var(--accent-warm)', height:24}}>卷一 · 河上人</span>
           <StateChip state={c.state}/>
         </div>
-        <input defaultValue={c.t} className="serif"
-          style={{border:'none', outline:'none', background:'transparent', width:'100%', fontSize:26, fontWeight:700, color:'var(--text-primary)', padding:'2px 0 12px', letterSpacing:.5}}/>
+        <input defaultValue={c.t} className="display"
+          style={{border:'none', outline:'none', background:'transparent', width:'100%', fontSize:26, fontWeight:700, color:'var(--text-primary)', padding:'2px 0 12px', letterSpacing:'-0.02em'}}/>
 
         {/* 章节大纲 card */}
         <div className="card" style={{padding:0, overflow:'hidden', marginBottom:18}}>
@@ -850,7 +849,7 @@ function EditorScreen({novel, chapter, onBack, onOpenChat}){
 
       {/* bottom toolbar */}
       <div style={{position:'absolute', left:0, right:0, bottom:0, zIndex:20,
-        background:'rgba(252,251,249,.94)', backdropFilter:'blur(18px)', WebkitBackdropFilter:'blur(18px)',
+        background:'color-mix(in srgb, var(--surface-high) 94%, transparent)', backdropFilter:'blur(18px)', WebkitBackdropFilter:'blur(18px)',
         borderTop:'1px solid var(--border-subtle)', padding:'10px 16px calc(env(safe-area-inset-bottom,0px) + 12px)'}}>
         <div className="row" style={{justifyContent:'space-between'}}>
           <div className="col gap4">
@@ -858,16 +857,16 @@ function EditorScreen({novel, chapter, onBack, onOpenChat}){
             <span style={{fontSize:11, color:'var(--text-subtle)'}}>约 {Math.max(1,Math.round(c.words/200))} 分钟 · 自动保存于 21:23</span>
           </div>
           <div className="row gap8">
-            <button className="press" style={{width:42,height:42,borderRadius:12,background:'var(--surface)',border:'1px solid var(--border-subtle)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-secondary)'}}><I.eye s={20}/></button>
-            <button className="press" style={{width:42,height:42,borderRadius:12,background:'var(--surface)',border:'1px solid var(--border-subtle)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-secondary)'}}><I.text s={20}/></button>
-            <button className="btn-accent press" onClick={onOpenChat} style={{height:42, padding:'0 16px', borderRadius:12}}><I.spark s={18}/>AI 助手</button>
+            <button className="press" style={{width:42,height:42,borderRadius:'50%',background:'var(--surface)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-secondary)'}}><I.eye s={20}/></button>
+            <button className="press" style={{width:42,height:42,borderRadius:'50%',background:'var(--surface)',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-secondary)'}}><I.text s={20}/></button>
+            <button className="btn-accent press" onClick={onOpenChat} style={{height:42, padding:'0 18px'}}><I.spark s={18}/>AI 助手</button>
           </div>
         </div>
       </div>
 
       {showToc && (
         <Sheet onClose={()=>setShowToc(false)} max="78%">
-          <SheetHeader iconBox={<EntityIcon icon="list" hex="#283C5F" s={36} is={18}/>} title="目录"
+          <SheetHeader iconBox={<EntityIcon icon="list" hex="var(--accent)" s={36} is={18}/>} title="目录"
             right={<span className="row gap6 press" style={{color:'var(--accent-warm)', fontSize:13, fontWeight:600}}><I.plus s={16}/>新建</span>}/>
           <div className="viewport" style={{padding:'8px 12px 28px'}}>
             {VOLUMES.map(vol=>(
@@ -875,10 +874,10 @@ function EditorScreen({novel, chapter, onBack, onOpenChat}){
                 <div style={{fontSize:11, fontWeight:700, color:'var(--text-subtle)', letterSpacing:.5, padding:'10px 10px 6px'}}>{vol.vol}</div>
                 {vol.items.map(ch=>(
                   <div key={ch.id} className="press" onClick={()=>setShowToc(false)}
-                    style={{display:'flex', alignItems:'center', gap:11, padding:'11px 10px', borderRadius:10, background:ch.active?'var(--selected)':'transparent'}}>
-                    <span style={{width:26, textAlign:'center', fontSize:12, fontWeight:700, color:ch.active?'var(--accent-warm)':'var(--text-subtle)', fontFamily:'var(--serif)'}}>{ch.n}</span>
+                    style={{display:'flex', alignItems:'center', gap:11, padding:'11px 10px', borderRadius:'var(--r-lg)', background:ch.active?'var(--selected)':'transparent'}}>
+                    <span style={{width:26, textAlign:'center', fontSize:12, fontWeight:700, color:ch.active?'var(--accent-warm)':'var(--text-subtle)', fontFamily:'var(--display)'}}>{ch.n}</span>
                     <div className="col" style={{flex:1, gap:2}}>
-                      <span className="serif" style={{fontSize:14.5, fontWeight:ch.active?700:600, color:ch.words?'var(--text-primary)':'var(--text-subtle)'}}>{ch.t}</span>
+                      <span className="display" style={{fontSize:14.5, fontWeight:ch.active?700:600, color:ch.words?'var(--text-primary)':'var(--text-subtle)'}}>{ch.t}</span>
                       <span style={{fontSize:11, color:'var(--text-subtle)'}}>{ch.words?fmt(ch.words)+' 字':'未开始'}</span>
                     </div>
                     <StateChip state={ch.state} small/>
@@ -918,9 +917,9 @@ function CharSecHead({icon, title, hint, right}){
   const Cmp = I[icon];
   return (
     <div className="row" style={{gap:9, marginBottom:14}}>
-      <span style={{width:24,height:24,borderRadius:8,background:'var(--selected)',color:'var(--accent-warm)',
+      <span style={{width:24,height:24,borderRadius:'var(--r-md)',background:'var(--selected)',color:'var(--accent-warm)',
         display:'flex',alignItems:'center',justifyContent:'center',flex:'0 0 auto'}}><Cmp s={14}/></span>
-      <span className="serif" style={{fontSize:16.5, fontWeight:700, color:'var(--text-primary)'}}>{title}</span>
+      <span className="display" style={{fontSize:16.5, fontWeight:700, color:'var(--text-primary)'}}>{title}</span>
       {hint && <span style={{fontSize:10.5, color:'var(--text-subtle)'}}>{hint}</span>}
       {right && <span style={{marginLeft:'auto'}}>{right}</span>}
     </div>
@@ -1092,12 +1091,12 @@ function CharacterDetail({entity, onBack, onOpenChat}){
             <div className="row gap10" style={{flexWrap:'wrap'}}>
               {p.photos.map(ph=>(
                 <div key={ph.label} className="col gap4" style={{width:84}}>
-                  <div style={{width:84, height:84, borderRadius:10, background:ph.tint,
+                  <div style={{width:84, height:84, borderRadius:'var(--r-xl)', background:ph.tint,
                     boxShadow:'inset 0 0 0 1px rgba(255,255,255,.16)'}}></div>
                   <span style={{fontSize:10.5, color:'var(--text-subtle)', textAlign:'center'}}>{ph.label}</span>
                 </div>
               ))}
-              <button className="press col" style={{width:84, height:84, borderRadius:10, border:'1px dashed var(--border-input)',
+              <button className="press col" style={{width:84, height:84, borderRadius:'var(--r-xl)', border:'1px dashed var(--border-input)',
                 background:'transparent', color:'var(--text-muted)', alignItems:'center', justifyContent:'center', gap:3, fontSize:10.5}}>
                 <I.plus s={16}/>添加</button>
             </div>
@@ -1183,7 +1182,7 @@ function CharacterDetailLite({entity, onBack, onOpenChat}){
         <div className="col" style={{alignItems:'center', gap:10, padding:'8px 0 20px'}}>
           <Avatar label={ch.name[0]} size={76} tint={ch.tint} fs={30}/>
           <div className="col" style={{alignItems:'center', gap:4}}>
-            <span className="serif" style={{fontSize:21, fontWeight:700}}>{ch.name}</span>
+            <span className="display" style={{fontSize:21, fontWeight:700, letterSpacing:'-0.02em'}}>{ch.name}</span>
             <span style={{fontSize:12.5, color:'var(--text-muted)'}}>{ch.role}</span>
           </div>
           <p style={{margin:0, fontSize:13.5, color:'var(--text-secondary)', lineHeight:1.7, textAlign:'center', maxWidth:300}}>{ch.one}</p>

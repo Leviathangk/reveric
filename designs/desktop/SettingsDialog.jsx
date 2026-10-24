@@ -66,67 +66,99 @@ function SettingsDialog({ onClose, section: sectionProp, setSection: setSectionP
   );
 }
 
+// Mirrors lib/shared/widgets/settings/appearance_settings_section.dart:
+// 主题模式 → 主题 → 应用背景. Palette / mode state lives in designs/theme.js.
+const APPEARANCE_MODE_ICONS = { light: "sun-dim", dark: "moon-stars", system: "circle" };
+
+function AppearanceSectionHeader({ title, desc }) {
+  return (
+    <div className="m-appearance__header">
+      <div className="m-appearance__title">{title}</div>
+      <div className="m-appearance__desc">{desc}</div>
+    </div>
+  );
+}
+
+function ThemePreview({ preview }) {
+  return (
+    <span className="m-theme-preview" style={{ background: preview.canvas }}>
+      <span className="m-theme-preview__bar" style={{ background: preview.accent }} />
+      <span className="m-theme-preview__body">
+        <span className="m-theme-preview__surface" style={{ background: preview.surface }} />
+        <span
+          className="m-theme-preview__text"
+          style={{ background: `color-mix(in srgb, ${preview.text} 30%, transparent)` }}
+        />
+      </span>
+    </span>
+  );
+}
+
 function AppearancePanel() {
-  const themes = [
-    { key: "reveric", label: "墨蓝纸本", swatch: "#283C5F", desc: "默认 · 象牙纸面 · 墨蓝" },
-    { key: "cartographer", label: "Cartographer", swatch: "#8B7355", desc: "墨色羊皮纸 · 偏深" },
-    { key: "ink-wash", label: "水墨", swatch: "#A63F35", desc: "宣纸 · 朱砂红" },
-    { key: "ember", label: "炉火", swatch: "#F59E0B", desc: "暖琥珀" },
-    { key: "classic", label: "Classic", swatch: "#000000", desc: "黑白极简" },
-    { key: "verdant", label: "Verdant", swatch: "#4ADE80", desc: "晨园绿意" },
-  ];
-  const [active, setActive] = React.useState("reveric");
+  const RT = window.RevericTheme;
+  const current = RT.useTheme();
 
   return (
-    <div className="m-form">
-      <h3 className="m-heading" style={{ fontSize: 18 }}>主题色板</h3>
-      <p className="m-body-small">
-        十种色板与各自的浅色 / 深色变体。所有色板共享相同的语义令牌——选择会同步影响段落中的引用、对话气泡边框、选中态。
-      </p>
-      <div className="m-theme-grid">
-        {themes.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            className={"m-theme-card" + (active === t.key ? " is-active" : "")}
-            onClick={() => setActive(t.key)}
-          >
-            <span className="m-theme-card__swatch" style={{ background: t.swatch }} />
-            <div className="m-theme-card__meta">
-              <div className="m-ui-medium">{t.label}</div>
-              <div className="m-ui-tiny">{t.desc}</div>
-            </div>
-            {active === t.key && <Icon name="check-circle" size={14} />}
-          </button>
-        ))}
+    <div className="m-form m-appearance">
+      <div className="m-appearance__section">
+        <AppearanceSectionHeader title="主题模式" desc="选择浅色、深色或跟随系统。" />
+        <div className="m-theme-list">
+          {RT.MODES.map((m) => {
+            const on = current.mode === m.key;
+            return (
+              <button
+                key={m.key}
+                type="button"
+                className={"m-theme-card" + (on ? " is-active" : "")}
+                onClick={() => RT.set({ mode: m.key })}
+              >
+                <Icon name={APPEARANCE_MODE_ICONS[m.key]} size={24} className="m-theme-card__icon" />
+                <span className="m-theme-card__label">{m.label}</span>
+                {on && <Icon name="check-circle" size={20} className="m-theme-card__check" />}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <h3 className="m-heading" style={{ fontSize: 18, marginTop: 24 }}>明暗</h3>
-      <div className="m-segmented">
-        {[
-          { v: "light", icon: "sun-dim", label: "浅色" },
-          { v: "auto", icon: "circle", label: "跟随系统" },
-          { v: "dark", icon: "moon-stars", label: "深色" },
-        ].map((m, i) => (
-          <button key={m.v} type="button" className={"m-segmented__item" + (i === 0 ? " is-active" : "")}>
-            <Icon name={m.icon} size={14} />
-            <span>{m.label}</span>
-          </button>
-        ))}
+      <div className="m-appearance__section">
+        <AppearanceSectionHeader title="主题" desc="选择应用主题风格。" />
+        <div className="m-theme-list">
+          {RT.PALETTES.map((p) => {
+            const on = current.palette === p.key;
+            return (
+              <button
+                key={p.key}
+                type="button"
+                className={"m-theme-card" + (on ? " is-active" : "")}
+                onClick={() => RT.set({ palette: p.key })}
+              >
+                <ThemePreview preview={p.preview} />
+                <span className="m-theme-card__meta">
+                  <span className="m-theme-card__label">{p.label}</span>
+                  <span className="m-theme-card__desc">{p.desc}</span>
+                </span>
+                {on && <Icon name="check-circle" size={20} className="m-theme-card__check" />}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <h3 className="m-heading" style={{ fontSize: 18, marginTop: 24 }}>应用背景</h3>
-      <div className="m-bg-grid">
-        {[
-          "distant_mountains",
-          "plum_blossom",
-          "solitary_boat",
-          "withered_tree",
-        ].map((k, i) => (
-          <button key={k} type="button" className={"m-bg-tile" + (i === 0 ? " is-active" : "")}>
-            <img src={`assets/images/background/${k}.webp`} alt={k} />
-          </button>
-        ))}
+      <div className="m-appearance__section">
+        <AppearanceSectionHeader title="应用背景" desc="为整个应用设置互斥的纯色或图片背景。" />
+        <div className="m-bg-grid">
+          {[
+            "distant_mountains",
+            "plum_blossom",
+            "solitary_boat",
+            "withered_tree",
+          ].map((k, i) => (
+            <button key={k} type="button" className={"m-bg-tile" + (i === 0 ? " is-active" : "")}>
+              <img src={`assets/images/background/${k}.webp`} alt={k} />
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

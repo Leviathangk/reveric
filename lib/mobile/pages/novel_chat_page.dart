@@ -1801,7 +1801,6 @@ class _RecentChangesBar extends StatelessWidget {
         RevericSpacing.sm,
       ),
       borderRadius: BorderRadius.circular(RevericRadius.large),
-      borderColor: colors.borderSubtle,
       padding: const EdgeInsets.symmetric(
         horizontal: RevericSpacing.md,
         vertical: RevericSpacing.sm,

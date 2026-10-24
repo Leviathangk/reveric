@@ -22,7 +22,7 @@ class RevericThemeData {
     required this.typography,
   });
 
-  /// Reveric — ivory paper and ink navy, taken from the brand mark.
+  /// Reveric — 玉白 · 墨玉.
   static const reveric = RevericThemeData(
     brightness: Brightness.light,
     colors: RevericColors.reveric,
@@ -199,7 +199,7 @@ class RevericThemeData {
           ),
           padding: const EdgeInsets.all(RevericSizes.iconButtonPadding),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(RevericRadius.button),
+            borderRadius: BorderRadius.circular(RevericRadius.iconButton),
           ),
         ),
       ),

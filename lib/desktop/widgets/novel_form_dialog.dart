@@ -813,7 +813,6 @@ class NovelFormDialog extends HookConsumerWidget {
           height: _asideWidth * 7 / 5,
           fallback: colors.surfaceDim,
           borderRadius: BorderRadius.circular(RevericRadius.large),
-          borderColor: colors.borderSubtle,
           clipBehavior: Clip.antiAlias,
           image: hasCover
               ? DecorationImage(image: FileImage(coverFile), fit: BoxFit.cover)

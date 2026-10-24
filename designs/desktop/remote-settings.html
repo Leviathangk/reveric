@@ -67,7 +67,7 @@
   .feature-card__hero {
     position: relative;
     height: 140px;
-    background: linear-gradient(135deg, rgba(40, 60, 95, 0.08) 0%, rgba(40, 60, 95, 0.02) 100%);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent) 0%, color-mix(in srgb, var(--accent) 2%, transparent) 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -78,7 +78,7 @@
     position: absolute;
     width: 200px; height: 200px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(40, 60, 95, 0.12) 0%, transparent 70%);
+    background: radial-gradient(circle, color-mix(in srgb, var(--accent) 12%, transparent) 0%, transparent 70%);
     top: -40px; right: -40px;
   }
   .feature-card__icon-group {
@@ -199,7 +199,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(254, 252, 249, 0.85);
+    background: color-mix(in srgb, var(--canvas) 85%, transparent);
   }
   .qr-login-card__qr-spinner {
     width: 24px; height: 24px;

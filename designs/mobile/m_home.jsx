@@ -55,21 +55,20 @@ function MResumeCard({work, onContinue}){
   const r = mResumeOf(work);
   return (
     <div className="card press fade-in" onClick={()=>onContinue(work)}
-      style={{padding:14, display:'flex', gap:14, alignItems:'stretch', marginBottom:20,
-        background:'linear-gradient(135deg, #FFFFFF 0%, #F1F3FA 100%)'}}>
+      style={{padding:16, display:'flex', gap:14, alignItems:'stretch', marginBottom:20}}>
       <div style={{flex:'0 0 auto'}}><Cover n={work} w={72} h={98} fs={13}/></div>
       <div className="col" style={{flex:1, gap:6, minWidth:0}}>
         <div className="row gap6" style={{color:'var(--accent-warm)'}}>
           <I.clock s={13}/><span style={{fontSize:11.5, fontWeight:600}}>上次写于 · {work.updated}</span>
         </div>
-        <div className="serif" style={{fontSize:18, fontWeight:700, color:'var(--text-primary)', lineHeight:1.2,
+        <div className="display" style={{fontSize:18, fontWeight:700, color:'var(--text-primary)', lineHeight:1.2, letterSpacing:'-0.01em',
           whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{work.title}</div>
         <div className="row gap6" style={{fontSize:12, color:'var(--text-muted)', minWidth:0}}>
           {mIsScreenplay(work) && <MScreenplayMark/>}
           <span style={{whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{r.where}</span>
         </div>
         {r.excerpt && (
-          <div className="serif" style={{fontSize:12.5, lineHeight:1.65, color:'var(--text-secondary)', fontStyle:'italic',
+          <div className="serif" style={{fontSize:12.5, lineHeight:1.65, color:'var(--text-secondary)',
             display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden'}}>{r.excerpt}</div>
         )}
         <button className="btn-accent press" style={{height:34, alignSelf:'flex-start', padding:'0 16px', marginTop:'auto'}}
@@ -164,7 +163,7 @@ function LibraryScreen({onOpenNovel, onOpenScreenplay, onContinue, initialCollec
         <I.books s={30} c="var(--text-subtle)"/>
         <span style={{fontSize:15, fontWeight:600, color:'var(--text-secondary)'}}>集合里还没有作品</span>
         <button className="press" onClick={()=>setSheet({t:'picker'})} style={{marginTop:6, height:40, padding:'0 18px', borderRadius:'var(--r-pill)', border:'none',
-          background:'var(--accent)', color:'#fff', fontSize:14, fontWeight:600}}>添加作品</button>
+          background:'var(--accent)', color:'var(--on-accent)', fontSize:14, fontWeight:600}}>添加作品</button>
       </div>
     );
   } else if(!base.length){
@@ -174,7 +173,7 @@ function LibraryScreen({onOpenNovel, onOpenScreenplay, onContinue, initialCollec
       <div className="col" style={{alignItems:'center', gap:12, padding:'72px 0', color:'var(--text-muted)', fontSize:14}}>
         <I.search s={28} c="var(--text-subtle)"/>没有找到匹配的作品
         <button className="press" onClick={()=>{ setQuery(''); setCategory(null); }} style={{height:38, padding:'0 16px', borderRadius:'var(--r-pill)',
-          border:'1px solid var(--border-subtle)', background:'var(--surface)', color:'var(--text-secondary)', fontSize:13.5}}>清除搜索和筛选</button>
+          border:'1px solid var(--border)', background:'var(--surface)', color:'var(--text-secondary)', fontSize:13.5}}>清除搜索和筛选</button>
       </div>
     );
   } else {
@@ -190,11 +189,11 @@ function LibraryScreen({onOpenNovel, onOpenScreenplay, onContinue, initialCollec
         <div className="row" style={{justifyContent:'space-between', padding:'10px 20px 12px'}}>
           <div className="col gap4">
             <span style={{fontSize:12, color:'var(--text-subtle)', fontWeight:600, letterSpacing:.3}}>6月21日 · 周六</span>
-            <span className="serif" style={{fontSize:23, fontWeight:700, color:'var(--text-primary)'}}>晚上好，怀素</span>
+            <span className="display" style={{fontSize:24, fontWeight:700, color:'var(--text-primary)', letterSpacing:'-0.02em'}}>晚上好，怀素</span>
           </div>
           <div className="row gap8">
-            <button className="press" aria-label="草稿" style={{width:40,height:40,borderRadius:'50%',background:'var(--surface)',border:'1px solid var(--border-subtle)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-secondary)'}}><I.file s={19}/></button>
-            <button className="press" aria-label="新建" style={{width:40,height:40,borderRadius:'50%',background:'var(--accent)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}><I.plus s={22}/></button>
+            <button className="press" aria-label="草稿" style={{width:40,height:40,borderRadius:'50%',background:'var(--surface)',border:'1px solid var(--card-border)',boxShadow:'var(--shadow-card)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-secondary)'}}><I.file s={19}/></button>
+            <button className="press" aria-label="新建" style={{width:40,height:40,borderRadius:'50%',background:'var(--accent)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--on-accent)'}}><I.plus s={22}/></button>
           </div>
         </div>
       </div>

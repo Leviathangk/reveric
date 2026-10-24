@@ -560,7 +560,6 @@ abstract final class LocaleKeys {
   static const settingsProviderVideoModelsHint =
       'settings.provider_video_models_hint';
   // ── account ────────────────────────────────────────
-  static const accountEditProfileNote = 'account.edit_profile_note';
   static const accountUsageCached = 'account.usage_cached';
   // ── agent ────────────────────────────────────────
   static const agentBasics = 'agent.basics';

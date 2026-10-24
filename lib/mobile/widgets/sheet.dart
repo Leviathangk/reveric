@@ -37,7 +37,7 @@ Future<T?> showMobileSheet<T>({
     backgroundColor: RevericTheme.colorsOf(context).surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(
-        top: Radius.circular(RevericRadius.x2l),
+        top: Radius.circular(RevericRadius.card),
       ),
     ),
     clipBehavior: Clip.antiAlias,

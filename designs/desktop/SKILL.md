@@ -7,9 +7,10 @@ user-invocable: true
 # Reveric Design Skill
 
 Reveric is an **AI-assisted long-form fiction writing application**. The
-visual language is literary — ivory paper surfaces, blue‑black ink,
-ink‑navy accents (periwinkle for AI), Georgia for manuscript, system sans for
-mechanism. The writer is the hero; AI is tooling.
+visual language is calm and modern — cool mint‑white canvas, white cards
+on soft shadows, near‑black ink‑jade actions (jade for AI), sans for every
+title and all UI, Georgia only for manuscript prose. The writer is the hero;
+AI is tooling.
 
 ## Before you do anything
 
@@ -24,15 +25,17 @@ mechanism. The writer is the hero; AI is tooling.
 
 | Token            | Default value         | Use for                                |
 |------------------|----------------------|----------------------------------------|
-| `--canvas`       | `#FEFCF9`            | outermost app background               |
-| `--surface`      | `#FBFAF7`            | cards, editor, panels                  |
-| `--text-primary` | `#1F2A3D`            | body + headings (NEVER `#000`)         |
-| `--accent`       | `#283C5F`            | primary actions + state (sparingly)    |
-| `--font-serif`   | Georgia, …           | chapters, summaries, prose, headings   |
+| `--canvas`       | `#F2F6F4`            | outermost app background               |
+| `--surface`      | `#FFFFFF`            | cards, editor, panels                  |
+| `--text-primary` | `#141A18`            | body + headings (NEVER `#000`)         |
+| `--accent`       | `#1C2623`            | primary actions + state (sparingly)    |
+| `--font-display` | system sans          | every title (page/card/dialog/hero)    |
+| `--font-serif`   | Georgia, …           | manuscript prose only                  |
 | `--font-sans`    | system-ui, …         | buttons, labels, metadata              |
 | body type        | Georgia 16 / 1.75    | reading copy                           |
-| button radius    | `8px`                | every button variant                   |
-| elevation        | **none**             | flat — depth via tonal layers + borders|
+| button radius    | pill (`999px`)       | every button variant                   |
+| card radius      | `18px` (2xl)         | cards, panels, dialogs                 |
+| elevation        | `--shadow-card`      | cards float; chrome stays flat         |
 
 ## Working modes
 
@@ -47,7 +50,7 @@ landing-style sketch, screenshot deliverable):**
    substitute Heroicons / Lucide / Material / emoji.
 4. Build a single static HTML file (or a tiny React-via-Babel doc if you
    need state). Match the tonal-layer composition (`canvas` outside,
-   `surface` for cards, no shadow except dialogs).
+   `surface` cards with `--shadow-card` and `--card-border`, flat chrome).
 5. Cross-check tone & casing against the README's CONTENT FUNDAMENTALS
    section before writing any user-visible string.
 
@@ -66,8 +69,8 @@ landing-style sketch, screenshot deliverable):**
   particles, gradient hero text.
 - ❌ Emoji in product copy, headlines, or buttons.
 - ❌ "Unlock the power of AI…" promotional copy.
-- ❌ Cards with shadow + colored-left-border accents.
-- ❌ Pure `#000` / `#FFF` on product surfaces.
+- ❌ Colored-left-border accent cards; ad-hoc shadows outside the shadow tokens.
+- ❌ Pure `#000` text or actions (white `surface` cards are fine).
 - ❌ Material Icons. Custom hand-drawn SVG icons. Unicode glyph icons.
 - ❌ Marketing dashboard tropes — decorative metrics, sparkline cards,
   badge-festooned settings.

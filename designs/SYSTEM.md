@@ -1,6 +1,6 @@
 # Reveric Design System
 
-> The cross-platform visual contract for Reveric's desktop and mobile clients — warm, literary, and focused on long-form writing.
+> The cross-platform visual contract for Reveric's desktop and mobile clients — calm, modern, and focused on long-form writing.
 
 ---
 
@@ -16,6 +16,7 @@ artifacts demonstrate the contract but do not replace it:
 | Spacing, radii, and component sizes | `lib/shared/theme/reveric_spacing.dart` |
 | Flutter `ThemeData`, component defaults, and inherited accessors | `lib/shared/theme/reveric_theme.dart` |
 | Theme selection, persistence, and `AppTheme` mapping | `lib/shared/providers/settings_providers.dart` |
+| Mockup color themes and switcher | [`designs/themes.css`](themes.css), [`designs/theme.js`](theme.js) |
 | Desktop design artifacts | [`designs/desktop/README.md`](desktop/README.md) |
 | Mobile design artifacts | [`designs/mobile/index.html`](mobile/index.html) and `designs/mobile/m_*.jsx` |
 
@@ -29,7 +30,7 @@ design intent and synchronization contract. HTML/CSS/JSX files under
 
 | Principle | Description |
 |---|---|
-| **Warm, literary aesthetic** | Paper-like textures, sepia tones, and an overall feeling of a well-loved manuscript. The interface should evoke a cartographer's desk, not a software dashboard. |
+| **Calm, modern surfaces** | Cool mint-white canvas, pure white cards that float on soft shadows, near-black ink-green for primary actions and jade only as a small accent. Literary character lives in the manuscript itself (Georgia prose), not in sepia chrome. |
 | **Content-first** | Generous whitespace and readable typography keep the writer's words front and center. Every pixel of chrome must earn its place. |
 | **Subtle chrome** | UI elements (toolbars, sidebars, dividers) recede into the background. They are present when needed, invisible when not. |
 | **Calm interactions** | Gentle hover states, soft transitions, and no jarring animations. The interface should feel like turning a page, not clicking a button. |
@@ -44,22 +45,22 @@ both light and dark runtime presets.
 
 ### Available Themes
 
-Reveric ships with **12 color themes**:
+Reveric ships with **3 color themes**, matching `AppTheme` in
+`lib/shared/providers/settings_providers.dart`:
 
-| Theme | Description | Accent |
+| Theme | Description | Accent (light / dark) |
 |---|---|---|
-| **Reveric** (default) | Warm parchment and aged brass for focused writing | `#C4956A` (brass) |
-| **Cartographer** | Warm, literary palette | `#8B7355` (brown) |
-| **Classic** | Minimal, timeless, high contrast | `#000000` (black) |
-| **Azure** | Crisp and serene, like an open sky | `#2563EB` (blue) |
-| **Verdant** | Lush and natural, like a morning garden | `#4ADE80` (green) |
-| **Violet** | Delicate and expressive, like a pressed flower in a journal | `#8839EF` (purple) |
-| **Ember** | Warm and inviting, like the glow of a fireplace | `#F59E0B` (orange) |
-| **Crimson** | Rich and passionate, like a well-worn leather binding | `#A84370` (crimson) |
-| **Ivory** | Warm and gentle, like aged paper and cream | `#A2AF9B` (sage) |
-| **Nebula** | Boundless and luminous, like a starry night sky | `#0086A7` (cyan-blue) |
-| **Ink Wash** | Traditional Chinese ink painting aesthetic, rice paper tones with cinnabar accents | `#A63F35` (cinnabar) |
-| **Manuscript** | Warm parchment and deep navy ink, like a scholar's manuscript | `#1B365D` (navy) |
+| **Reveric** (default) | 玉白 · 墨玉 — cool mint-white canvas, white cards, ink-green actions | `#1C2623` / `#E4ECE8` |
+| **Classic** | Minimal, timeless, high contrast | `#000000` / `#FFFFFF` |
+| **Ivory** | Warm and gentle, like aged paper and cream | `#A2AF9B` / `#A2AF9B` |
+
+Reveric's canvas is `#F2F6F4` and cards are pure white. The accent is
+near-black ink green, inverted to jade-white in dark. Jade `#2A9C78` / `#4CC49C`
+fills the `accentAmber` slot and is reserved for AI, status and small
+highlights — never body text. `designs/themes.css` mirrors all three palettes
+from `reveric_colors.dart`. Both mockup entry points load `designs/theme.js`,
+which switches palette × light / dark / system the same way
+`AppTheme × AppThemeMode` does.
 
 ### Cartographer Reference Palette
 
@@ -133,14 +134,19 @@ Reveric desktop uses **Georgia** (serif) for literary content and the **system s
 
 | Token | Family | Size | Weight | Line Height | Usage |
 |---|---|---|---|---|---|
-| `display` | Georgia | 28 px | 700 | 1.3 | Page titles, hero headings |
-| `heading2` | Georgia | 22 px | 700 | 1.3 | Section headings |
+| `display` | System sans | 28 px | 700 | 1.3 | Page titles, hero headings (tracking −0.5) |
+| `heading2` | System sans | 22 px | 700 | 1.3 | Section headings (tracking −0.3) |
 | `body` | Georgia | 16 px | 400 | 1.75 | Editor body text |
 | `bodySmall` | Georgia | 14 px | 400 | 1.5 | Secondary body text, summaries |
 | `ui` | System sans | 13 px | 400 | 1.4 | Labels, nav items, sidebar entries |
 | `uiSmall` | System sans | 12 px | 400 | 1.4 | Metadata, tab labels, badges |
 | `uiTiny` | System sans | 11 px | 500 | 1.3 | Workspace label, section headers (often uppercased) |
 | `mono` | Menlo / Consolas | 11 px | 400 | 1.75 | Machine text shown verbatim — prompts, ids, sizes, zoom % |
+
+Every title — `display`, `heading2`, card / dialog / cover titles — is system
+sans with slight negative tracking (CSS `--font-display`). Georgia stays only for
+manuscript prose being read or written (`body`, `bodySmall` excerpts,
+blockquotes, script lines).
 
 Mobile keeps UI chrome at the same compact 11–13px scale, but uses a Material-style system-font content scale: `display` 22px, `heading2` 18px, `body` 14px, and `bodySmall` 12px via `RevericTypography.mobile`.
 
@@ -187,10 +193,17 @@ A constrained spacing scale keeps layouts rhythmic and consistent.
 |---|---|---|
 | `small` | 4 px | Badges, keyboard-shortcut pills |
 | `medium` | 6 px | Tabs, input chips, send button |
-| `button` | 8 px | 全部按钮（FilledButton / OutlinedButton / TextButton / ElevatedButton） |
+| `button` | 999 (capsule) | 全部按钮（FilledButton / OutlinedButton / TextButton / ElevatedButton） |
+| `iconButton` | 8 px | 纯图标按钮，保持圆角方形 |
+| `card` | 18 px | Cards, panels, `RevericDialog`, mobile sheet top corners |
 | `large` | 8 px | Cards, dropdown menus |
 | `xl` / `x2l` | 10–12 px | Input fields, large surfaces |
 | `full` / `pill` | 14–16 px | Chat bubbles, chip buttons, avatars |
+
+**Pending Flutter migration:** the mockups already use the larger scale small 6 ·
+medium 8 · large 12 · xl 14 · x2l 18 · full 20 · pill 999. Flutter keeps the
+values above for these names and moves call sites to `card` / capsule screen by
+screen, instead of redefining tokens whose current users are not all pills.
 
 ---
 
@@ -300,10 +313,19 @@ color and spacing vocabulary with platform-specific composition:
 
 | Property | Value |
 |---|---|
-| Border-radius | 10 px (`large`) |
-| Border | `borderInput` (`#E0D6CC`), 1 px |
+| Border-radius | 18 px (`RevericRadius.card`) |
+| Border | `revericCardBorder(colors)` — transparent in light, `borderSubtle` in dark |
+| Shadow | `revericCardShadows(colors)` — soft diffuse shadow in light, hairline in dark |
 | Background | `surface` |
 | Padding | 12–14 px |
+
+Cards and panels float on the canvas instead of being outlined. Flutter helpers
+live in `lib/shared/theme/reveric_elevation.dart` and back `RevericElevatedCard`,
+`RevericElevatedInkWell` and `RevericDialog`. CSS mirrors are `--shadow-card` /
+`--card-border` in `designs/themes.css`. Chrome — sidebars, toolbars, inputs,
+list rows — stays flat; no ad-hoc shadows beyond these helpers. Hand-rolled
+`BoxDecoration` cards still on the old bordered look are migrated screen by
+screen.
 
 ### Buttons
 
@@ -491,7 +513,7 @@ Widget build(BuildContext context) {
 
 ### Theme source
 
-The original 9 themes come from an external CSS theme set. Ink Wash is a Reveric-specific palette. The oklch color values from the original CSS were converted to sRGB hex using the oklch → linear sRGB → sRGB conversion pipeline. Each theme's light variant was mapped to RevericColors semantic tokens:
+Classic and Ivory come from an external CSS theme set; Reveric is a Reveric-specific palette. The oklch color values from the original CSS were converted to sRGB hex using the oklch → linear sRGB → sRGB conversion pipeline. Each theme's light variant was mapped to RevericColors semantic tokens:
 
 | CSS Variable | RevericColors Token | Role |
 |---|---|---|
@@ -512,7 +534,7 @@ The original 9 themes come from an external CSS theme set. Ink Wash is a Reveric
 
 ## 8. Dark Themes
 
-Dark mode is implemented for all 12 themes. `AppThemeMode.dark` selects it
+Dark mode is implemented for all 3 themes. `AppThemeMode.dark` selects it
 explicitly; `AppThemeMode.system` follows platform brightness.
 
 - Dark surfaces use light text while preserving each palette's identity.

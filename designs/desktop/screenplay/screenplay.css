@@ -2,15 +2,15 @@
    screenplay.css — 剧本写作模块
    与 kit.css 同一套 token(colors_and_type.css),前缀 sp-。
    排版遵循 Manuscript vs. Mechanism:剧本正文 = Georgia/宋体(--font-serif),
-   工具条 / 表格 / 标签 = system sans。扁平,靠 1px border + 色阶分层,不加阴影。
+   标题(--font-display)/ 工具条 / 表格 / 标签 = system sans。
+   卡片用 --card-border + --shadow-card 浮起,工具条与列表行保持扁平。
    ========================================================================= */
 
 :root {
-  --sp-dot: #DCDFE6;              /* 画布点阵,同 canvas.css */
+  --sp-dot: var(--border-input);  /* 画布点阵,同 canvas.css */
   --sp-script-max: 720px;         /* 剧本正文栏宽 —— 一页 ≈ 一分钟,别再宽了 */
   --sp-dialog-indent: 42px;       /* 对话缩进 */
 }
-:root[data-theme="dark"] { --sp-dot: #2C3342; }
 
 /* ===================== 第二列:季 + 集 + 场次 ===================== */
 
@@ -46,8 +46,8 @@
   margin-top: var(--space-xs);
   padding: var(--space-xs);
   background: var(--surface);
-  border: 1px solid var(--border-input);
-  border-radius: var(--radius-large);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
 }
 .sp-season__row {
   display: flex;
@@ -236,8 +236,8 @@
   margin: var(--space-xs) 0 var(--space-sm);
   padding: var(--space-xs);
   background: var(--surface);
-  border: 1px solid var(--border-input);
-  border-radius: var(--radius-large);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
 }
 .sp-epmenu__label {
   padding: var(--space-xs) var(--space-md);
@@ -772,9 +772,10 @@
   width: 340px;
   flex: none;
   background: var(--surface);
-  border: 1px solid var(--border-input);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius-2xl);
   overflow: hidden;
+  box-shadow: var(--shadow-card);
 }
 .sp-scard.is-active { border-color: var(--accent); }
 .sp-scard__peek {
@@ -803,7 +804,7 @@
 .sp-scard__head {
   display: flex;
   align-items: baseline;
-  font: 700 19px/1.35 var(--font-serif);
+  font: 700 19px/1.35 var(--font-display);
   color: var(--text-primary);
 }
 .sp-scard__cond {
@@ -900,7 +901,7 @@
 /* 真实实现是在现有 scene_dialog.dart 上扩四项，不是新开一屏。 */
 /* 标题：场号 + 短标题一行，地点·时间/内外一行。 */
 .sp-sbdlg__title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.sp-sbdlg__scene { font: 700 17px/1.4 var(--font-serif); color: var(--text-primary); }
+.sp-sbdlg__scene { font: 700 17px/1.4 var(--font-display); color: var(--text-primary); }
 .sp-sbdlg__stat {
   font: 400 var(--type-ui-small-size)/1.4 var(--font-sans);
   color: var(--text-muted);
@@ -937,7 +938,7 @@
   border-radius: var(--radius-large);
   background: var(--surface);
   outline: 0;
-  font: 400 var(--type-body-small-size)/1.6 var(--font-serif);
+  font: 400 var(--type-body-small-size)/1.6 var(--font-sans);
   color: var(--text-primary);
 }
 .sp-input:focus { border-color: var(--accent); }
@@ -1040,7 +1041,7 @@
 .sp-event__title {
   min-width: 0;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  font: 600 var(--type-body-small-size)/1.5 var(--font-serif);
+  font: 600 var(--type-body-small-size)/1.5 var(--font-display);
   color: var(--text-primary);
 }
 .sp-event__spacer { flex: 1; }
@@ -1242,7 +1243,7 @@
   padding: var(--space-xs) var(--space-sm) var(--space-lg);
 }
 .sp-act__title {
-  font: 700 var(--type-ui-size)/1 var(--font-serif);
+  font: 700 var(--type-ui-size)/1 var(--font-display);
   color: var(--text-primary);
 }
 .sp-act__count {
@@ -1269,7 +1270,7 @@
 }
 .sp-beat__title {
   flex: 1;
-  font: 700 var(--type-body-small-size)/1.4 var(--font-serif);
+  font: 700 var(--type-body-small-size)/1.4 var(--font-display);
   color: var(--text-primary);
 }
 .sp-beat__pages {
@@ -1305,10 +1306,11 @@
 
 /* 大纲正文：一份 markdown 文档，随打字自动保存，所以工具条右侧是状态不是按钮。 */
 .sp-odoc {
-  border: 1px solid var(--border-input);
-  border-radius: var(--radius-large);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-2xl);
   background: var(--surface);
   overflow: hidden;
+  box-shadow: var(--shadow-card);
 }
 .sp-odoc__bar {
   display: flex;
@@ -1339,12 +1341,12 @@
   outline: none;
 }
 .sp-odoc__body--empty {
-  font: 400 var(--type-body-small-size)/1.9 var(--font-serif);
+  font: 400 var(--type-body-small-size)/1.9 var(--font-sans);
   color: var(--text-subtle);
 }
 .sp-odoc__h {
   margin: var(--space-2xl) 0 var(--space-sm);
-  font: 700 17px/1.5 var(--font-serif);
+  font: 700 17px/1.5 var(--font-display);
   color: var(--text-primary);
 }
 .sp-odoc__h:first-child { margin-top: 0; }
@@ -1408,7 +1410,7 @@
 .sp-obeat__title {
   flex: 1;
   min-width: 0;
-  font: 700 var(--type-body-small-size)/1.4 var(--font-serif);
+  font: 700 var(--type-body-small-size)/1.4 var(--font-display);
   color: var(--text-primary);
 }
 .sp-obeat__pages {
@@ -1449,7 +1451,7 @@
 }
 /* 主行短标题、次行地点·时间/内外 —— 同一集里重复地点的场次靠主行区分。 */
 .sp-orow__slug-main {
-  font: 600 var(--type-body-small-size)/1.6 var(--font-serif);
+  font: 600 var(--type-body-small-size)/1.6 var(--font-display);
   color: var(--text-primary);
 }
 .sp-orow__slug .sp-emos {
@@ -1487,9 +1489,10 @@
 }
 .sp-card {
   background: var(--surface);
-  border: 1px solid var(--border-input);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius-large);
   padding: var(--space-3xl);
+  box-shadow: var(--shadow-card);
 }
 .sp-card__title {
   display: flex;
@@ -1497,7 +1500,7 @@
   flex-wrap: wrap;
   gap: var(--space-sm);
   margin-bottom: var(--space-lg);
-  font: 700 var(--type-body-small-size)/1.3 var(--font-serif);
+  font: 700 var(--type-body-small-size)/1.3 var(--font-display);
   color: var(--text-primary);
 }
 /* 多季时矩阵的说明会变长（"列 = 第 2 季 · 开闸 · Ep 1 场号…"），
@@ -1519,7 +1522,7 @@
 .sp-crow:last-child { border-bottom: 0; }
 .sp-crow__name { font: 600 var(--type-ui-size)/1.3 var(--font-sans); color: var(--text-primary); }
 .sp-crow__note {
-  font: 400 var(--type-ui-small-size)/1.5 var(--font-serif);
+  font: 400 var(--type-ui-small-size)/1.5 var(--font-sans);
   color: var(--text-muted);
 }
 
@@ -1587,7 +1590,8 @@
 }
 .sp-ov__title {
   margin: var(--space-md) 0 var(--space-lg);
-  font: 700 30px/1.25 var(--font-serif);
+  font: 700 30px/1.25 var(--font-display);
+  letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 .sp-ov__facts {
@@ -1602,8 +1606,9 @@
   overflow: hidden;
   padding: var(--space-3xl) var(--space-4xl);
   background: var(--surface-container-high);
-  border: 1px solid var(--border-input);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-card);
 }
 .sp-ovc::after {
   content: "";
@@ -1661,7 +1666,7 @@
 .sp-ovi__stat { display: inline-flex; align-items: baseline; gap: 6px; }
 .sp-ovi__statlabel { font: 400 var(--type-ui-small-size)/1 var(--font-sans); color: var(--text-muted); }
 .sp-ovi__stat b {
-  font: 700 16px/1 var(--font-serif);
+  font: 700 16px/1 var(--font-display);
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
 }
@@ -1696,8 +1701,9 @@
 .sp-stat {
   padding: var(--space-2xl);
   background: var(--surface);
-  border: 1px solid var(--border-input);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius-large);
+  box-shadow: var(--shadow-card);
 }
 .sp-stat__label {
   font: 500 var(--type-ui-tiny-size)/1 var(--font-sans);
@@ -1706,7 +1712,8 @@
 }
 .sp-stat__value {
   margin-top: var(--space-md);
-  font: 700 26px/1 var(--font-serif);
+  font: 700 26px/1 var(--font-display);
+  letter-spacing: -0.02em;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
 }
@@ -1805,7 +1812,7 @@
 }
 .sp-empty__title {
   margin-bottom: var(--space-sm);
-  font: 700 var(--type-body-size)/1.4 var(--font-serif);
+  font: 700 var(--type-body-size)/1.4 var(--font-display);
   color: var(--text-secondary);
 }
 .sp-empty__sub { font: 400 var(--type-ui-size)/1.7 var(--font-sans); }

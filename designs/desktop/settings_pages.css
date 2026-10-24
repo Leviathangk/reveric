@@ -6,9 +6,10 @@
 /* ── shared ─────────────────────────────────────────────────────────────── */
 .sp-surface-card {
   background: var(--surface);
-  border: 1px solid var(--border-subtle);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius-2xl);
   padding: var(--space-4xl);
+  box-shadow: var(--shadow-card);
 }
 .sp-sec-header { font: var(--type-ui-semibold-weight) var(--type-ui-size)/1.4 var(--font-sans); color: var(--text-primary); }
 
@@ -60,11 +61,11 @@
 .sp-status-badge--off { background: var(--surface-container); color: var(--text-muted); }
 
 /* RevericSwitch */
-.sp-switch { width: 38px; height: 22px; border-radius: 11px; border: 0; padding: 0; cursor: pointer; position: relative; transition: background-color 140ms ease; flex: none; }
+.sp-switch { width: 38px; height: 22px; border-radius: var(--radius-pill); border: 0; padding: 0; cursor: pointer; position: relative; transition: background-color 140ms ease; flex: none; }
 .sp-switch--on { background: var(--accent); }
 .sp-switch--off { background: var(--border); }
-.sp-switch__knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform 140ms ease; }
-.sp-switch--on .sp-switch__knob { transform: translateX(16px); }
+.sp-switch__knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); transition: transform 140ms ease; }
+.sp-switch--on .sp-switch__knob { transform: translateX(16px); background: var(--on-accent); }
 .sp-icon-btn { width: 30px; height: 30px; border: 0; background: transparent; border-radius: var(--radius-medium); color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: none; }
 .sp-icon-btn:hover { background: var(--hover); }
 
@@ -116,7 +117,7 @@
 
 /* ── Usage ──────────────────────────────────────────────────────────────── */
 .sp-usage { display: flex; flex-direction: column; }
-.sp-usage__title { font-family: var(--font-serif); font-size: var(--type-heading-size); font-weight: 700; color: var(--text-primary); }
+.sp-usage__title { font-family: var(--font-display); letter-spacing: -0.02em; font-size: var(--type-heading-size); font-weight: 700; color: var(--text-primary); }
 .sp-usage__desc { font: 400 var(--type-body-small-size)/1.5 var(--font-sans); color: var(--text-muted); margin: var(--space-sm) 0 0; }
 
 .sp-context__bar { height: 6px; border-radius: var(--radius-small); background: var(--surface-container); overflow: hidden; margin: var(--space-md) 0; }
@@ -137,7 +138,7 @@
 .sp-stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); margin-bottom: var(--space-lg); }
 .sp-stat-card__label { font: 400 var(--type-ui-small-size)/1.3 var(--font-sans); color: var(--text-muted); }
 .sp-stat-card__value { display: flex; align-items: baseline; gap: var(--space-sm); margin-top: var(--space-sm); }
-.sp-stat-card__num { font-family: var(--font-serif); font-size: var(--type-heading-size); font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.sp-stat-card__num { font-family: var(--font-display); letter-spacing: -0.02em; font-size: var(--type-heading-size); font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
 .sp-stat-card__sub { font: 400 var(--type-ui-small-size)/1 var(--font-sans); color: var(--text-subtle); }
 .sp-trend { display: flex; align-items: center; gap: 4px; margin-top: var(--space-sm); font: 500 var(--type-ui-tiny-size)/1.2 var(--font-sans); }
 .sp-stat-divider { height: 1px; background: var(--border-subtle); margin: var(--space-lg) 0 var(--space-md); }

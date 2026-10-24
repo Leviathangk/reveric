@@ -6,10 +6,10 @@
 // 首页不放今日目标、待办、建议这类仪表盘内容，第一屏只回答「接着写哪儿」。
 
 const COVER_BG = {
-  ink: { bg: "linear-gradient(160deg, #d9c8a6 0%, #b89558 60%, #6a5740 100%)", motif: "M40,220 Q120,140 200,180 T380,160" },
-  mountains: { bg: "linear-gradient(180deg, #cdb993 0%, #7e8698 65%, #2e3647 100%)", motif: "M20,260 L120,140 L180,200 L260,100 L380,260 Z" },
-  stars: { bg: "linear-gradient(180deg, #2b2418 0%, #4a3f35 100%)", motif: null },
-  tree: { bg: "linear-gradient(160deg, #d1c7ae 0%, #859070 100%)", motif: "M205,250 C185,175 225,120 200,40 M203,135 L145,90 M203,155 L270,110" },
+  ink: { bg: "linear-gradient(160deg, #3E524C 0%, #2D3A36 55%, #1C2623 100%)", motif: "M40,220 Q120,140 200,180 T380,160" },
+  mountains: { bg: "linear-gradient(180deg, #CDD6DB 0%, #7E8D99 60%, #3A4551 100%)", motif: "M20,260 L120,140 L180,200 L260,100 L380,260 Z" },
+  stars: { bg: "linear-gradient(180deg, #2B2834 0%, #4B4558 100%)", motif: null },
+  tree: { bg: "linear-gradient(160deg, #D3E0DA 0%, #6F9D8D 60%, #2E6656 100%)", motif: "M205,250 C185,175 225,120 200,40 M203,135 L145,90 M203,155 L270,110" },
 };
 
 const STATUS = {
@@ -63,7 +63,7 @@ function NovelCover({ novel, className = "m-cover" }) {
     <div className={className} style={{ background: cover.bg }}>
       {cover.motif && (
         <svg viewBox="0 0 400 280" preserveAspectRatio="xMidYMid slice">
-          <path d={cover.motif} stroke="#fefcf9" strokeWidth="1.5" fill="none" opacity="0.58" strokeLinecap="round" strokeLinejoin="round" />
+          <path d={cover.motif} stroke="#F3F7F5" strokeWidth="1.5" fill="none" opacity="0.58" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )}
       <div className="m-cover__shade" />
@@ -153,7 +153,7 @@ function ResumeCover({ novel }) {
     <div className="m-resume__cover m-resume__cover--plain" style={{ background: cover.bg }}>
       {cover.motif && (
         <svg viewBox="0 0 400 280" preserveAspectRatio="xMidYMid slice">
-          <path d={cover.motif} stroke="#fefcf9" strokeWidth="1.5" fill="none" opacity="0.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d={cover.motif} stroke="#F3F7F5" strokeWidth="1.5" fill="none" opacity="0.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )}
       <span className="m-resume__cover-title">{novel.title}</span>

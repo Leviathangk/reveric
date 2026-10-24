@@ -37,10 +37,11 @@ void main() {
     });
   }
 
-  test('default theme keeps Georgia only for literary text tokens', () {
+  test('default theme keeps Georgia only for manuscript prose tokens', () {
     final theme = RevericThemeData.reveric.toThemeData();
 
-    expect(theme.textTheme.displayLarge?.fontFamily, 'Georgia');
+    expect(theme.textTheme.displayLarge?.fontFamily, isNot('Georgia'));
+    expect(theme.textTheme.headlineMedium?.fontFamily, isNot('Georgia'));
     expect(theme.textTheme.bodyLarge?.fontFamily, 'Georgia');
     expect(theme.textTheme.bodyMedium?.fontFamily, isNot('Georgia'));
     expect(theme.textTheme.labelLarge?.fontFamily, isNot('Georgia'));

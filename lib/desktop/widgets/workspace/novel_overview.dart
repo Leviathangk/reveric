@@ -946,7 +946,6 @@ class _SnippetEmptyState extends StatelessWidget {
       height: 140,
       padding: const EdgeInsets.all(RevericSpacing.lg),
       borderRadius: BorderRadius.circular(RevericRadius.large),
-      borderColor: colors.borderSubtle,
       alignment: Alignment.center,
       child: Text(
         context.t(LocaleKeys.workspaceCreativeSnippetsEmpty),

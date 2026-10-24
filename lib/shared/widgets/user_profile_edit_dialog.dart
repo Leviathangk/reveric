@@ -82,38 +82,6 @@ class UserProfileEditDialog extends HookConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: RevericSpacing.lg,
-                vertical: RevericSpacing.md,
-              ),
-              decoration: BoxDecoration(
-                color: colors.surfaceDim,
-                border: Border.all(color: colors.borderSubtle),
-                borderRadius: BorderRadius.circular(RevericRadius.large),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RevericIcon(
-                    RevericIcons.info,
-                    size: 15,
-                    color: colors.textMuted,
-                  ),
-                  const SizedBox(width: RevericSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      context.t(LocaleKeys.accountEditProfileNote),
-                      style: typo.uiSmall.copyWith(
-                        color: colors.textMuted,
-                        height: 1.55,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: RevericSpacing.x2l),
             Center(
               child: GestureDetector(
                 onTap: pickAvatar,

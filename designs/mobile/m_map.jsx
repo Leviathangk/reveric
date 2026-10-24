@@ -58,17 +58,17 @@ function MapArt({variant='world', dim=false}){
       style={{position:'absolute', inset:0, width:'100%', height:'100%', filter:dim?'saturate(.4) brightness(.96)':'none'}}>
       <defs>
         <radialGradient id={'mapvig-'+variant} cx="50%" cy="50%" r="75%">
-          <stop offset="60%" stopColor="#EFE4CD"/><stop offset="100%" stopColor="#D8C6A2"/>
+          <stop offset="60%" stopColor="#EEF2EE"/><stop offset="100%" stopColor="#D6DED8"/>
         </radialGradient>
       </defs>
       <rect width="100" height="100" fill={'url(#mapvig-'+variant+')'}/>
       {city ? (
         <g>
-          <rect x="18" y="18" width="62" height="58" rx="2" fill="none" stroke="#8A6E4B" strokeWidth=".9" opacity=".7"/>
+          <rect x="18" y="18" width="62" height="58" rx="2" fill="none" stroke="#2D3A36" strokeWidth=".9" opacity=".7"/>
           <path d="M8 44 Q30 48 44 54 T96 60" fill="none" stroke="#6F8FA8" strokeWidth="2.4" opacity=".55"/>
           <path d="M60 10 Q62 40 66 58 T70 96" fill="none" stroke="#6F8FA8" strokeWidth="1.4" opacity=".5"/>
-          {[26,36,46,56,66].map(y=><path key={y} d={`M20 ${y} H78`} stroke="#B9A07A" strokeWidth=".35" opacity=".6"/>)}
-          {[28,40,52,70].map(x=><path key={x} d={`M${x} 20 V74`} stroke="#B9A07A" strokeWidth=".35" opacity=".6"/>)}
+          {[26,36,46,56,66].map(y=><path key={y} d={`M20 ${y} H78`} stroke="#A9B6AE" strokeWidth=".35" opacity=".6"/>)}
+          {[28,40,52,70].map(x=><path key={x} d={`M${x} 20 V74`} stroke="#A9B6AE" strokeWidth=".35" opacity=".6"/>)}
         </g>
       ) : (
         <g>
@@ -77,14 +77,14 @@ function MapArt({variant='world', dim=false}){
           <path d="M46 46 Q60 42 72 30 Q82 20 96 18" fill="none" stroke="#6F8FA8" strokeWidth="1" opacity=".5"/>
           <path d="M84 60 Q92 70 98 88 L100 100 L86 100 Q84 84 84 60Z" fill="#7C9AB0" opacity=".32"/>
           {[[12,18],[18,14],[24,20],[70,10],[76,14]].map(([x,y],i)=>(
-            <path key={i} d={`M${x-4} ${y+3} L${x} ${y-3} L${x+4} ${y+3}`} fill="none" stroke="#8A6E4B" strokeWidth=".7" opacity=".6"/>
+            <path key={i} d={`M${x-4} ${y+3} L${x} ${y-3} L${x+4} ${y+3}`} fill="none" stroke="#2D3A36" strokeWidth=".7" opacity=".6"/>
           ))}
-          <path d="M14 30 Q40 38 50 54 T84 80" fill="none" stroke="#8A6E4B" strokeWidth=".5" strokeDasharray="1.5 2" opacity=".6"/>
+          <path d="M14 30 Q40 38 50 54 T84 80" fill="none" stroke="#2D3A36" strokeWidth=".5" strokeDasharray="1.5 2" opacity=".6"/>
         </g>
       )}
       <g transform="translate(88 12)" opacity=".55">
-        <circle r="5" fill="none" stroke="#8A6E4B" strokeWidth=".4"/>
-        <path d="M0 -6 L1.2 0 L0 6 L-1.2 0Z" fill="#8A6E4B"/>
+        <circle r="5" fill="none" stroke="#2D3A36" strokeWidth=".4"/>
+        <path d="M0 -6 L1.2 0 L0 6 L-1.2 0Z" fill="#2D3A36"/>
       </g>
     </svg>
   );
@@ -110,19 +110,19 @@ function MapBody({onScroll, onOpenStudio}){
               )}
               {w.hasMap && (
                 <span className="chip" style={{position:'absolute', right:10, top:10, height:22, fontSize:10.5,
-                  background:'rgba(254,252,249,.88)', color:'var(--text-secondary)'}}>v{w.version}</span>
+                  background:'color-mix(in srgb, var(--canvas) 88%, transparent)', color:'var(--text-secondary)'}}>v{w.version}</span>
               )}
             </div>
             <div className="row gap10" style={{padding:'12px 14px'}}>
               <div className="col" style={{flex:1, minWidth:0, gap:3}}>
-                <span className="serif" style={{fontSize:15.5, fontWeight:700}}>{w.name}</span>
+                <span className="display" style={{fontSize:15.5, fontWeight:700}}>{w.name}</span>
                 <span style={{fontSize:11.5, color:'var(--text-muted)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
                   {w.places} 个地点 · {w.children.join(' · ')}
                 </span>
               </div>
               {w.hasMap
                 ? <span style={{fontSize:11, color:'var(--text-subtle)'}}>{w.updated}</span>
-                : <span className="chip" style={{height:24, background:'rgba(59,81,130,.12)', color:'var(--accent-warm)', fontWeight:600}}>
+                : <span className="chip" style={{height:24, background:'color-mix(in srgb, var(--accent-warm) 12%, transparent)', color:'var(--accent-warm)', fontWeight:600}}>
                     <I.spark s={12}/>生成地图</span>}
               <I.chevR s={15} c="var(--text-subtle)"/>
             </div>
@@ -182,7 +182,7 @@ function MapStudioScreen({world, initialState='viewing', initialSheet=null, onBa
                 return (
                   <React.Fragment key={i}>
                     {i>0 && <I.chevR s={12} c="var(--text-subtle)"/>}
-                    <span className={'serif'+(last?'':' press')} onClick={last?undefined:()=>enterMap(null)}
+                    <span className={'display'+(last?'':' press')} onClick={last?undefined:()=>enterMap(null)}
                       style={{fontSize:last?15.5:13.5, fontWeight:last?700:500,
                         color:last?'var(--text-primary)':'var(--text-muted)',
                         whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis',
@@ -261,11 +261,11 @@ function MapPin({pin, on, onTap}){
       style={{position:'absolute', left:pin.x+'%', top:pin.y+'%', width:44, height:44, marginLeft:-22, marginTop:-22,
         background:'transparent', border:'none', padding:0, cursor:'pointer', zIndex:on?3:2}}>
       <span style={{position:'absolute', left:17, top:17, width:10, height:10, borderRadius:'50%',
-        background:on?'var(--accent)':'#A0522D', border:'2px solid #FEFCF9',
-        boxShadow:'0 1px 3px rgba(31,42,61,.3)', animation:on?'pulseRing 1.8s infinite':'none'}}></span>
-      <span className="serif" style={{position:'absolute', left:31, top:13, whiteSpace:'nowrap',
-        fontSize:12, fontWeight:on?700:600, color:on?'var(--accent-warm)':'#4A3B28',
-        padding:'1px 5px', borderRadius:4, background:on?'rgba(254,252,249,.92)':'rgba(254,252,249,.6)'}}>{pin.name}</span>
+        background:on?'var(--accent)':'#2A9C78', border:'2px solid var(--canvas)',
+        boxShadow:'0 1px 3px color-mix(in srgb, var(--shadow-base) 30%, transparent)', animation:on?'pulseRing 1.8s infinite':'none'}}></span>
+      <span className="display" style={{position:'absolute', left:31, top:13, whiteSpace:'nowrap',
+        fontSize:12, fontWeight:on?700:600, color:on?'var(--accent-warm)':'var(--text-secondary)',
+        padding:'1px 6px', borderRadius:'var(--r-sm)', background:on?'color-mix(in srgb, var(--canvas) 92%, transparent)':'color-mix(in srgb, var(--canvas) 60%, transparent)'}}>{pin.name}</span>
     </button>
   );
 }
@@ -275,12 +275,12 @@ function MapPlaceCard({place, onClose, onEdit, onEnter}){
   return (
     <div className="card" style={{padding:'12px 12px 12px 14px', boxShadow:'var(--shadow-float)'}}>
       <div className="row gap10">
-        <div style={{width:36, height:36, borderRadius:'var(--r-xl)', background:'rgba(59,81,130,.12)',
+        <div style={{width:36, height:36, borderRadius:'var(--r-xl)', background:'color-mix(in srgb, var(--accent-warm) 12%, transparent)',
           display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0}}>
           <I.flag s={17} c="var(--accent-warm)"/>
         </div>
         <div className="col" style={{flex:1, minWidth:0, gap:2}}>
-          <span className="serif" style={{fontSize:15.5, fontWeight:700}}>{place.name}</span>
+          <span className="display" style={{fontSize:15.5, fontWeight:700}}>{place.name}</span>
           <span style={{fontSize:11.5, color:'var(--text-muted)'}}>
             {place.type}{hasChildren ? ` · ${place.childCount} 个下级地点` : ''}
           </span>
@@ -292,7 +292,7 @@ function MapPlaceCard({place, onClose, onEdit, onEnter}){
           <I.pencil s={14}/>编辑</button>
         {hasChildren && (
           <button className="btn-ghost press" onClick={onEnter}
-            style={{flex:1, height:36, color:'var(--accent-warm)', borderColor:'rgba(59,81,130,.45)'}}>
+            style={{flex:1, height:36, color:'var(--accent-warm)', borderColor:'color-mix(in srgb, var(--accent-warm) 45%, transparent)'}}>
             <I.map s={14}/>{place.hasMap ? '进入地图' : '新建地图'}</button>
         )}
       </div>
@@ -305,7 +305,7 @@ function MapEmpty({name, count}){
     <div style={{position:'absolute', inset:16, borderRadius:'var(--r-2xl)', border:'1.5px dashed var(--border)',
       display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:10}}>
       <I.map s={40} c="var(--text-subtle)"/>
-      <span className="serif" style={{fontSize:16, fontWeight:700, color:'var(--text-secondary)'}}>{name}</span>
+      <span className="display" style={{fontSize:16, fontWeight:700, color:'var(--text-secondary)'}}>{name}</span>
       <span style={{fontSize:12, color:'var(--text-muted)'}}>{count} 个地点</span>
     </div>
   );
@@ -432,7 +432,7 @@ function MapDesignerSheet({target, hasImage, isSub, onClose, onGenerate}){
   );
 }
 
-const segBtn = (on)=>({flex:1, height:30, border:'none', borderRadius:'var(--r-md)', fontSize:12.5,
+const segBtn = (on)=>({flex:1, height:30, border:'none', borderRadius:'var(--r-pill)', fontSize:12.5,
   fontWeight:on?600:500, background:on?'var(--surface)':'transparent',
   color:on?'var(--text-primary)':'var(--text-muted)', boxShadow:on?'var(--shadow-card)':'none', cursor:'pointer'});
 
@@ -463,9 +463,9 @@ function MapHistorySheet({onClose, onPick}){
             </div>
             <div className="col" style={{flex:1, minWidth:0, gap:3}}>
               <div className="row gap6">
-                <span className="serif" style={{fontSize:14, fontWeight:700}}>{h.owner} · v{h.version}</span>
+                <span className="display" style={{fontSize:14, fontWeight:700}}>{h.owner} · v{h.version}</span>
                 {h.current && <span className="chip" style={{height:20, fontSize:10.5, padding:'0 7px',
-                  background:'rgba(59,81,130,.12)', color:'var(--accent-warm)', fontWeight:600}}>当前</span>}
+                  background:'color-mix(in srgb, var(--accent-warm) 12%, transparent)', color:'var(--accent-warm)', fontWeight:600}}>当前</span>}
               </div>
               <span style={{fontSize:11, color:'var(--text-muted)'}}>{h.time} · {h.spec}</span>
               <span style={{fontSize:11.5, color:'var(--text-secondary)', lineHeight:1.5,

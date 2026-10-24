@@ -132,7 +132,7 @@ function AgentPanel({ onClose, onSwitchPane }) {
           <div className="m-agent__head-meta">
             <div className="m-agent__head-title">开始写第一卷 + 第一章</div>
             <div className="m-agent__head-sub">
-              最强写手 · <span style={{ fontFamily: "var(--font-serif)" }}>自定义供应商</span>
+              最强写手 · 自定义供应商
               {" · "}mimo‑v2.5‑…
             </div>
           </div>

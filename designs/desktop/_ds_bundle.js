@@ -158,11 +158,7 @@ function AgentPanel({
     className: "m-agent__head-title"
   }, "\u5F00\u59CB\u5199\u7B2C\u4E00\u5377 + \u7B2C\u4E00\u7AE0"), /*#__PURE__*/React.createElement("div", {
     className: "m-agent__head-sub"
-  }, "\u6700\u5F3A\u5199\u624B \xB7 ", /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: "var(--font-serif)"
-    }
-  }, "自定义供应商"), " · ", "mimo\u2011v2.5\u2011\u2026"))), /*#__PURE__*/React.createElement("div", {
+  }, "\u6700\u5F3A\u5199\u624B \xB7 ", "自定义供应商", " · ", "mimo\u2011v2.5\u2011\u2026"))), /*#__PURE__*/React.createElement("div", {
     className: "m-agent__head-r"
   }, /*#__PURE__*/React.createElement("button", {
     className: "m-icon-btn",
@@ -892,19 +888,19 @@ try { (() => {
 
 const COVER_BG = {
   ink: {
-    bg: "linear-gradient(160deg, #d9c8a6 0%, #b89558 60%, #6a5740 100%)",
+    bg: "linear-gradient(160deg, #3E524C 0%, #2D3A36 55%, #1C2623 100%)",
     motif: "M40,220 Q120,140 200,180 T380,160"
   },
   mountains: {
-    bg: "linear-gradient(180deg, #cdb993 0%, #8a7d6b 65%, #3d362e 100%)",
+    bg: "linear-gradient(180deg, #CDD6DB 0%, #7E8D99 60%, #3A4551 100%)",
     motif: "M20,260 L120,140 L180,200 L260,100 L380,260 Z"
   },
   stars: {
-    bg: "linear-gradient(180deg, #2b2418 0%, #4a3f35 100%)",
+    bg: "linear-gradient(180deg, #2B2834 0%, #4B4558 100%)",
     motif: null
   },
   tree: {
-    bg: "linear-gradient(180deg, #f2ede6 0%, #d4a574 100%)",
+    bg: "linear-gradient(160deg, #D3E0DA 0%, #6F9D8D 60%, #2E6656 100%)",
     motif: "M200,260 L200,80 M200,140 L150,80 M200,140 L250,80 M200,200 L170,160 M200,200 L230,160"
   }
 };
@@ -928,11 +924,11 @@ function NovelCover({
     cx: 20 + i * 71 % 380,
     cy: 20 + i * 53 % 220,
     r: Math.random() > 0.7 ? 1.6 : 0.9,
-    fill: "#e8d4a0",
+    fill: "#DCE6E1",
     opacity: 0.4 + Math.random() * 0.4
   })), /*#__PURE__*/React.createElement("path", {
     d: "M30,260 Q140,220 200,210 T380,230",
-    stroke: "#d4a574",
+    stroke: "#8FB8A8",
     strokeWidth: "0.6",
     fill: "none",
     opacity: "0.5"
@@ -941,9 +937,9 @@ function NovelCover({
     className: "m-cover__svg"
   }, /*#__PURE__*/React.createElement("path", {
     d: cov.motif,
-    stroke: kind === "tree" ? "#3d362e" : "#fefdfb",
+    stroke: kind === "tree" ? "#1C2623" : "#F3F7F5",
     strokeWidth: kind === "tree" ? 2.2 : 1.4,
-    fill: kind === "mountains" ? "rgba(44,36,24,0.35)" : "none",
+    fill: kind === "mountains" ? "rgba(28,38,35,0.35)" : "none",
     opacity: kind === "mountains" ? 1 : 0.55,
     strokeLinecap: "round",
     strokeLinejoin: "round"

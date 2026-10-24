@@ -8,6 +8,9 @@
 function SettingsScreen({onOpen}){
   const [ref, scrolled] = useScrolled();
   const [dream, setDream] = useState(true);
+  const theme = RevericTheme.useTheme();
+  const themeValue = (THEMES.find(t=>t.key===theme.palette)||THEMES[0]).label+' · '+
+    (THEME_MODES.find(m=>m.key===theme.mode)||THEME_MODES[0]).label;
 
   const Group = ({title, children}) => (
     <div style={{marginBottom:22}}>
@@ -34,17 +37,17 @@ function SettingsScreen({onOpen}){
       <PageHead title="设置" big scrolled={scrolled}/>
       <div className="viewport" ref={ref} style={{padding:'8px 18px 28px'}}>
         <Group title="偏好">
-          <Row icon="globe"  iconBg="rgba(107,118,137,.12)" iconColor="#6B7689"        label="语言"   value="中文简体" onClick={()=>onOpen('language')}/>
-          <Row icon="palette" iconBg="rgba(59,81,130,.14)" iconColor="var(--accent-warm)" label="主题"   value="墨蓝纸本 · 浅色" onClick={()=>onOpen('appearance')}/>
-          <Row icon="text"   iconBg="rgba(103,117,108,.14)" iconColor="#67756C"        label="编辑器" value="思源宋体 · 17px" onClick={()=>onOpen('editorSettings')}/>
+          <Row icon="globe"  iconBg="color-mix(in srgb, var(--text-muted) 12%, transparent)" iconColor="var(--text-muted)" label="语言"   value="中文简体" onClick={()=>onOpen('language')}/>
+          <Row icon="palette" iconBg="color-mix(in srgb, var(--accent-warm) 14%, transparent)" iconColor="var(--accent-warm)" label="主题"   value={themeValue} onClick={()=>onOpen('appearance')}/>
+          <Row icon="text"   iconBg="color-mix(in srgb, var(--text-secondary) 12%, transparent)" iconColor="var(--text-secondary)" label="编辑器" value="思源宋体 · 17px" onClick={()=>onOpen('editorSettings')}/>
         </Group>
 
         <Group title="AI">
-          <Row icon="brain" iconBg="rgba(76,110,145,.12)" iconColor="var(--info)" label="AI 提供商" value="5 个 · 4 已连接" onClick={()=>onOpen('providers')}/>
-          <Row icon="model" iconBg="rgba(136,57,239,.12)" iconColor="#8839EF" label="默认模型" value="mimo-v2.5"/>
-          <Row icon="robot" iconBg="rgba(59,81,130,.14)" iconColor="var(--accent-warm)" label="智能体" value={SUBAGENTS.length+' 个'}/>
+          <Row icon="brain" iconBg="color-mix(in srgb, var(--info) 12%, transparent)" iconColor="var(--info)" label="AI 提供商" value="5 个 · 4 已连接" onClick={()=>onOpen('providers')}/>
+          <Row icon="model" iconBg="color-mix(in srgb, var(--accent-amber) 14%, transparent)" iconColor="var(--accent-amber)" label="默认模型" value="mimo-v2.5"/>
+          <Row icon="robot" iconBg="color-mix(in srgb, var(--accent-warm) 14%, transparent)" iconColor="var(--accent-warm)" label="智能体" value={SUBAGENTS.length+' 个'}/>
           <div className="srow">
-            <div className="sicon" style={{background:'rgba(36,59,90,.12)', color:'#243B5A'}}><I.moon s={18}/></div>
+            <div className="sicon" style={{background:'color-mix(in srgb, var(--accent) 12%, transparent)', color:'var(--accent)'}}><I.moon s={18}/></div>
             <div className="col" style={{flex:1}}>
               <span style={{fontSize:14.5, fontWeight:500}}>做梦</span>
               <span style={{fontSize:11, color:'var(--text-subtle)'}}>空闲时让 AI 自动整理伏笔与设定</span>
@@ -54,15 +57,15 @@ function SettingsScreen({onOpen}){
         </Group>
 
         <Group title="数据">
-          <Row icon="chart" iconBg="rgba(74,124,89,.13)" iconColor="var(--success)" label="用量统计" value="本月 34.3 万词元" onClick={()=>onOpen('usage')}/>
-          <Row icon="archive" iconBg="rgba(107,118,137,.12)" iconColor="#6B7689" label="存储与备份" value="248 MB"/>
+          <Row icon="chart" iconBg="color-mix(in srgb, var(--success) 13%, transparent)" iconColor="var(--success)" label="用量统计" value="本月 34.3 万词元" onClick={()=>onOpen('usage')}/>
+          <Row icon="archive" iconBg="color-mix(in srgb, var(--text-muted) 12%, transparent)" iconColor="var(--text-muted)" label="存储与备份" value="248 MB"/>
         </Group>
 
         <Group title="系统">
           <Row icon="info" iconBg="var(--surface-dim)" iconColor="var(--text-muted)" label="关于 Reveric" value="v0.4.2"/>
         </Group>
 
-        <div style={{textAlign:'center', fontSize:11, color:'var(--text-subtle)', padding:'8px 0 4px', fontFamily:'var(--serif)'}}>
+        <div style={{textAlign:'center', fontSize:11, color:'var(--text-subtle)', padding:'8px 0 4px', fontFamily:'var(--display)'}}>
           Reveric · 为创作者打造的写作空间
         </div>
       </div>
@@ -88,7 +91,7 @@ function SettingSlider({value, min, max, step, fmt, onChange}){
     <div className="row gap12">
       <input type="range" className="mslider" min={min} max={max} step={step||1} value={value}
         onChange={e=>onChange(parseFloat(e.target.value))} style={{flex:1}}/>
-      <span style={{minWidth:46, textAlign:'center', padding:'4px 8px', borderRadius:'var(--r-sm)',
+      <span style={{minWidth:46, textAlign:'center', padding:'4px 10px', borderRadius:'var(--r-pill)',
         border:'1px solid var(--border)', background:'var(--surface)', fontSize:12.5, fontWeight:700, color:'var(--accent)'}}>
         {fmt?fmt(value):value}</span>
     </div>
@@ -119,8 +122,8 @@ function LanguageDetail({onBack}){
             const on = sel===l.k;
             return (
               <div key={l.k} className="press" onClick={()=>setSel(l.k)} style={{display:'flex', alignItems:'center', gap:12,
-                padding:'14px 16px', borderRadius:'var(--r-lg)', background:on?'var(--selected)':'var(--surface)',
-                border:'1px solid '+(on?'var(--accent)':'var(--border-input)')}}>
+                padding:'14px 16px', borderRadius:'var(--r-xl)', background:on?'var(--selected)':'var(--surface)',
+                border:'1px solid '+(on?'var(--accent)':'var(--card-border)'), boxShadow:on?'none':'var(--shadow-card)'}}>
                 <div className="col" style={{flex:1, gap:2}}>
                   <span style={{fontSize:14.5, fontWeight:600, color:'var(--text-primary)'}}>{l.label}</span>
                   <span style={{fontSize:11.5, color:'var(--text-muted)'}}>{l.sub}</span>
@@ -135,31 +138,26 @@ function LanguageDetail({onBack}){
   );
 }
 
-/* ---------- 主题 / 外观 ---------- */
+/* ---------- 主题 / 外观 ----------
+   对齐 appearance_settings_section.dart：主题模式 + 主题两段。
+   Flutter 在 iOS / Android 上不显示「应用背景」，移动端这里也不画。
+   选中项读写 ../theme.js（RevericTheme），切换后整个 mockup 跟着换 token。 */
 function ThemePreview({t}){
+  const p = t.preview;
   return (
     <div style={{width:64, height:48, borderRadius:'var(--r-md)', overflow:'hidden', flex:'0 0 auto',
-      background:t.canvas, border:'1px solid var(--border-subtle)'}}>
-      <div style={{height:16, background:t.accent}}></div>
+      background:p.canvas, border:'1px solid var(--border-subtle)'}}>
+      <div style={{height:16, background:p.accent}}></div>
       <div className="row gap4" style={{padding:4}}>
-        <div style={{width:12, height:12, borderRadius:2, background:t.surface, border:'1px solid '+tint(t.text==='#000000'?'#000000':t.text,.12)}}></div>
-        <div style={{flex:1, height:4, borderRadius:1, background:tint(t.text==='#000000'?'#000000':t.text,.3)}}></div>
+        <div style={{width:12, height:12, borderRadius:2, background:p.surface}}></div>
+        <div style={{flex:1, height:4, borderRadius:1, background:tint(p.text,.3)}}></div>
       </div>
     </div>
   );
 }
 function AppearanceDetail({onBack}){
   const [ref, scrolled] = useScrolled();
-  const [mode, setMode] = useState('light');
-  const [theme, setTheme] = useState('reveric');
-  const [bgColor, setBgColor] = useState('none');
-  const [bgImg, setBgImg] = useState(null);
-
-  const setAccent = (t)=>{
-    setTheme(t.k);
-    document.documentElement.style.setProperty('--accent', t.accent);
-    document.documentElement.style.setProperty('--accent-warm', t.accent);
-  };
+  const {palette, mode} = RevericTheme.useTheme();
 
   return (
     <div className="screen fade-in" data-screen-label="settings-appearance">
@@ -168,11 +166,11 @@ function AppearanceDetail({onBack}){
         <SectHead title="主题模式" desc="选择浅色、深色或跟随系统。"/>
         <div className="col gap8" style={{marginBottom:24}}>
           {THEME_MODES.map(m=>{
-            const Cmp = I[m.icon]; const on = mode===m.k;
+            const Cmp = I[m.icon]; const on = mode===m.key;
             return (
-              <div key={m.k} className="press" onClick={()=>setMode(m.k)} style={{display:'flex', alignItems:'center', gap:12,
-                padding:'13px 14px', borderRadius:'var(--r-lg)', background:on?'var(--selected)':'var(--canvas)',
-                border:'1px solid '+(on?'var(--accent)':'var(--border-input)')}}>
+              <div key={m.key} className="press" onClick={()=>RevericTheme.set({mode:m.key})} style={{display:'flex', alignItems:'center', gap:12,
+                padding:'13px 14px', borderRadius:'var(--r-xl)', background:on?'var(--selected)':'var(--surface)',
+                border:'1px solid '+(on?'var(--accent)':'var(--card-border)'), boxShadow:on?'none':'var(--shadow-card)'}}>
                 <Cmp s={22} c={on?'var(--accent)':'var(--text-secondary)'}/>
                 <span style={{flex:1, fontSize:14, fontWeight:600, color:'var(--text-primary)'}}>{m.label}</span>
                 {on && <I.checkCircle s={20} c="var(--accent)"/>}
@@ -182,56 +180,22 @@ function AppearanceDetail({onBack}){
         </div>
 
         <SectHead title="主题" desc="选择应用主题风格。"/>
-        <div className="col gap8" style={{marginBottom:24}}>
+        <div className="col gap8">
           {THEMES.map(t=>{
-            const on = theme===t.k;
+            const on = palette===t.key;
             return (
-              <div key={t.k} className="press" onClick={()=>setAccent(t)} style={{display:'flex', alignItems:'center', gap:12,
-                padding:'12px 14px', borderRadius:'var(--r-lg)', background:on?'var(--selected)':'var(--canvas)',
-                border:'1px solid '+(on?'var(--accent)':'var(--border-input)')}}>
+              <div key={t.key} className="press" onClick={()=>RevericTheme.set({palette:t.key})} style={{display:'flex', alignItems:'center', gap:12,
+                padding:'12px 14px', borderRadius:'var(--r-xl)', background:on?'var(--selected)':'var(--surface)',
+                border:'1px solid '+(on?'var(--accent)':'var(--card-border)'), boxShadow:on?'none':'var(--shadow-card)'}}>
                 <ThemePreview t={t}/>
                 <div className="col" style={{flex:1, gap:2, minWidth:0}}>
-                  <span style={{fontSize:14, fontWeight:700, color:'var(--text-primary)'}}>{t.name}</span>
+                  <span style={{fontSize:14, fontWeight:700, color:'var(--text-primary)'}}>{t.label}</span>
                   <span style={{fontSize:11.5, color:'var(--text-muted)', lineHeight:1.45}}>{t.desc}</span>
                 </div>
                 {on && <I.checkCircle s={20} c="var(--accent)" style={{flex:'0 0 auto'}}/>}
               </div>
             );
           })}
-        </div>
-
-        <SectHead title="应用背景" desc="为整个应用设置统一的背景颜色或图片。"/>
-        <div className="card" style={{padding:'14px 14px'}}>
-          <div style={{fontSize:12.5, fontWeight:600, color:'var(--text-primary)', marginBottom:9}}>背景颜色</div>
-          <div className="row gap8" style={{flexWrap:'wrap', marginBottom:16}}>
-            <span className="tchip" onClick={()=>{setBgColor('none'); setBgImg(null);}}
-              style={bgColor==='none'&&!bgImg?{borderColor:'var(--accent)',background:'var(--selected)',color:'var(--text-primary)',fontWeight:600}:{}}>
-              <span style={{width:14,height:14,borderRadius:3,background:'var(--surface-dim)',border:'1px solid var(--border)'}}></span>无</span>
-            {THEMES.slice(0,7).map(t=>{
-              const on = bgColor===t.k && !bgImg;
-              return (
-                <span key={t.k} className="tchip" onClick={()=>{setBgColor(t.k); setBgImg(null);}}
-                  style={on?{borderColor:'var(--accent)',background:'var(--selected)',color:'var(--text-primary)',fontWeight:600}:{}}>
-                  <span style={{width:14,height:14,borderRadius:3,background:t.accent}}></span>{t.name}</span>
-              );
-            })}
-          </div>
-          <div style={{height:1, background:'var(--border-subtle)', margin:'2px 0 14px'}}></div>
-          <div style={{fontSize:12.5, fontWeight:600, color:'var(--text-primary)', marginBottom:9}}>内置图片</div>
-          <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10}}>
-            {BACKGROUNDS.map(b=>{
-              const on = bgImg===b.k;
-              return (
-                <div key={b.k} className="press" onClick={()=>setBgImg(b.k)} style={{display:'flex', flexDirection:'column', gap:5}}>
-                  <div style={{width:'100%', aspectRatio:'16/9', borderRadius:8, background:b.tint,
-                    border:'2px solid '+(on?'var(--accent)':'transparent'), boxShadow:on?'0 2px 8px rgba(40,60,95,.3)':'inset 0 0 0 1px var(--border-subtle)'}}></div>
-                  <span style={{fontSize:10.5, textAlign:'center', color:on?'var(--text-primary)':'var(--text-muted)', fontWeight:on?700:500}}>{b.name}</span>
-                </div>
-              );
-            })}
-          </div>
-          <button className="btn-ghost press" style={{width:'100%', height:40, marginTop:14, borderStyle:'dashed', color:'var(--accent-warm)', fontWeight:600}}>
-            <I.image s={16}/>选择自定义图片</button>
         </div>
       </div>
     </div>
@@ -281,7 +245,7 @@ function EditorDetail({onBack}){
         <Card>
           {/* preview */}
           <div style={{padding:'13px 0'}}>
-            <div style={{border:'1px solid var(--border-subtle)', borderRadius:'var(--r-md)', padding:'14px 16px', background:'var(--surface-high)'}}>
+            <div style={{border:'1px solid var(--border-subtle)', borderRadius:'var(--r-lg)', padding:'14px 16px', background:'var(--surface-container)'}}>
               <div className="serif" style={{fontSize:size, lineHeight:lineH, letterSpacing:spacing, color:'var(--text-primary)'}}>The quick brown fox jumps over the lazy dog.</div>
               <div className="serif" style={{fontSize:size, lineHeight:lineH, letterSpacing:spacing, color:'var(--text-primary)', marginTop:6}}>秋风萧瑟天气凉，草木摇落露为霜。</div>
             </div>
@@ -377,7 +341,7 @@ function EditorDetail({onBack}){
 /* ---------- AI 提供商 ---------- */
 function ProvidersScreen({onBack}){
   const [ref, scrolled] = useScrolled();
-  const tone = (k)=> k==='ok'?{c:'var(--success)',bg:'rgba(74,124,89,.12)'}:{c:'var(--warning)',bg:'rgba(217,119,6,.12)'};
+  const tone = (k)=> k==='ok'?{c:'var(--success)',bg:'color-mix(in srgb, var(--success) 12%, transparent)'}:{c:'var(--warning)',bg:'color-mix(in srgb, var(--warning-text) 12%, transparent)'};
   return (
     <div className="screen fade-in" data-screen-label="providers">
       <PageHead title="AI 提供商" onBack={onBack} scrolled={scrolled} center right={<IconBtn icon="plus"/>}/>
@@ -389,7 +353,7 @@ function ProvidersScreen({onBack}){
             const tn = tone(p.kind);
             return (
               <div key={p.name} className="card" style={{padding:'13px 14px', display:'flex', gap:12, alignItems:'center'}}>
-                <div style={{width:40,height:40,borderRadius:10,flex:'0 0 auto',background:'rgba(76,110,145,.12)',color:'var(--info)',display:'flex',alignItems:'center',justifyContent:'center'}}><I.brain s={20}/></div>
+                <div style={{width:40,height:40,borderRadius:'var(--r-lg)',flex:'0 0 auto',background:'color-mix(in srgb, var(--info) 12%, transparent)',color:'var(--info)',display:'flex',alignItems:'center',justifyContent:'center'}}><I.brain s={20}/></div>
                 <div className="col" style={{flex:1, gap:2, minWidth:0}}>
                   <span style={{fontSize:14.5, fontWeight:700}}>{p.name}</span>
                   <span style={{fontSize:11.5, color:'var(--text-muted)'}}>{p.model}</span>
@@ -426,7 +390,7 @@ function UsageScreen({onBack}){
             <div key={i} className="card" style={{flex:1, padding:14}}>
               <span style={{fontSize:12, color:'var(--text-muted)', fontWeight:600}}>{label}</span>
               <div className="row gap4" style={{alignItems:'baseline', margin:'6px 0 4px'}}>
-                <span className="serif" style={{fontSize:20, fontWeight:700}}>{fmt(total)}</span>
+                <span className="display" style={{fontSize:22, fontWeight:700, letterSpacing:'-0.02em', fontVariantNumeric:'tabular-nums'}}>{fmt(total)}</span>
                 <span style={{fontSize:11, color:'var(--text-subtle)'}}>词元</span>
               </div>
               {req!==null && <span style={{fontSize:11, color:'var(--text-subtle)'}}>{req} 次请求</span>}

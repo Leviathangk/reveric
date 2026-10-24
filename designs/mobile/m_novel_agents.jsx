@@ -10,7 +10,7 @@
 function EnableChip({enabled}){
   return <span className="chip" style={{height:20, fontSize:10.5, padding:'0 8px', flex:'0 0 auto',
     color:enabled?'var(--success)':'var(--text-subtle)',
-    background:enabled?'rgba(74,124,89,.12)':'var(--surface-dim)', fontWeight:600}}>
+    background:enabled?'color-mix(in srgb, var(--success) 12%, transparent)':'var(--surface-dim)', fontWeight:600}}>
     {enabled?'已启用':'已停用'}</span>;
 }
 
@@ -41,7 +41,7 @@ function NovelAgentRulesScreen({onBack, onOpenEdit}){
                 <div className="card press" onClick={()=>onOpenEdit(r)} style={{padding:'13px 14px'}}>
                   <div className="row gap8" style={{marginBottom:6}}>
                     <I.shield s={16} c="var(--accent-warm)"/>
-                    <span className="serif" style={{flex:1, fontSize:14.5, fontWeight:700, color:'var(--text-primary)'}}>{r.name}</span>
+                    <span className="display" style={{flex:1, fontSize:14.5, fontWeight:700, color:'var(--text-primary)'}}>{r.name}</span>
                     <EnableChip enabled={r.enabled}/>
                   </div>
                   <p style={{margin:0, fontSize:12.5, color:'var(--text-secondary)', lineHeight:1.6,
@@ -70,15 +70,15 @@ function NovelAgentRuleEditScreen({entity, onBack}){
   return (
     <div className="screen fade-in" data-screen-label="novel-agent-rule-edit">
       <PageHead title={isNew?'新建规则':e.name} onBack={onBack} scrolled={scrolled} center
-        right={<button className="press" style={{height:32, padding:'0 14px', borderRadius:'var(--r-lg)',
-          background:'var(--accent)', color:'#fff', border:'none', fontSize:13, fontWeight:600}}>保存</button>}/>
+        right={<button className="press" style={{height:32, padding:'0 16px', borderRadius:'var(--r-pill)',
+          background:'var(--accent)', color:'var(--on-accent)', border:'none', fontSize:13, fontWeight:600}}>保存</button>}/>
       <div className="viewport" ref={ref} style={{padding:'14px 20px 28px'}}>
         {/* hero */}
         <div className="row gap12" style={{marginBottom:18, alignItems:'center'}}>
-          <div style={{width:60,height:60,borderRadius:14,flex:'0 0 auto',background:'rgba(59,81,130,.14)',
+          <div style={{width:60,height:60,borderRadius:'var(--r-2xl)',flex:'0 0 auto',background:'color-mix(in srgb, var(--accent-warm) 14%, transparent)',
             display:'flex',alignItems:'center',justifyContent:'center',color:'var(--accent-warm)'}}><I.shield s={28}/></div>
           <div className="col" style={{flex:1, gap:4, minWidth:0}}>
-            <span className="serif" style={{fontSize:18, fontWeight:700, color:'var(--text-primary)'}}>{isNew?'新建规则':e.name}</span>
+            <span className="display" style={{fontSize:18, fontWeight:700, color:'var(--text-primary)'}}>{isNew?'新建规则':e.name}</span>
             <span style={{fontSize:12, color:'var(--text-muted)'}}>编辑规则的约束内容</span>
           </div>
         </div>
@@ -104,7 +104,7 @@ function NovelAgentRuleEditScreen({entity, onBack}){
 
         {!isNew && (
           <button className="btn-ghost press" style={{width:'100%', height:44, marginTop:8,
-            color:'var(--error)', borderColor:'rgba(197,48,48,.4)'}}>
+            color:'var(--error)', borderColor:'color-mix(in srgb, var(--error) 40%, transparent)'}}>
             <I.trash s={16}/>删除规则</button>
         )}
       </div>
@@ -144,9 +144,9 @@ function NovelAgentSkillsScreen({onBack, onOpenEdit}){
                 <div className="card press" onClick={()=>onOpenEdit(s)} style={{padding:'13px 14px'}}>
                   <div className="row gap8" style={{marginBottom:6}}>
                     <I.spark s={16} c="var(--accent)"/>
-                    <span className="serif" style={{flex:1, fontSize:14.5, fontWeight:700, color:'var(--text-primary)'}}>{s.name}</span>
+                    <span className="display" style={{flex:1, fontSize:14.5, fontWeight:700, color:'var(--text-primary)'}}>{s.name}</span>
                     <span className="chip" style={{height:18, fontSize:10, padding:'0 7px', flex:'0 0 auto',
-                      background:'rgba(40,60,95,.12)', color:'var(--accent-warm)', fontWeight:600}}>本作品</span>
+                      background:'color-mix(in srgb, var(--accent) 12%, transparent)', color:'var(--accent-warm)', fontWeight:600}}>本作品</span>
                     <EnableChip enabled={s.enabled}/>
                   </div>
                   <p style={{margin:0, fontSize:12.5, color:'var(--text-secondary)', lineHeight:1.6,
@@ -164,7 +164,7 @@ function NovelAgentSkillsScreen({onBack, onOpenEdit}){
             <div key={s.id} className="card" style={{padding:'13px 14px'}}>
               <div className="row gap8" style={{marginBottom:6}}>
                 <I.spark s={16} c="var(--text-muted)"/>
-                <span className="serif" style={{flex:1, fontSize:14.5, fontWeight:700, color:'var(--text-primary)'}}>{s.name}</span>
+                <span className="display" style={{flex:1, fontSize:14.5, fontWeight:700, color:'var(--text-primary)'}}>{s.name}</span>
                 {s.builtin && <span className="chip" style={{height:18, fontSize:10, padding:'0 7px', flex:'0 0 auto',
                   background:'var(--surface-dim)', color:'var(--text-subtle)'}}>内置</span>}
                 <span className="chip" style={{height:18, fontSize:10, padding:'0 7px', flex:'0 0 auto',
@@ -190,15 +190,15 @@ function NovelAgentSkillEditScreen({entity, onBack}){
   return (
     <div className="screen fade-in" data-screen-label="novel-agent-skill-edit">
       <PageHead title={isNew?'新建技能':e.name} onBack={onBack} scrolled={scrolled} center
-        right={<button className="press" style={{height:32, padding:'0 14px', borderRadius:'var(--r-lg)',
-          background:'var(--accent)', color:'#fff', border:'none', fontSize:13, fontWeight:600}}>保存</button>}/>
+        right={<button className="press" style={{height:32, padding:'0 16px', borderRadius:'var(--r-pill)',
+          background:'var(--accent)', color:'var(--on-accent)', border:'none', fontSize:13, fontWeight:600}}>保存</button>}/>
       <div className="viewport" ref={ref} style={{padding:'14px 20px 28px'}}>
         {/* hero */}
         <div className="row gap12" style={{marginBottom:18, alignItems:'center'}}>
-          <div style={{width:60,height:60,borderRadius:14,flex:'0 0 auto',background:'rgba(40,60,95,.13)',
+          <div style={{width:60,height:60,borderRadius:'var(--r-2xl)',flex:'0 0 auto',background:'color-mix(in srgb, var(--accent) 13%, transparent)',
             display:'flex',alignItems:'center',justifyContent:'center',color:'var(--accent)'}}><I.spark s={28}/></div>
           <div className="col" style={{flex:1, gap:4, minWidth:0}}>
-            <span className="serif" style={{fontSize:18, fontWeight:700, color:'var(--text-primary)'}}>{isNew?'新建技能':e.name}</span>
+            <span className="display" style={{fontSize:18, fontWeight:700, color:'var(--text-primary)'}}>{isNew?'新建技能':e.name}</span>
             <span style={{fontSize:12, color:'var(--text-muted)'}}>编辑触发时机与提示词</span>
           </div>
         </div>
@@ -233,7 +233,7 @@ function NovelAgentSkillEditScreen({entity, onBack}){
 
         {!isNew && (
           <button className="btn-ghost press" style={{width:'100%', height:44, marginTop:8,
-            color:'var(--error)', borderColor:'rgba(197,48,48,.4)'}}>
+            color:'var(--error)', borderColor:'color-mix(in srgb, var(--error) 40%, transparent)'}}>
             <I.trash s={16}/>删除技能</button>
         )}
       </div>

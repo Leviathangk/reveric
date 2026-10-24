@@ -39,9 +39,9 @@ const CHAR_PROFILE = {
   age: "23",
   identity: "沧澜剑派内门弟子 · 沈氏旧主之子",
   aliases: ["砚之", "青冥峰那小子", "无名剑客"],
-  tint: "#8A6E4B",
+  tint: "#3E6A5C",
   photos: [
-    { tint: "#8A6E4B", label: "下山那日" },
+    { tint: "#3E6A5C", label: "下山那日" },
     { tint: "#4A5468", label: "幽冥渊口" },
     { tint: "#4C6E91", label: "剑心初成" },
   ],
@@ -95,7 +95,7 @@ const CHAR_PROFILE = {
 };
 
 const CHAR_LIST = [
-  { id: "shen",        name: "沈砚之",   role: "protagonist", tint: "#8A6E4B", sub: "内门弟子" },
+  { id: "shen",        name: "沈砚之",   role: "protagonist", tint: "#3E6A5C", sub: "内门弟子" },
   { id: "suling",      name: "苏苓",     role: "supporting",  tint: "#7A4B57", sub: "天枢阁少阁主" },
   { id: "xuanshuang",  name: "玄霜真人", role: "supporting",  tint: "#4A5468", sub: "沧澜掌门" },
   { id: "peizhao",     name: "裴照",     role: "supporting",  tint: "#5E7060", sub: "游方刀客" },

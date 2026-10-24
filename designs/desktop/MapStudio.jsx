@@ -616,7 +616,7 @@ function MapInspectorTab({ loc, locations, pins, onRename, onField, onPhotos, on
 // 照片条横向滚动；名称为空时显示「未命名」，点名称弹窗改名。
 function MapLocationPhotos({ photos, onChange }) {
   const [renaming, setRenaming] = React.useState(null);
-  const tints = ["#7A6A55", "#5E6E7D", "#6B5B4B", "#56685A"];
+  const tints = ["#5E7A72", "#5E6E7D", "#6E6878", "#56685A"];
 
   function add() {
     onChange([...photos, { tint: tints[photos.length % tints.length], name: "" }]);

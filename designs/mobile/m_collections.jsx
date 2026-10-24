@@ -89,8 +89,8 @@ function MToast({text}){
   if(!text || !host) return null;
   const node = (
     <div style={{position:'absolute', left:'50%', bottom:112, transform:'translateX(-50%)', zIndex:80,
-      padding:'10px 16px', borderRadius:12, background:'var(--text-primary)', color:'var(--surface)',
-      fontSize:13, whiteSpace:'nowrap', boxShadow:'0 8px 24px rgba(31,42,61,.22)'}}>{text}</div>
+      padding:'10px 18px', borderRadius:'var(--r-pill)', background:'var(--text-primary)', color:'var(--surface)',
+      fontSize:13, whiteSpace:'nowrap', boxShadow:'0 8px 24px color-mix(in srgb, var(--shadow-base) 22%, transparent)'}}>{text}</div>
   );
   return ReactDOM.createPortal(node, host);
 }
@@ -116,10 +116,10 @@ function useLongPress(onLongPress, onClick){
 function MCheck({state, size=20}){
   const on = state===true || state==='checked', mixed = state==='mixed';
   return (
-    <span style={{width:size, height:size, borderRadius:6, flex:'0 0 auto', display:'inline-flex', alignItems:'center', justifyContent:'center',
+    <span style={{width:size, height:size, borderRadius:'var(--r-sm)', flex:'0 0 auto', display:'inline-flex', alignItems:'center', justifyContent:'center',
       border:'1.6px solid '+(on||mixed?'var(--accent)':'var(--border)'), background:on||mixed?'var(--accent)':'var(--surface)'}}>
-      {on && <I.check s={size-6} c="#fff" sw={2.4}/>}
-      {mixed && <span style={{width:size-10, height:2, borderRadius:1, background:'#fff'}}></span>}
+      {on && <I.check s={size-6} c="var(--on-accent)" sw={2.4}/>}
+      {mixed && <span style={{width:size-10, height:2, borderRadius:1, background:'var(--on-accent)'}}></span>}
     </span>
   );
 }
@@ -199,7 +199,7 @@ function MFilterSheet({categories, category, onCategory, sort, onSort, sorts = M
     const on = category===key;
     return (
       <span key={label} className="press" onClick={()=>onCategory(key)} style={{height:34, padding:'0 14px', borderRadius:'var(--r-pill)', display:'inline-flex', alignItems:'center', gap:5,
-        fontSize:13.5, fontWeight:on?600:500, background:on?'rgba(40,60,95,.14)':'var(--surface)', color:on?'var(--accent)':'var(--text-secondary)',
+        fontSize:13.5, fontWeight:on?600:500, background:on?'color-mix(in srgb, var(--accent) 14%, transparent)':'var(--surface)', color:on?'var(--accent)':'var(--text-secondary)',
         border:'1px solid '+(on?'var(--accent)':'var(--border-subtle)')}}>
         {label}<span style={{fontSize:11, opacity:.7}}>{count}</span>
       </span>
@@ -237,7 +237,7 @@ function MStatusDot({status}){
   const c = status==='已完本' ? 'var(--success)' : status==='草稿' ? 'var(--text-muted)' : 'var(--accent-warm)';
   return (
     <span style={{alignSelf:'flex-start', display:'inline-flex', alignItems:'center', gap:4, padding:'2px 8px', borderRadius:'var(--r-pill)',
-      background:status==='已完本'?'rgba(74,124,89,.13)':status==='草稿'?'var(--surface-dim)':'rgba(59,81,130,.13)',
+      background:status==='已完本'?'color-mix(in srgb, var(--success) 13%, transparent)':status==='草稿'?'var(--surface-dim)':'color-mix(in srgb, var(--accent-warm) 13%, transparent)',
       fontSize:11, fontWeight:600, color:c}}>
       <span style={{width:5, height:5, borderRadius:'50%', background:c}}></span>{status}
     </span>
@@ -248,7 +248,7 @@ function MStatusDot({status}){
 function MScreenplayMark(){
   return (
     <span style={{flex:'0 0 auto', display:'inline-flex', alignItems:'center', gap:3, height:17, padding:'0 6px', borderRadius:'var(--r-pill)',
-      background:'rgba(59,81,130,.13)', color:'var(--accent-warm)', fontSize:10.5, fontWeight:600}}>
+      background:'color-mix(in srgb, var(--accent-warm) 13%, transparent)', color:'var(--accent-warm)', fontSize:10.5, fontWeight:600}}>
       <I.film s={11}/>剧本
     </span>
   );
@@ -356,8 +356,8 @@ function MAddToCollectionSheet({workIds, onClose, onToast}){
             <input autoFocus value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter') submit(); }}
               placeholder="集合名称" style={{flex:1, height:44, padding:'0 14px', borderRadius:'var(--r-lg)', border:'1px solid var(--accent)',
               background:'var(--surface)', fontSize:15, outline:'none', color:'var(--text-primary)'}}/>
-            <button className="press" onClick={submit} disabled={!name.trim()} style={{height:44, padding:'0 16px', borderRadius:'var(--r-lg)', border:'none',
-              background:'var(--accent)', color:'#fff', fontSize:14, fontWeight:600, opacity:name.trim()?1:.45}}>创建</button>
+            <button className="press" onClick={submit} disabled={!name.trim()} style={{height:44, padding:'0 18px', borderRadius:'var(--r-pill)', border:'none',
+              background:'var(--accent)', color:'var(--on-accent)', fontSize:14, fontWeight:600, opacity:name.trim()?1:.45}}>创建</button>
           </div>
         ) : (
           <div className="press" onClick={()=>setCreating(true)} style={{display:'flex', alignItems:'center', gap:14, padding:'0 20px', height:52, color:'var(--accent)', fontSize:15, fontWeight:600}}>
@@ -380,8 +380,8 @@ function MNameSheet({title, initial='', confirm, onClose, onSubmit}){
         <input autoFocus value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>{ if(e.key==='Enter' && t) onSubmit(t); }}
           placeholder="如：江南系列、投稿中" style={{width:'100%', boxSizing:'border-box', height:46, padding:'0 14px', borderRadius:'var(--r-lg)',
           border:'1px solid var(--accent)', background:'var(--surface)', fontSize:15, outline:'none', color:'var(--text-primary)'}}/>
-        <button className="press" disabled={!t} onClick={()=>onSubmit(t)} style={{marginTop:14, width:'100%', height:46, borderRadius:'var(--r-lg)', border:'none',
-          background:'var(--accent)', color:'#fff', fontSize:15, fontWeight:600, opacity:t?1:.45}}>{confirm}</button>
+        <button className="press" disabled={!t} onClick={()=>onSubmit(t)} style={{marginTop:14, width:'100%', height:46, borderRadius:'var(--r-pill)', border:'none',
+          background:'var(--accent)', color:'var(--on-accent)', fontSize:15, fontWeight:600, opacity:t?1:.45}}>{confirm}</button>
       </div>
     </MPortalSheet>
   );
@@ -391,10 +391,10 @@ function MConfirmDeleteSheet({collection, count, onClose, onConfirm}){
   return (
     <MPortalSheet onClose={onClose}>
       <div style={{padding:'8px 22px 26px', display:'flex', flexDirection:'column', gap:8}}>
-        <span className="serif" style={{fontSize:17, fontWeight:700}}>删除集合「{collection.name}」？</span>
+        <span className="display" style={{fontSize:17, fontWeight:700}}>删除集合「{collection.name}」？</span>
         <span style={{fontSize:13, color:'var(--text-muted)'}}>集合里的 {count} 部作品不会被删除。</span>
-        <button className="press" onClick={onConfirm} style={{marginTop:10, height:46, borderRadius:'var(--r-lg)', border:'none', background:'var(--error)', color:'#fff', fontSize:15, fontWeight:600}}>删除</button>
-        <button className="press" onClick={onClose} style={{height:46, borderRadius:'var(--r-lg)', border:'1px solid var(--border-subtle)', background:'var(--surface)', color:'var(--text-secondary)', fontSize:15}}>取消</button>
+        <button className="press" onClick={onConfirm} style={{marginTop:10, height:46, borderRadius:'var(--r-pill)', border:'none', background:'var(--error)', color:'#fff', fontSize:15, fontWeight:600}}>删除</button>
+        <button className="press" onClick={onClose} style={{height:46, borderRadius:'var(--r-pill)', border:'1px solid var(--border)', background:'var(--surface)', color:'var(--text-secondary)', fontSize:15}}>取消</button>
       </div>
     </MPortalSheet>
   );

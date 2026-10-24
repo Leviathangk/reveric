@@ -1,4 +1,4 @@
-// 职责: 定义 Reveric 文字样式 token，并提供桌面文学字体与移动端系统字体两套排版预设。
+// 职责: 定义 Reveric 文字样式 token，并提供桌面（标题无衬线、正文 Georgia）与移动端系统字体两套排版预设。
 // 关联文件:
 //   lib/shared/theme/reveric_theme.dart
 //   designs/SYSTEM.md
@@ -38,18 +38,20 @@ class RevericTypography {
     required this.mono,
   });
 
+  /// 标题（display / heading2）用系统无衬线并略收字距；Georgia 只留给
+  /// 正在阅读或写作的正文（body 系列）。
   static const desktop = RevericTypography(
     display: TextStyle(
       fontSize: 28,
       fontWeight: FontWeight.w700,
-      fontFamily: 'Georgia',
       height: 1.3,
+      letterSpacing: -0.5,
     ),
     heading2: TextStyle(
       fontSize: 22,
       fontWeight: FontWeight.w700,
-      fontFamily: 'Georgia',
       height: 1.3,
+      letterSpacing: -0.3,
     ),
     body: TextStyle(
       fontSize: 16,
@@ -87,8 +89,18 @@ class RevericTypography {
   );
 
   static const mobile = RevericTypography(
-    display: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, height: 1.25),
-    heading2: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, height: 1.3),
+    display: TextStyle(
+      fontSize: 22,
+      fontWeight: FontWeight.w700,
+      height: 1.25,
+      letterSpacing: -0.4,
+    ),
+    heading2: TextStyle(
+      fontSize: 18,
+      fontWeight: FontWeight.w700,
+      height: 1.3,
+      letterSpacing: -0.2,
+    ),
     body: TextStyle(fontSize: 14, fontWeight: FontWeight.w400, height: 1.55),
     bodySmall: TextStyle(
       fontSize: 12,

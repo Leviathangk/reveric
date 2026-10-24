@@ -1,8 +1,9 @@
 # Reveric Design System
 
 > **Reveric** is an AI‑assisted long‑form fiction writing application. The
-> visual language is literary — ivory paper surfaces, blue‑black ink,
-> ink‑navy accents with periwinkle for AI, and Georgia text — explicitly rejecting generic
+> visual language is calm and modern — a cool mint‑white canvas, white
+> cards that float on soft shadows, near‑black ink‑jade (墨玉) actions with
+> jade for AI, sans titles and Georgia only for the manuscript — explicitly rejecting generic
 > SaaS polish, glassmorphism, purple‑blue AI gradients, and neon chat‑toy
 > aesthetics. **The writer's manuscript is the hero; AI is tooling.**
 
@@ -104,32 +105,28 @@ extended, focused writing sessions, not impulse usage.
 
 ### Color
 
-The default palette is **墨蓝纸本** — ivory paper + ink navy, taken from the
-brand mark (navy `#283C5F`, periwinkle `#8897D1` for AI) — and is
-intentionally low‑glare. The mockups use it as the default; the Flutter
-runtime palette in `reveric_colors.dart` has not been switched yet. The system ships **ten palettes** × light/dark:
+The default palette is **Reveric · 玉白 · 墨玉** — a cool mint‑white canvas
+(`#F2F6F4`) holding white cards, near‑black ink‑jade (`#1C2623`) for primary
+actions, and jade (`#2A9C78`, the `accent-amber` slot) for AI and small
+emphasis — intentionally low‑glare. The mockups use it as the default; the Flutter
+runtime palette in `reveric_colors.dart` has not been switched yet. Palettes
+mirror Flutter `AppTheme` — **three palettes** × light/dark, defined in
+`../themes.css` and switched by `../theme.js` (floating bar, or Settings →
+外观):
 
-| Palette       | Personality                              | Accent     |
-|---------------|------------------------------------------|------------|
-| 墨蓝纸本 ★    | Ivory paper, ink navy (default)          | `#283C5F`  |
-| Cartographer  | Sepia ink, richer brass                  | `#8B7355`  |
-| Ink Wash      | Rice paper + cinnabar red                | `#A63F35`  |
-| Ember         | Fireplace glow, amber                    | `#F59E0B`  |
-| Ivory         | Sage on cream                            | `#A2AF9B`  |
-| Classic       | Pure B&W, timeless                       | `#000000`  |
-| Azure         | Open sky                                 | `#2563EB`  |
-| Verdant       | Morning garden                           | `#4ADE80`  |
-| Violet        | Pressed flower                           | `#8839EF`  |
-| Crimson       | Worn leather                             | `#A84370`  |
-| Nebula        | Starry night                             | `#0086A7`  |
+| Palette       | Personality                              | Accent (light / dark)   |
+|---------------|------------------------------------------|-------------------------|
+| Reveric ★     | Mint‑white canvas, ink‑jade (default)    | `#1C2623` / `#E4ECE8`   |
+| 经典 Classic  | Pure B&W, high contrast                  | `#000000` / `#FFFFFF`   |
+| 象牙 Ivory    | Sage on cream                            | `#A2AF9B` / `#A2AF9B`   |
 
 Every palette obeys the **Writer‑First Rule** (accent for action + state,
-not decoration) and the **Warm Neutral Rule** (no `#000` / `#fff` in
-product surfaces — even Classic and Azure use slightly‑warmed/cooled
-neutrals).
+not decoration) and the **Tinted Ink Rule** (no pure `#000` for text or
+actions — use the palette's tinted near‑blacks; Classic is the deliberate
+pure‑B&W exception, mirroring Flutter).
 
 Semantic colors are stable across palettes: deletion red, addition green,
-warning amber, blockquote periwinkle. See `colors_and_type.css` for the
+warning amber, blockquote amber. See `colors_and_type.css` for the
 authoritative variable list.
 
 ### Typography
@@ -137,12 +134,16 @@ authoritative variable list.
 **The Manuscript vs. Mechanism Rule.** Two type families, one purpose
 each:
 
-- **Manuscript = Georgia** (serif, system) for chapters, summaries, prose,
-  display titles, headings, blockquotes. Body sits at 16px / 1.75 leading
-  — generous enough that 65–75ch line length is comfortable.
-- **Mechanism = system sans** (system-ui / SF Pro / Segoe / PingFang SC)
-  for labels, nav, buttons, toolbars, metadata, settings. Sizes are
-  fixed (`ui` 13 / `uiSmall` 12 / `uiTiny` 11). **No fluid type.**
+- **Manuscript = Georgia** (`--font-serif`) only for prose being read or
+  written: chapter text, excerpts, novel summaries, blockquotes, script
+  lines. Body sits at 16px / 1.75 leading — generous enough that 65–75ch
+  line length is comfortable.
+- **Everything else = system sans** (system-ui / SF Pro / Segoe / PingFang SC).
+  Every title — page, section, card, dialog, hero, cover, stat number —
+  uses `--font-display` (sans, 600–700, tracking −0.01 to −0.02em at
+  ≥22px, never decorative italic). Labels, nav, buttons, toolbars,
+  metadata and chat use `--font-sans` at fixed sizes (`ui` 13 / `uiSmall`
+  12 / `uiTiny` 11). **No fluid type.**
 
 ### Spacing & radii
 
@@ -151,19 +152,21 @@ The spacing scale is tight and named numerically by Material‑style steps:
 5xl 28 / 6xl 40`. The editor uses **72px horizontal padding** to preserve
 prose line length — protect this number when recreating the editor.
 
-Radii live on a **soft** scale: `4 / 6 / 8 / 10 / 12 / 14 / 16`. Buttons
-are always 8px. Chat bubbles are 14px. Cards default to 8px, larger
-framed surfaces up to 12px. **Never** use pill‑shaped (∞) radii on cards
-or panels.
+Radii are **rounded and modern**: `small 6 / medium 8 / large 12 / xl 14 /
+2xl 18 / full 20 / pill 999`. Every button is a pill (`--radius-button`),
+as are chips and tags (`--radius-pill`). Cards, panels and dialogs use
+18px (`--radius-2xl`); small cards and inputs 12px; menus 14px. **Never**
+use pill radii on cards or panels.
 
 ### Elevation
 
-**Flat by default.** Depth comes from tonal layers (`canvas` → `surface`
-→ `surfaceDim` → `surfaceContainer` → `surfaceContainerHigh`) plus 1px
-borders plus `selected`/`hover` background fills. Custom shadows are
-forbidden on standard panels, cards, inputs, and sidebars. Dialogs may
-use a single small shadow if needed for separation from the desktop
-window background.
+**Cards float, chrome stays flat.** Cards and panels sit on the canvas
+with `--shadow-card` and no visible border (`--card-border` is transparent
+in light, a faint hairline in dark). Dialogs and popovers use
+`--shadow-dialog` / `--shadow-overlay`. Chrome — sidebars, toolbars, nav
+rail, inputs, list rows — stays flat: tonal layers (`canvas` → `surface` →
+`surfaceDim` → `surfaceContainer`) plus `selected`/`hover` fills. No
+ad‑hoc shadows beyond these tokens.
 
 ### Background, imagery, texture
 
@@ -194,7 +197,8 @@ press is the same color a shade deeper. No scale or shrink presses.
 ### Borders & dividers
 
 `border` (1px, primary) divides major regions; `borderSubtle` divides
-internal sections; `borderInput` outlines inputs / cards / dropdowns.
+internal sections; `borderInput` outlines inputs and dropdowns. Cards use
+`--card-border` + shadow instead of an outline.
 The vertical 1px divider between sidebar and main content uses
 `border`. Dividers are always 1px, full saturation — no faded gradients.
 
@@ -208,18 +212,20 @@ opaque. No glassmorphism, no inner shadows, no protection gradients.
 
 | Element                      | Radius   |
 |------------------------------|----------|
-| Tag / chip                   | 4–6px    |
-| Button (all variants)        | **8px**  |
-| Card / panel / input         | 8px      |
-| Framed tool surface          | 10–12px  |
+| Tag / chip                   | pill (999) |
+| Button (all variants)        | **pill (999)** |
+| Input / small card           | 12px     |
+| Menu / popover               | 14px     |
+| Card / panel / dialog        | **18px** |
 | Chat bubble                  | 14px     |
-| Avatar                       | full     |
+| Avatar                       | 50%      |
 
 ### Cards
 
-A Reveric card is: `surface` (or `surface-container-high` for elevated
-content) + 1px `borderInput` + 8px radius + 12–24px internal padding +
-**no shadow**. Never card‑in‑card. Never left‑border‑accent‑only cards.
+A Reveric card is: `surface` + `1px solid var(--card-border)` + 18px
+radius (`--radius-2xl`; 12px for cards ≤ ~160px) + `--shadow-card` +
+12–24px internal padding. Never card‑in‑card. Placeholder covers use cool,
+desaturated gradients (ink‑jade, slate, plum, dusty jade) — no sepia. Never left‑border‑accent‑only cards.
 
 ---
 

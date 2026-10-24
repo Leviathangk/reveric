@@ -255,9 +255,16 @@ RevericElevatedCard(
 
 漏掉 chrome 的表现：设置了全局背景后，该区域仍是一块纯色/主题色挡在背景图前面。修复方式：在该层 `build` 中 `ref.watch(appBackgroundActiveProvider)` 并改用上述 helper，**不要**扩大透明范围到子卡片。
 
+## 卡片层级：无描边 + 柔和投影
+
+- 卡片、面板、Dialog 浮在 canvas 上：圆角 `RevericRadius.card`，描边取 `revericCardBorder(colors)`（浅色透明、深色 `borderSubtle`），投影取 `revericCardShadows(colors)`（`lib/shared/theme/reveric_elevation.dart`）。不要在 widget 里另写 `BoxShadow` 或手调透明度。
+- 优先用 `RevericElevatedCard` / `RevericElevatedInkWell`，它们已按上述默认值出图；只有表达选中、警示等语义时才传 `borderColor`。
+- Chrome 保持扁平：侧栏、工具条、页头、输入框、列表行、设置行不加投影，靠底色层次与 hover / selected 区分。
+- 普通按钮是胶囊（`RevericRadius.button`），纯图标按钮保持 `RevericRadius.iconButton` 圆角方形。
+
 ## 画布例外：毛玻璃、投影与动效
 
-`DESIGN.md` 的「flat by default」和「不用毛玻璃」不适用于**无限画布**（制作画布、构思画布）：画布是空间化的操作台，节点和控件浮在点阵上，靠层次和反馈让人读懂「可拖、可连、可选」。例外从画布开始，列表、表单、侧栏、设置页照旧扁平。
+`DESIGN.md` 的「flat by default」和「不用毛玻璃」不适用于**无限画布**（制作画布、构思画布）：画布是空间化的操作台，节点和控件浮在点阵上，靠层次和反馈让人读懂「可拖、可连、可选」。例外从画布开始，列表、表单、侧栏、设置页的 chrome 照旧扁平，卡片按上节「卡片层级」处理。
 
 **画布周边的 chrome 按需跟随。** 有些控件不属于画布，但和画布共用一套外壳。如果它们保持扁平，切到画布或从画布切走时外观会跳变。这类控件可以跟着用画布样式，判定条件如下：
 

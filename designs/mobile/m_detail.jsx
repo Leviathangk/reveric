@@ -8,13 +8,13 @@
 
 /* ---- 交叉引用解析：{kind,id} → 渲染描述符 ---- */
 const REF_KIND_META = {
-  character: {icon:'user',    fallback:'#8A6E4B'},
-  world:     {icon:'globe',   fallback:'#4C6E91'},
-  item:      {icon:'diamond', fallback:'#8A6E4B'},
-  faction:   {icon:'shield',  fallback:'#4C6E91'},
-  creature:  {icon:'leaf',    fallback:'#5E7060'},
-  foreshadow:{icon:'flag',    fallback:'#3B5182'},
-  location:  {icon:'map',     fallback:'#283C5F'},
+  character: {icon:'user',    fallback:'#2D3A36'},
+  world:     {icon:'globe',   fallback:'var(--info)'},
+  item:      {icon:'diamond', fallback:'#6E5D6B'},
+  faction:   {icon:'shield',  fallback:'var(--info)'},
+  creature:  {icon:'leaf',    fallback:'#4E7F6E'},
+  foreshadow:{icon:'flag',    fallback:'var(--accent-warm)'},
+  location:  {icon:'map',     fallback:'var(--accent)'},
 };
 
 function findChapter(id){
@@ -23,7 +23,7 @@ function findChapter(id){
 }
 
 function resolveRef(ref){
-  const km = REF_KIND_META[ref.kind] || {icon:'file', fallback:'#7E8698'};
+  const km = REF_KIND_META[ref.kind] || {icon:'file', fallback:'var(--text-muted)'};
   let src, name, sub, tint = km.fallback, icon = km.icon;
   switch(ref.kind){
     case 'character': src = CHARACTERS.find(x=>x.id===ref.id); name=src?.name; sub=src?.role; tint=src?.tint||tint; break;
@@ -31,7 +31,7 @@ function resolveRef(ref){
     case 'item':      src = ITEMS.find(x=>x.id===ref.id);      name=src?.name; sub=src?.sub;  tint=src?.tint||tint; break;
     case 'faction':   src = FACTIONS.find(x=>x.id===ref.id);   name=src?.name; sub=src?.sub;  tint=src?.tint||tint; break;
     case 'creature':  src = CREATURES.find(x=>x.id===ref.id);  name=src?.name; sub=src?.sub;  tint=src?.tint||tint; break;
-    case 'foreshadow':src = FORESHADOW.find(x=>x.id===ref.id); name=src?.name; sub=src?.status==='closed'?'已回收':'待回收'; tint='#3B5182'; break;
+    case 'foreshadow':src = FORESHADOW.find(x=>x.id===ref.id); name=src?.name; sub=src?.status==='closed'?'已回收':'待回收'; tint='var(--accent-warm)'; break;
     case 'location':  src = LOCATIONS.find(x=>x.id===ref.id);  name=src?.name; sub=src?.region; tint=tint; break;
     default: break;
   }
@@ -42,7 +42,7 @@ function resolveRef(ref){
 /* 引用行的前导视觉：人物用头像、物品用色块、其余用 EntityIcon */
 function RefVisual({r, size=34}){
   if(r.kind==='character') return <Avatar label={r.name[0]} size={size} tint={r.tint} fs={size*0.4}/>;
-  if(r.kind==='item') return <div style={{width:size,height:size,borderRadius:9,flex:'0 0 auto',background:r.tint,boxShadow:'inset 0 0 0 1px rgba(255,255,255,.12)'}}></div>;
+  if(r.kind==='item') return <div style={{width:size,height:size,borderRadius:'var(--r-md)',flex:'0 0 auto',background:r.tint,boxShadow:'inset 0 0 0 1px rgba(255,255,255,.12)'}}></div>;
   return <EntityIcon icon={r.icon} hex={r.tint} s={size} is={size*0.5}/>;
 }
 
@@ -54,7 +54,7 @@ function RefRow({rel, badge, onOpenRef}){
     <div className="card press" onClick={()=>onOpenRef && onOpenRef(rel)} style={{padding:'10px 12px', display:'flex', gap:10, alignItems:'center'}}>
       <RefVisual r={r}/>
       <div className="col" style={{flex:1, minWidth:0, gap:2}}>
-        <span className="serif" style={{fontSize:13.5, fontWeight:700, color:'var(--text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{r.name}</span>
+        <span className="display" style={{fontSize:13.5, fontWeight:700, color:'var(--text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{r.name}</span>
         {r.sub && <span style={{fontSize:11, color:'var(--text-muted)'}}>{r.sub}</span>}
       </div>
       {badge && <span className="chip" style={{height:20,fontSize:10.5,padding:'0 8px',background:'var(--surface-dim)',color:'var(--text-muted)'}}>{badge}</span>}
@@ -69,9 +69,9 @@ function ChapterRefRow({id, onOpenRef}){
   if(!ch) return null;
   return (
     <div className="card press" onClick={()=>onOpenRef && onOpenRef({kind:'chapter', id})} style={{padding:'10px 12px', display:'flex', gap:11, alignItems:'center'}}>
-      <span className="serif" style={{width:26, textAlign:'center', fontSize:15, fontWeight:700, color:'var(--accent-warm)', flex:'0 0 auto'}}>{ch.n}</span>
+      <span className="display" style={{width:26, textAlign:'center', fontSize:15, fontWeight:700, color:'var(--accent-warm)', flex:'0 0 auto'}}>{ch.n}</span>
       <div className="col" style={{flex:1, minWidth:0, gap:2}}>
-        <span className="serif" style={{fontSize:13.5, fontWeight:700, color:'var(--text-primary)'}}>{ch.t}</span>
+        <span className="display" style={{fontSize:13.5, fontWeight:700, color:'var(--text-primary)'}}>{ch.t}</span>
         <span style={{fontSize:11, color:'var(--text-subtle)'}}>{ch.volLabel}</span>
       </div>
       <StateChip state={ch.state} small/>
@@ -139,7 +139,7 @@ function WorldDetail({entity, onBack, onOpenRef, onOpenChat}){
         <div className="col" style={{alignItems:'center', gap:10, padding:'8px 0 20px'}}>
           <EntityIcon icon={e.icon} hex={e.tint} s={68} is={34}/>
           <div className="col" style={{alignItems:'center', gap:6}}>
-            <span className="serif" style={{fontSize:21, fontWeight:700}}>{e.name}</span>
+            <span className="display" style={{fontSize:21, fontWeight:700, letterSpacing:'-0.02em'}}>{e.name}</span>
             <span className="chip" style={{height:22, fontSize:11, padding:'0 10px', background:tint(e.tint,.13), color:e.tint, fontWeight:600}}>{e.cat}</span>
           </div>
         </div>
@@ -172,10 +172,10 @@ function EntityDetail({kind, entity, onBack, onOpenRef, onOpenChat}){
       <div className="viewport" ref={ref} style={{padding:'8px 20px 28px'}}>
         <div className="col" style={{alignItems:'center', gap:10, padding:'8px 0 20px'}}>
           {isItem
-            ? <div style={{width:68,height:68,borderRadius:'var(--r-2xl)',background:e.tint,boxShadow:'inset 0 0 0 1px rgba(255,255,255,.16), 0 4px 14px rgba(31,42,61,.16)'}}></div>
+            ? <div style={{width:68,height:68,borderRadius:'var(--r-2xl)',background:e.tint,boxShadow:'inset 0 0 0 1px rgba(255,255,255,.16), 0 4px 14px color-mix(in srgb, var(--shadow-base) 16%, transparent)'}}></div>
             : <EntityIcon icon={km.icon} hex={e.tint} s={68} is={34}/>}
           <div className="col" style={{alignItems:'center', gap:6}}>
-            <span className="serif" style={{fontSize:21, fontWeight:700}}>{e.name}</span>
+            <span className="display" style={{fontSize:21, fontWeight:700, letterSpacing:'-0.02em'}}>{e.name}</span>
             {e.sub && <span className="chip" style={{height:22, fontSize:11, padding:'0 10px', background:tint(e.tint,.14), color:e.tint, fontWeight:600}}>{e.sub}</span>}
           </div>
         </div>
@@ -197,15 +197,15 @@ function ForeshadowDetail({entity, onBack, onOpenRef, onOpenChat}){
   const [tab, setTab] = useState('setup');
   const f = entity;
   const closed = f.status==='closed';
-  const tn = closed ? {c:'var(--success)', bg:'rgba(74,124,89,.13)', t:'已回收'} : {c:'var(--warning)', bg:'rgba(217,119,6,.13)', t:'待回收'};
+  const tn = closed ? {c:'var(--success)', bg:'color-mix(in srgb, var(--success) 13%, transparent)', t:'已回收'} : {c:'var(--warning)', bg:'color-mix(in srgb, var(--warning-text) 13%, transparent)', t:'待回收'};
   return (
     <div className="screen fade-in" data-screen-label="foreshadow-detail">
       <PageHead title={f.name} sub="伏笔" onBack={onBack} scrolled={scrolled} center right={<IconBtn icon="pencil"/>}/>
       <div className="viewport" ref={ref} style={{padding:'8px 20px 28px'}}>
         <div className="col" style={{alignItems:'center', gap:10, padding:'8px 0 18px'}}>
-          <EntityIcon icon="flag" hex={tn.c==='var(--success)'?'#4A7C59':'#D97706'} s={62} is={30}/>
+          <EntityIcon icon="flag" hex={tn.c} s={62} is={30}/>
           <div className="col" style={{alignItems:'center', gap:8}}>
-            <span className="serif" style={{fontSize:20, fontWeight:700, textAlign:'center'}}>{f.name}</span>
+            <span className="display" style={{fontSize:20, fontWeight:700, letterSpacing:'-0.02em', textAlign:'center'}}>{f.name}</span>
             <span className="chip" style={{height:24, fontSize:11.5, padding:'0 11px', color:tn.c, background:tn.bg, fontWeight:600}}>
               <span style={{width:6,height:6,borderRadius:'50%',background:tn.c}}></span>{tn.t}</span>
           </div>
@@ -264,7 +264,7 @@ function OutlineDetail({entity, onBack, onOpenChat}){
         <div className="col" style={{alignItems:'center', gap:10, padding:'4px 0 18px'}}>
           <EntityIcon icon="list" hex={st.hex} s={62} is={30}/>
           <div className="col" style={{alignItems:'center', gap:8}}>
-            <span className="serif" style={{fontSize:20, fontWeight:700, textAlign:'center'}}>{o.title}</span>
+            <span className="display" style={{fontSize:20, fontWeight:700, letterSpacing:'-0.02em', textAlign:'center'}}>{o.title}</span>
             <div className="row gap6">
               <span className="chip" style={{height:22, fontSize:11, padding:'0 10px', color:st.hex, background:tint(st.hex,.14), fontWeight:600}}>
                 <span style={{width:6,height:6,borderRadius:'50%',background:st.hex}}></span>{st.label}</span>
@@ -289,7 +289,7 @@ function OutlineDetail({entity, onBack, onOpenChat}){
                     <span style={{position:'absolute', left:-17, top:16, width:11, height:11, borderRadius:'50%', background:bs.hex, border:'2px solid var(--canvas)', boxShadow:'0 0 0 1.5px '+bs.hex}}></span>
                     <div className="row gap6" style={{marginBottom:5, alignItems:'center'}}>
                       <span style={{fontSize:11.5, fontWeight:700, color:'var(--text-subtle)', flex:'0 0 auto'}}>{i+1}.</span>
-                      <span className="serif" style={{flex:1, fontSize:14, fontWeight:700, color:'var(--text-primary)'}}>{b.title}</span>
+                      <span className="display" style={{flex:1, fontSize:14, fontWeight:700, color:'var(--text-primary)'}}>{b.title}</span>
                       <span className="chip" style={{height:19, fontSize:10, padding:'0 7px', color:bs.hex, background:tint(bs.hex,.13), fontWeight:600}}>{bs.label}</span>
                       <span className="chip" style={{height:19, fontSize:10, padding:'0 7px', background:'var(--surface-dim)', color:'var(--text-muted)'}}>{b.chapterCount} 章</span>
                     </div>
@@ -318,27 +318,27 @@ function LocationDetail({entity, onBack, onOpenRef, onOpenChat}){
       <PageHead title={lo.name} sub="地点" onBack={onBack} scrolled={scrolled} center right={<IconBtn icon="pencil"/>}/>
       <div className="viewport" ref={ref} style={{padding:'14px 20px 28px'}}>
         <div className="card" style={{padding:0, overflow:'hidden', marginBottom:18}}>
-          <div style={{position:'relative', width:'100%', aspectRatio:'16/10', background:'linear-gradient(160deg,#F1E9D9,#E2D5BD)'}}>
+          <div style={{position:'relative', width:'100%', aspectRatio:'16/10', background:'linear-gradient(160deg,#EEF3F0,#DCE6E1)'}}>
             <svg viewBox="0 0 100 64" style={{position:'absolute', inset:0, width:'100%', height:'100%'}}>
-              <path d="M14 22 Q40 28 50 36 T84 52" fill="none" stroke="#7E8698" strokeWidth="0.8" strokeDasharray="2 3" opacity=".6"/>
+              <path d="M14 22 Q40 28 50 36 T84 52" fill="none" stroke="#9DB2A9" strokeWidth="0.8" strokeDasharray="2 3" opacity=".6"/>
               {LOCATIONS.map(p=>{
                 const on = p.id===lo.id;
                 const x=p.x, y=p.y*0.64;
                 return (
                   <g key={p.id} opacity={on?1:.42}>
-                    <circle cx={x} cy={y} r={on?'2.6':'1.8'} fill="#283C5F"/>
-                    {on && <circle cx={x} cy={y} r="5" fill="none" stroke="#283C5F" strokeWidth=".7" opacity=".6"/>}
-                    <text x={x+3.4} y={y+1} fontSize="3" fill={on?'#1F2A3D':'#7E8698'} fontWeight={on?700:400} style={{fontFamily:'var(--serif)'}}>{p.name}</text>
+                    <circle cx={x} cy={y} r={on?'2.6':'1.8'} fill="#2A9C78"/>
+                    {on && <circle cx={x} cy={y} r="5" fill="none" stroke="#2A9C78" strokeWidth=".7" opacity=".6"/>}
+                    <text x={x+3.4} y={y+1} fontSize="3" fill={on?'#1C2623':'#5F6B66'} fontWeight={on?700:400} style={{fontFamily:'var(--display)'}}>{p.name}</text>
                   </g>
                 );
               })}
             </svg>
-            <div style={{position:'absolute', left:12, top:12, padding:'4px 10px', borderRadius:'var(--r-pill)', background:'rgba(254,252,249,.86)', fontSize:11, fontWeight:600, color:'var(--text-secondary)'}}>{lo.region}</div>
+            <div style={{position:'absolute', left:12, top:12, padding:'4px 10px', borderRadius:'var(--r-pill)', background:'color-mix(in srgb, var(--canvas) 86%, transparent)', fontSize:11, fontWeight:600, color:'var(--text-secondary)'}}>{lo.region}</div>
           </div>
         </div>
 
         <div className="col" style={{alignItems:'center', gap:6, marginBottom:18}}>
-          <span className="serif" style={{fontSize:21, fontWeight:700}}>{lo.name}</span>
+          <span className="display" style={{fontSize:21, fontWeight:700, letterSpacing:'-0.02em'}}>{lo.name}</span>
           <span className="row gap4" style={{fontSize:12, color:'var(--text-muted)'}}><I.map s={14} c="var(--accent)"/>{lo.region}</span>
         </div>
 
@@ -369,7 +369,7 @@ function LocationPhotos({initial}){
   const [photos, setPhotos] = useState(initial);
   const [renaming, setRenaming] = useState(null);
   const [draft, setDraft] = useState('');
-  const tints = ['#7A6A55','#5E6E7D','#6B5B4B','#56685A'];
+  const tints = ['#7D8A85','#5E6E7D','#6E5D6B','#5A7A6E'];
   const save = ()=>{
     setPhotos(photos.map((p,j)=> j===renaming ? {...p, name:draft.trim()} : p));
     setRenaming(null);
@@ -380,11 +380,11 @@ function LocationPhotos({initial}){
       <div className="row gap8" style={{overflowX:'auto', alignItems:'flex-start', paddingBottom:2}}>
         {photos.map((p,i)=>(
           <div key={i} className="col" style={{width:80, flex:'0 0 auto'}}>
-            <div style={{position:'relative', width:80, height:80, borderRadius:10, background:p.tint,
+            <div style={{position:'relative', width:80, height:80, borderRadius:'var(--r-xl)', background:p.tint,
               boxShadow:'inset 0 0 0 1px rgba(255,255,255,.16)'}}>
               <button className="press" aria-label="移除照片" onClick={()=>setPhotos(photos.filter((_,j)=>j!==i))}
-                style={{position:'absolute', top:4, right:4, width:22, height:22, borderRadius:11, border:'none',
-                  background:'rgba(28,22,14,.55)', display:'flex', alignItems:'center', justifyContent:'center', padding:0}}>
+                style={{position:'absolute', top:4, right:4, width:22, height:22, borderRadius:'50%', border:'none',
+                  background:'rgba(20,26,24,.55)', display:'flex', alignItems:'center', justifyContent:'center', padding:0}}>
                 <I.x s={12} c="#fff"/>
               </button>
             </div>
@@ -397,7 +397,7 @@ function LocationPhotos({initial}){
           </div>
         ))}
         <button className="press col" onClick={()=>setPhotos([...photos, {tint:tints[photos.length%tints.length], name:''}])}
-          style={{width:80, height:80, flex:'0 0 auto', borderRadius:10, border:'1px dashed var(--border-input)',
+          style={{width:80, height:80, flex:'0 0 auto', borderRadius:'var(--r-xl)', border:'1px dashed var(--border-input)',
             background:'transparent', color:'var(--text-muted)', alignItems:'center', justifyContent:'center', gap:3, fontSize:11}}>
           <I.plus s={18}/>添加</button>
       </div>
@@ -409,8 +409,8 @@ function LocationPhotos({initial}){
               onChange={e=>setDraft(e.target.value)} onKeyDown={e=>e.key==='Enter' && save()}/></Field>
           </div>
           <div className="row gap8" style={{padding:'0 18px 22px', justifyContent:'flex-end'}}>
-            <button className="btn-ghost press" onClick={()=>setRenaming(null)} style={{height:44, padding:'0 18px', borderRadius:12}}>取消</button>
-            <button className="btn-accent press" onClick={save} style={{height:44, padding:'0 18px', borderRadius:12}}>保存</button>
+            <button className="btn-ghost press" onClick={()=>setRenaming(null)} style={{height:44, padding:'0 18px'}}>取消</button>
+            <button className="btn-accent press" onClick={save} style={{height:44, padding:'0 18px'}}>保存</button>
           </div>
         </Sheet>
       )}
@@ -430,9 +430,9 @@ function MaterialDetail({entity, onBack, onOpenRef, onOpenChat}){
       <PageHead title={m.name} sub="素材" onBack={onBack} scrolled={scrolled} center right={<IconBtn icon="dots"/>}/>
       <div className="viewport" ref={ref} style={{padding:'8px 20px 28px'}}>
         <div className="col" style={{alignItems:'center', gap:10, padding:'8px 0 20px'}}>
-          <div style={{width:68,height:68,borderRadius:'var(--r-2xl)',background:'rgba(40,60,95,.13)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--accent-warm)'}}><Cmp s={32}/></div>
+          <div style={{width:68,height:68,borderRadius:'var(--r-2xl)',background:'color-mix(in srgb, var(--accent) 13%, transparent)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--accent-warm)'}}><Cmp s={32}/></div>
           <div className="col" style={{alignItems:'center', gap:6}}>
-            <span className="serif" style={{fontSize:20, fontWeight:700, textAlign:'center'}}>{m.name}</span>
+            <span className="display" style={{fontSize:20, fontWeight:700, letterSpacing:'-0.02em', textAlign:'center'}}>{m.name}</span>
             <span style={{fontSize:12, color:'var(--text-muted)'}}>{m.sub}</span>
           </div>
         </div>
@@ -445,8 +445,8 @@ function MaterialDetail({entity, onBack, onOpenRef, onOpenChat}){
         {m.excerpt && (
           <div style={{marginBottom:18}}>
             <SectionLabel text="摘录"/>
-            <div className="card" style={{padding:'13px 14px', background:'var(--surface-dim)'}}>
-              <p style={{margin:0, fontSize:13, color:'var(--text-secondary)', lineHeight:1.7, fontStyle:'italic'}}>{m.excerpt}</p>
+            <div className="card" style={{padding:'13px 14px', background:'var(--surface-container)', boxShadow:'none', borderLeft:'3px solid var(--blockquote-border)'}}>
+              <p className="serif" style={{margin:0, fontSize:13.5, color:'var(--text-secondary)', lineHeight:1.75}}>{m.excerpt}</p>
             </div>
           </div>
         )}

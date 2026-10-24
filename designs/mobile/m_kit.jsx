@@ -117,9 +117,9 @@ function StatusBar(){
   );
 }
 
-function tint(hex, a){
-  const n = parseInt(hex.slice(1),16);
-  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+/* 给任意 CSS 颜色（hex 或 var(--token)）叠透明度，主题切换时跟着 token 变。 */
+function tint(color, a){
+  return `color-mix(in srgb, ${color} ${+(a*100).toFixed(2)}%, transparent)`;
 }
 
 function useScrolled(){
@@ -145,8 +145,8 @@ function Cover({n, w, h, fs=15}){
 
 function StatusChip({status}){
   const map = {
-    '创作中':{c:'var(--accent-warm)', bg:'rgba(59,81,130,.13)'},
-    '已完本':{c:'var(--success)', bg:'rgba(74,124,89,.13)'},
+    '创作中':{c:'var(--accent-warm)', bg:'color-mix(in srgb, var(--accent-warm) 13%, transparent)'},
+    '已完本':{c:'var(--success)', bg:'color-mix(in srgb, var(--success) 13%, transparent)'},
     '草稿':{c:'var(--text-muted)', bg:'var(--surface-dim)'},
   };
   const s = map[status]||map['草稿'];
@@ -156,7 +156,7 @@ function StatusChip({status}){
 
 function StateChip({state, small}){
   const t = STATE_TONE[state] || STATE_TONE['未开始'];
-  return <span className="chip" style={{color:t.c, background:tint(t.hex,.13), height:small?19:22,
+  return <span className="chip" style={{color:t.c, background:tint(t.c,.13), height:small?19:22,
     fontSize:small?10:11, padding:small?'0 7px':'0 8px', fontWeight:600}}>{state}</span>;
 }
 
@@ -172,10 +172,10 @@ function PageHead({title, sub, onBack, right, scrolled, big, center}){
           ? <button className="press" onClick={onBack} style={{width:MOBILE_ICON_BUTTON_SIZE,height:MOBILE_ICON_BUTTON_SIZE,flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',color:'var(--text-secondary)',background:'transparent',border:'none'}}><I.chevL s={24}/></button>
           : (center ? <div style={{width:MOBILE_ICON_BUTTON_SIZE,flexShrink:0}}></div> : null)}
         {big ? (
-          <span className="serif" style={{fontSize:26, fontWeight:700, flex:1}}>{title}</span>
+          <span className="display" style={{fontSize:26, fontWeight:700, flex:1, letterSpacing:'-0.02em'}}>{title}</span>
         ) : (
           <div className="col" style={{alignItems:center?'center':'flex-start', flex:1, minWidth:0}}>
-            <span className="serif" style={{fontSize:15.5, fontWeight:700, color:'var(--text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'100%'}}>{title}</span>
+            <span className="display" style={{fontSize:15.5, fontWeight:700, color:'var(--text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'100%'}}>{title}</span>
             {sub && <span style={{fontSize:11, color:'var(--text-muted)'}}>{sub}</span>}
           </div>
         )}
@@ -204,9 +204,9 @@ function Switch({on, onToggle}){
 function Sheet({onClose, children, max='86%', lift=0}){
   return (
     <div style={{position:'absolute', inset:0, zIndex:50}}>
-      <div onClick={onClose} style={{position:'absolute', inset:0, background:'rgba(28,22,14,.32)'}}></div>
+      <div onClick={onClose} style={{position:'absolute', inset:0, background:'var(--scrim)'}}></div>
       <div className="sheet-in" style={{position:'absolute', left:0, right:0, bottom:lift, maxHeight:max,
-        background:'var(--canvas)', borderRadius:'20px 20px 0 0', display:'flex', flexDirection:'column', overflow:'hidden'}}>
+        background:'var(--canvas)', borderRadius:'var(--r-full) var(--r-full) 0 0', display:'flex', flexDirection:'column', overflow:'hidden'}}>
         <div style={{padding:'12px 0 6px', display:'flex', justifyContent:'center', flex:'0 0 auto'}}>
           <div style={{width:38, height:4, borderRadius:2, background:'var(--border)'}}></div>
         </div>
@@ -220,7 +220,7 @@ function SheetHeader({iconBox, title, sub, right}){
     <div className="row gap10" style={{padding:'6px 18px 13px', borderBottom:'1px solid var(--border-subtle)', flex:'0 0 auto'}}>
       {iconBox}
       <div className="col" style={{flex:1, minWidth:0, gap:2}}>
-        <span className="serif" style={{fontSize:16.5, fontWeight:700, color:'var(--text-primary)',
+        <span className="display" style={{fontSize:16.5, fontWeight:700, color:'var(--text-primary)',
           whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{title}</span>
         {sub && <span style={{fontSize:11.5, color:'var(--text-muted)'}}>{sub}</span>}
       </div>
@@ -251,10 +251,11 @@ function SectionLabel({text, right}){
   );
 }
 
-function Avatar({label, size=40, tint='linear-gradient(135deg,#283C5F,#3B5182)', fs, children}){
+/* 不传 tint 时是主题色头像（如 AI），文字用 --on-accent；传入的人物色是内容色，文字保持白色。 */
+function Avatar({label, size=40, tint, fs, children}){
   return (
-    <div style={{width:size,height:size,borderRadius:'50%',background:tint,display:'flex',alignItems:'center',
-      justifyContent:'center',color:'#fff',fontWeight:700,fontSize:fs||size*0.4,fontFamily:'var(--serif)',flex:'0 0 auto'}}>{children||label}</div>
+    <div style={{width:size,height:size,borderRadius:'50%',background:tint||'linear-gradient(135deg,var(--accent),var(--accent-warm))',display:'flex',alignItems:'center',
+      justifyContent:'center',color:tint?'#fff':'var(--on-accent)',fontWeight:700,fontSize:fs||size*0.4,fontFamily:'var(--display)',flex:'0 0 auto'}}>{children||label}</div>
   );
 }
 
@@ -262,7 +263,7 @@ function Avatar({label, size=40, tint='linear-gradient(135deg,#283C5F,#3B5182)',
 function EntityIcon({icon, hex, s=40, is=20}){
   const Cmp = typeof icon==='string' ? I[icon] : icon;
   return (
-    <div style={{width:s,height:s,borderRadius:10,background:tint(hex,.14),display:'flex',
+    <div style={{width:s,height:s,borderRadius:'var(--r-lg)',background:tint(hex,.14),display:'flex',
       alignItems:'center',justifyContent:'center',color:hex,flex:'0 0 auto'}}><Cmp s={is}/></div>
   );
 }

@@ -4,73 +4,29 @@
      - lib/shared/theme/reveric_colors.dart
      - lib/shared/theme/reveric_typography.dart
      - lib/shared/theme/reveric_spacing.dart
-     - DESIGN.md, PRODUCT.md
 
-   Default palette: 墨蓝纸本 (ivory paper + ink navy, from the brand mark).
-   The repo ships ten palettes: reveric (default), cartographer, ink-wash,
-   ember, ivory, classic, azure, verdant, violet, crimson, nebula — each with
-   a paired *Dark variant. The semantic tokens stay stable across themes; the
-   color values shift.
+   Color tokens live in ../themes.css (reveric / classic / ivory × light /
+   dark, switched by ../theme.js). This file holds typography, spacing,
+   radii, sizes, elevation, and semantic element styles.
 
-   Typography uses Georgia for manuscript/authored content and system sans for
-   UI/management copy. This is "The Manuscript vs. Mechanism Rule".
+   Typography uses Georgia only for manuscript prose being read or written
+   (--font-serif). Every title — page, section, card, dialog — and all UI
+   copy use system sans (--font-display / --font-sans).
    ========================================================================= */
 
+@import url("../themes.css");
+
 :root {
-  /* ---- Default theme: 墨蓝纸本 (light) -------------------------------
-     取自品牌标识：深墨蓝 #283C5F 为主色，长春花蓝 #8897D1 为 AI / 次强调，
-     底色沿用标识里的象牙白纸面。正文墨色是蓝黑，不用纯黑。 */
-
-  /* Surfaces — ivory paper layered tonally, never pure white */
-  --canvas:                 #FEFCF9; /* outermost app background */
-  --surface:                #FBFAF7; /* editor + primary content */
-  --surface-dim:            #F4F3F0; /* sidebars / secondary zones */
-  --surface-container:      #F8F7F4; /* toolbars, title bars, status */
-  --surface-container-high: #FCFBF9; /* inputs, AI panels, raised */
-
-  /* Borders */
-  --border:        #E6E5E2; /* primary dividers */
-  --border-subtle: #EFEEEB; /* internal dividers */
-  --border-input:  #E3E3E1; /* inputs, cards, dropdowns */
-
-  /* Text — blue-black ink on paper, never #000 */
-  --text-primary:   #1F2A3D; /* body + headings */
-  --text-secondary: #4A5468; /* labels + quieter controls */
-  --text-muted:     #7E8698; /* hints + metadata */
-  --text-subtle:    #ADB2BF; /* timestamps + low-priority meta */
-  --text-tertiary:  #7E8698;
-
-  /* Accent — ink navy, sparingly; periwinkle for AI */
-  --accent:       #283C5F; /* primary actions, active, selected */
-  --accent-warm:  #3B5182; /* hover of primary, secondary emphasis */
-  --accent-amber: #8897D1; /* AI accents, small emphasis */
-  --on-accent:    #FFFFFF;
-
-  /* States */
-  --selected: #EEF0F8;
-  --hover:    #F3F4F8;
-
-  /* Semantic (diffs + validation) */
-  --deletion-bg:     #FDE8E8;
-  --deletion-border: #C53030;
-  --addition-bg:     #E8F5E8;
-  --addition-border: #4A7C59;
-  --warning-bg:      #FEF3C7;
-  --warning-text:    #D97706;
-  --success:         #4A7C59;
-  --error:           #C53030;
-
-  /* Literary detail */
-  --blockquote-border: #8897D1;
-
   /* ---- Typography -------------------------------------------------- */
 
   --font-serif:  Georgia, "Times New Roman", "Songti SC", "STSong", serif;
   --font-sans:   system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
                  "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-mono:   ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Titles: page / section / card / dialog headings. Sans, tight tracking. */
+  --font-display: var(--font-sans);
 
-  /* Manuscript scale — Georgia, generous leading */
+  /* Title + manuscript scale — display/heading are sans titles; body is Georgia prose */
   --type-display-size:        28px;
   --type-display-weight:      700;
   --type-display-line:        1.3;
@@ -113,14 +69,14 @@
   --editor-padding-h: 72px; /* editor horizontal padding — preserve line length */
 
   /* ---- Radii (RevericRadius) -------------------------------------- */
-  --radius-small:  4px;
-  --radius-medium: 6px;
-  --radius-large:  8px;   /* default for cards + inputs */
-  --radius-xl:     10px;
-  --radius-2xl:    12px;
-  --radius-full:   14px;
-  --radius-pill:   16px;
-  --radius-button: 8px;
+  --radius-small:  6px;
+  --radius-medium: 8px;   /* list items, tabs, chips, menus */
+  --radius-large:  12px;  /* inputs, small cards */
+  --radius-xl:     14px;
+  --radius-2xl:    18px;  /* cards, panels, dialogs */
+  --radius-full:   20px;
+  --radius-pill:   999px;
+  --radius-button: 999px; /* all buttons are pills */
 
   /* ---- Sizes (RevericSizes) --------------------------------------- */
   --size-sidebar:           280px;
@@ -135,92 +91,14 @@
   --size-avatar-md:         28px;
 
   /* ---- Elevation --------------------------------------------------- */
-  /* The system is intentionally FLAT. Depth comes from tonal layers +
-     1px borders + selected/hover states. Custom shadows are forbidden
-     on standard panels, cards, inputs, and sidebars. */
+  /* Cards and panels float on the canvas with --shadow-card (themes.css)
+     and no visible border (--card-border). Chrome — sidebars, toolbars,
+     inputs, list rows — stays flat: tonal layers + hover/selected states.
+     No ad-hoc shadows beyond these tokens. */
   --shadow-none:    none;
-  --shadow-dialog:  0 8px 24px rgba(31, 42, 61, 0.10),
-                    0 2px 8px rgba(31, 42, 61, 0.06);
-  --shadow-overlay: 0 4px 16px rgba(31, 42, 61, 0.08);
-}
-
-/* ---- Dark variant (墨蓝纸本 Dark) --------------------------------
-   深色下深墨蓝压不住背景，主色换成长春花蓝。 */
-:root[data-theme="dark"],
-.theme-reveric-dark {
-  --canvas:                 #12161F;
-  --surface:                #181D28;
-  --surface-dim:            #1D2330;
-  --surface-container:      #202736;
-  --surface-container-high: #262E3F;
-  --border:                 #2E3647;
-  --border-subtle:          #252C3B;
-  --border-input:           #353E51;
-  --text-primary:           #E9ECF3;
-  --text-secondary:         #C2C8D6;
-  --text-muted:             #8E97AB;
-  --text-subtle:            #636C80;
-  --text-tertiary:          #8E97AB;
-  --accent:                 #8897D1;
-  --accent-warm:            #A3B0E0;
-  --accent-amber:           #B8C2EC;
-  --on-accent:              #12161F;
-  --selected:               #2A3346;
-  --hover:                  #232A39;
-  --deletion-bg:            #3D1F1F;
-  --deletion-border:        #E53E3E;
-  --addition-bg:            #1F3D2A;
-  --addition-border:        #48BB78;
-  --warning-bg:             #3D331F;
-  --warning-text:           #F6AD55;
-  --success:                #48BB78;
-  --error:                  #E53E3E;
-  --blockquote-border:      #8897D1;
-}
-
-/* ---- Cartographer alternate (richer brass / sepia) -------------- */
-.theme-cartographer {
-  --canvas: #FFFBF5;
-  --surface: #FCFAF6;
-  --surface-dim: #F5F0E8;
-  --surface-container: #F5F1EB;
-  --surface-container-high: #FAF6F0;
-  --border: #E0D8CC;
-  --border-subtle: #E8E2D8;
-  --border-input: #E0D6CC;
-  --text-primary: #2C2418;
-  --text-secondary: #4A3F35;
-  --text-muted: #8A7D6B;
-  --text-subtle: #9E9484;
-  --accent: #8B7355;
-  --accent-warm: #C4956A;
-  --accent-amber: #F6AD55;
-  --on-accent: #FFFBF5;
-  --selected: #E8E0D4;
-  --hover: #EDE7DD;
-}
-
-/* ---- Ink Wash alternate (rice paper + cinnabar) ----------------- */
-.theme-ink-wash {
-  --canvas: #F3F0E8;
-  --surface: #FAF8F2;
-  --surface-dim: #E8E2D6;
-  --surface-container: #F1ECE2;
-  --surface-container-high: #FFFCF5;
-  --border: #D4CABC;
-  --border-subtle: #E5DDD0;
-  --border-input: #CFC4B5;
-  --text-primary: #24211D;
-  --text-secondary: #4C4740;
-  --text-muted: #797167;
-  --text-subtle: #9D9487;
-  --accent: #A63F35;          /* cinnabar */
-  --accent-warm: #715A43;
-  --accent-amber: #B8894F;
-  --on-accent: #FFFCF5;
-  --selected: #E6DDD0;
-  --hover: #EEE7DB;
-  --blockquote-border: #A63F35;
+  --shadow-dialog:  0 8px 24px color-mix(in srgb, var(--shadow-base) 10%, transparent),
+                    0 2px 8px color-mix(in srgb, var(--shadow-base) 6%, transparent);
+  --shadow-overlay: 0 4px 16px color-mix(in srgb, var(--shadow-base) 8%, transparent);
 }
 
 /* =========================================================================
@@ -237,19 +115,20 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Manuscript hierarchy — Georgia, generous */
+/* Titles — sans; manuscript prose — Georgia */
 h1, .m-display {
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-size: var(--type-display-size);
   font-weight: var(--type-display-weight);
   line-height: var(--type-display-line);
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.02em;
 }
 
 h2, .m-heading {
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
   font-size: var(--type-heading-size);
   font-weight: var(--type-heading-weight);
   line-height: var(--type-heading-line);
@@ -347,14 +226,16 @@ blockquote, .m-blockquote {
 /* Cards / Panels */
 .m-card {
   background: var(--surface);
-  border: 1px solid var(--border-input);
-  border-radius: var(--radius-large);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-card);
   padding: var(--space-4xl);
 }
 .m-panel {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-large);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-card);
 }
 
 /* Sidebar list item */

@@ -15,7 +15,7 @@
    ============================================================ */
 
 /* 封面底色：desktop data.jsx 的 cover 是命名风格，移动端 Cover 组件吃 hex。 */
-const SPM_COVER_TINT = { ink:'#4F463B', mountains:'#5C6B7E', tree:'#5E7060' };
+const SPM_COVER_TINT = { ink:'#3E5A58', mountains:'#6B7D8C', tree:'#5E7F6A' };
 
 /* 这三个过滤 helper 定义在 desktop screenplay/views.jsx 而不在 data.jsx，
    移动端不加载 views.jsx，在这里重定义同一份逻辑（逐行对齐 desktop）：
@@ -61,7 +61,7 @@ function spmCardOf(p){
   return {
     id: p.id,
     title: p.title,
-    tint: SPM_COVER_TINT[p.cover] || '#4F463B',
+    tint: SPM_COVER_TINT[p.cover] || '#3E5A58',
     kindLabel: p.kind === 'series' ? '剧集' : '电影',
     genre: p.genre,
     meta: parts.join(' · '),
@@ -96,21 +96,21 @@ function SpmPages({value, unit='页', c}){
 
 /* 场次状态（对齐 desktop .sp-state 的四个色） */
 const SPM_SCENE_STATE = {
-  '定稿':  {bg:'rgba(74,124,89,.13)',  c:'var(--success)'},
-  '修改中':{bg:'rgba(217,119,6,.13)',  c:'var(--warning)'},
+  '定稿':  {bg:'color-mix(in srgb, var(--success) 13%, transparent)',  c:'var(--success)'},
+  '修改中':{bg:'color-mix(in srgb, var(--warning-text) 13%, transparent)',  c:'var(--warning)'},
   '草稿':  {bg:'var(--selected)',      c:'var(--text-secondary)'},
   '待写':  {bg:'var(--surface-dim)',   c:'var(--text-subtle)'},
 };
 /* 集的状态比场多一个「写作中」（当前正在写的那一集），其余沿用场景色口径。 */
 const SPM_EP_STATE = {
-  '写作中':{bg:'rgba(40,60,95,.16)', c:'var(--accent-warm)'},
+  '写作中':{bg:'color-mix(in srgb, var(--accent) 16%, transparent)', c:'var(--accent-warm)'},
   ...SPM_SCENE_STATE,
 };
 function SpmState({state, states}){
   const map = states || SPM_SCENE_STATE;
   const t = map[state] || map['待写'] || map['草稿'];
   return <span style={{display:'inline-flex', alignItems:'center', height:20, padding:'0 8px',
-    borderRadius:'var(--r-sm)', fontSize:10.5, fontWeight:600, background:t.bg, color:t.c}}>{state}</span>;
+    borderRadius:'var(--r-pill)', fontSize:10.5, fontWeight:600, background:t.bg, color:t.c}}>{state}</span>;
 }
 
 function SpmChip({icon, children, plain}){
@@ -118,7 +118,7 @@ function SpmChip({icon, children, plain}){
   return (
     <span style={{display:'inline-flex', alignItems:'center', gap:4, height:22, padding:'0 8px',
       border:'1px solid '+(plain?'transparent':'var(--border-input)'),
-      borderRadius:'var(--r-md)', background:plain?'var(--surface-dim)':'var(--surface)',
+      borderRadius:'var(--r-pill)', background:plain?'var(--surface-dim)':'var(--surface)',
       fontSize:10.5, fontWeight:500, color:'var(--text-muted)', whiteSpace:'nowrap'}}>
       {Cmp && <Cmp s={11}/>}
       {children}
@@ -141,7 +141,7 @@ function SpmAtText({text, projId}){
     out.push(
       <span key={`${m.index}-${m[1]}`} style={{display:'inline-flex', alignItems:'center',
         padding:'0 5px', margin:'0 1px', borderRadius:'var(--r-sm)',
-        background:char.role==='主角'?'rgba(217,119,6,.12)':'var(--selected)',
+        background:char.role==='主角'?'color-mix(in srgb, var(--warning-text) 12%, transparent)':'var(--selected)',
         fontFamily:'var(--sans)', fontSize:12, fontWeight:500,
         color:char.role==='主角'?'var(--warning)':'var(--text-secondary)'}}>@{m[1]}</span>
     );
@@ -176,12 +176,12 @@ function SpmAiBar({sceneId}){
   const Cmp = I[t.icon];
   const isCreate = change.change === 'create';
   const btnStyle = {display:'inline-flex', alignItems:'center', gap:3, height:24, padding:'0 8px',
-    border:'1px solid var(--border-input)', borderRadius:'var(--r-md)', background:'var(--surface)',
+    border:'1px solid var(--border-input)', borderRadius:'var(--r-pill)', background:'var(--surface)',
     color:'var(--text-secondary)', fontSize:11, fontWeight:500, cursor:'pointer', flex:'none'};
   return (
     <div style={{display:'flex', alignItems:'center', flexWrap:'wrap', gap:8, padding:'8px 10px',
       marginBottom:12, borderRadius:'var(--r-lg)',
-      background:isCreate?'rgba(217,119,6,.10)':'var(--surface-dim)',
+      background:isCreate?'color-mix(in srgb, var(--warning-text) 10%, transparent)':'var(--surface-dim)',
       fontSize:11.5, color:isCreate?'var(--warning)':'var(--text-muted)'}}>
       <Cmp s={13} c={t.color}/>
       <span style={{fontWeight:600, color:isCreate?'var(--warning)':'var(--text-secondary)'}}>AI {t.label} · {change.field}</span>
@@ -237,7 +237,7 @@ function SpmStat({label, value, unit}){
   return (
     <div className="col" style={{gap:2, minWidth:0}}>
       <span style={{fontSize:10.5, color:'var(--text-subtle)'}}>{label}</span>
-      <span className="serif" style={{fontSize:16, fontWeight:700, color:'var(--text-primary)',
+      <span className="display" style={{fontSize:16, fontWeight:700, color:'var(--text-primary)',
         fontVariantNumeric:'tabular-nums'}}>
         {value}
         {unit && <span style={{marginLeft:2, fontSize:10.5, fontWeight:400,
@@ -258,11 +258,9 @@ function SpOverviewBody({proj, seasonId, epId, onOpenEpisode, onGoto, onScroll})
     <div className="viewport" onScroll={onScroll} style={{padding:'10px 20px 24px'}}>
 
       {/* hero：继续写作面板，版式逐项对齐小说概览的 Ov_ContinueHero ——
-          渐变暖板、上次写到的位置、serif 预览（这里放 logline）、琥珀主按钮；
+          白卡片、上次写到的位置、serif 预览（这里放 logline）、墨玉主按钮；
           来源/集数/更新这些事实 chips 收在分隔线后，不与动作区抢视觉。 */}
-      <div style={{padding:16, marginBottom:14, borderRadius:'var(--r-full)',
-        border:'1px solid var(--border-subtle)',
-        background:'linear-gradient(135deg, rgba(59,81,130,.10), rgba(136,151,209,.04))'}}>
+      <div className="card" style={{padding:18, marginBottom:14}}>
         <div className="row gap6">
           <I.leaf s={16} c="var(--accent-warm)"/>
           <span style={{fontSize:13.5, fontWeight:600, color:'var(--accent-warm)'}}>继续写作</span>
@@ -272,7 +270,7 @@ function SpOverviewBody({proj, seasonId, epId, onOpenEpisode, onGoto, onScroll})
             上次写到 · {multi && `${spSeasonLabel(spSeasonById(seasonId))} · `}{curEp.label} · {curEp.title}
           </div>
         )}
-        <div className="serif" style={{fontSize:15.5, fontWeight:700, lineHeight:1.7,
+        <div className="serif" style={{fontSize:15.5, fontWeight:500, lineHeight:1.7,
           color:'var(--text-primary)', marginTop:6}}>{proj.logline}</div>
         <button type="button" className="press" onClick={()=>onGoto('script')}
           style={{width:'100%', height:46, marginTop:16, border:'none', borderRadius:'var(--r-pill)',
@@ -316,7 +314,7 @@ function SpOverviewBody({proj, seasonId, epId, onOpenEpisode, onGoto, onScroll})
             {multi && (
               <div className="row" style={{justifyContent:'space-between', alignItems:'baseline',
                 padding:'0 4px 8px'}}>
-                <span style={{fontFamily:'var(--serif)', fontSize:14, fontWeight:700,
+                <span style={{fontFamily:'var(--display)', fontSize:14, fontWeight:700,
                   color:'var(--text-primary)'}}>{spSeasonLabel(s)}</span>
                 <span style={{fontSize:11, color:'var(--text-muted)'}}>
                   {c.text}
@@ -333,7 +331,7 @@ function SpOverviewBody({proj, seasonId, epId, onOpenEpisode, onGoto, onScroll})
                 <div key={e.id} className="card press" onClick={()=>onOpenEpisode(e)}
                   style={{padding:'12px 14px'}}>
                   <div className="row gap8" style={{alignItems:'center'}}>
-                    <span className="serif" style={{flex:1, minWidth:0, fontSize:14.5, fontWeight:700,
+                    <span className="display" style={{flex:1, minWidth:0, fontSize:14.5, fontWeight:700,
                       color:'var(--text-primary)', whiteSpace:'nowrap', overflow:'hidden',
                       textOverflow:'ellipsis'}}>{e.label} · {e.title}</span>
                     <SpmState state={e.state} states={SPM_EP_STATE}/>
@@ -392,7 +390,7 @@ function SpEpSwitcher({proj, seasonId, epId, onPick, onManage, onClose}){
 
   return (
     <Sheet onClose={onClose}>
-      <SheetHeader iconBox={<EntityIcon icon="books" hex="#8A6E4B" s={36} is={18}/>}
+      <SheetHeader iconBox={<EntityIcon icon="books" hex="var(--accent)" s={36} is={18}/>}
         title="切换季 / 集"
         sub={multi ? `共 ${seasons.length} 季 · 人物与地点跨季共享` : `共 ${eps.length} 集`}/>
       {multi && (
@@ -468,7 +466,7 @@ function SpmEpCount({seasonId}){
         fontWeight:c.over?600:400, color:c.over?'var(--warning)':'var(--text-subtle)'}}>{c.text}</span>
       {c.over && (
         <span style={{display:'inline-flex', alignItems:'center', height:18, padding:'0 6px',
-          borderRadius:'var(--r-sm)', background:'rgba(217,119,6,.13)', color:'var(--warning)',
+          borderRadius:'var(--r-sm)', background:'color-mix(in srgb, var(--warning-text) 13%, transparent)', color:'var(--warning)',
           fontSize:10, fontWeight:600}}>已超出规划</span>
       )}
     </span>
@@ -501,7 +499,7 @@ function SpmSeasonManageSheet({proj, seasonId, onEnterSeason, onClose}){
   return (
     <React.Fragment>
     <Sheet onClose={onClose} max="78%" lift={kb ? SPM_KEYBOARD_H : 0}>
-      <SheetHeader iconBox={<EntityIcon icon="books" hex="#8A6E4B" s={36} is={18}/>}
+      <SheetHeader iconBox={<EntityIcon icon="books" hex="var(--accent)" s={36} is={18}/>}
         title={editSeason ? '本季设置' : '管理季'}
         sub={editSeason ? spSeasonLabel(editSeason) : `共 ${seasons.length} 季 · 人物与地点跨季共享`}
         right={<IconBtn icon="x" size={19} c="var(--text-muted)" ariaLabel="关闭"
@@ -512,7 +510,7 @@ function SpmSeasonManageSheet({proj, seasonId, onEnterSeason, onClose}){
           <div className="viewport" style={{padding:'14px 16px 4px'}}>
             <SpmField label="季标题" hint="留空就只显示季号">
               <div contentEditable suppressContentEditableWarning onFocus={()=>setKb(true)}
-                style={{...SPM_BOX, fontFamily:'var(--serif)', fontSize:14}}>{editSeason.title}</div>
+                style={{...SPM_BOX, fontFamily:'var(--display)', fontSize:14}}>{editSeason.title}</div>
             </SpmField>
             {/* 规划是作者给自己定的目标，不是上限 —— 写超了只提示，不拦。 */}
             <SpmField label="规划集数" hint="留空就只显示实际集数">
@@ -590,9 +588,9 @@ const SPM_KEYBOARD_H = 252;
 function SpmFakeKeyboard(){
   return (
     <div style={{position:'absolute', left:0, right:0, bottom:0, height:SPM_KEYBOARD_H,
-      zIndex:55, background:'#D3CEC6', borderTop:'1px solid var(--border)',
+      zIndex:55, background:'color-mix(in srgb, var(--surface-dim) 82%, var(--text-muted))', borderTop:'1px solid var(--border)',
       display:'flex', alignItems:'center', justifyContent:'center'}}>
-      <span style={{fontSize:11, letterSpacing:'.08em', color:'rgba(31,42,61,.38)'}}>键盘</span>
+      <span style={{fontSize:11, letterSpacing:'.08em', color:'color-mix(in srgb, var(--shadow-base) 38%, transparent)'}}>键盘</span>
     </div>
   );
 }
@@ -883,7 +881,7 @@ function SpOutlineBody({proj, epId, onScroll, onGotoBeat}){
               <div key={b.id} className="press" onClick={onGotoBeat}
                 style={{padding:'12px 4px', borderBottom:'1px solid var(--border-subtle)'}}>
                 <div className="row" style={{alignItems:'baseline', gap:8}}>
-                  <span style={{flex:1, fontFamily:'var(--serif)', fontSize:14, fontWeight:700,
+                  <span style={{flex:1, fontFamily:'var(--display)', fontSize:14, fontWeight:700,
                     lineHeight:1.4, color:'var(--text-primary)'}}>{b.title}</span>
                   <span style={{fontFamily:'var(--mono)', fontSize:10.5, color:'var(--text-subtle)'}}>
                     <SpmPages value={b.pages}/>
@@ -923,7 +921,7 @@ function SpBeatBody({proj, epId, onScroll}){
           <div key={act} style={{marginBottom:20}}>
             <div className="row gap6" style={{padding:'2px 4px 10px'}}>
               <I.path s={14} c="var(--text-muted)"/>
-              <span style={{fontFamily:'var(--serif)', fontSize:14, fontWeight:700,
+              <span style={{fontFamily:'var(--display)', fontSize:14, fontWeight:700,
                 color:'var(--text-primary)'}}>{act}</span>
               <span style={{marginLeft:'auto', fontFamily:'var(--mono)', fontSize:10.5,
                 color:'var(--text-subtle)'}}>{list.length}</span>
@@ -931,7 +929,7 @@ function SpBeatBody({proj, epId, onScroll}){
             {list.map((b)=>(
               <div key={b.id} className="card press" style={{padding:'12px 14px', marginBottom:10}}>
                 <div className="row" style={{alignItems:'baseline', gap:8}}>
-                  <span style={{flex:1, fontFamily:'var(--serif)', fontSize:14, fontWeight:700,
+                  <span style={{flex:1, fontFamily:'var(--display)', fontSize:14, fontWeight:700,
                     lineHeight:1.4, color:'var(--text-primary)'}}>{b.title}</span>
                   <span style={{fontFamily:'var(--mono)', fontSize:10.5, color:'var(--text-subtle)'}}>
                     <SpmPages value={b.pages}/>
@@ -976,7 +974,7 @@ function SpBeatBody({proj, epId, onScroll}){
 function SpmEmo({children, stale, more}){
   return <span style={{display:'inline-flex', alignItems:'center', height:19, padding:'0 6px',
     borderRadius:'var(--r-sm)', fontSize:10, fontWeight: more ? 500 : 600,
-    background: stale ? 'rgba(217,119,6,.13)' : 'var(--selected)',
+    background: stale ? 'color-mix(in srgb, var(--warning-text) 13%, transparent)' : 'var(--selected)',
     color: stale ? 'var(--warning)' : (more ? 'var(--text-subtle)' : 'var(--accent-warm)'),
     whiteSpace:'nowrap'}}>{children}</span>;
 }
@@ -1016,7 +1014,7 @@ function SpScenesBody({proj, epId, onScroll, onOpenScene, onOpenScript}){
               {/* 主行是事件短标题（没写就回退地点），地点·时间/内外降为次行 ——
                   一集里三场都叫「客船前舱」时，单行只有地点读不出哪场是哪场。 */}
               <div className="row gap6" style={{alignItems:'baseline'}}>
-                <span style={{flex:1, minWidth:0, fontFamily:'var(--serif)', fontSize:14.5,
+                <span style={{flex:1, minWidth:0, fontFamily:'var(--display)', fontSize:14.5,
                   fontWeight:700, color:'var(--text-primary)', fontVariantNumeric:'tabular-nums',
                   whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>
                   <span style={{color:'var(--text-subtle)', fontWeight:400}}>{s.no}、</span>{spSceneName(s)}
@@ -1115,7 +1113,7 @@ function SpmSceneEvents({scene}){
             style={{alignItems:'center', padding:'8px 10px', cursor:'pointer'}}>
             <span style={{flex:'none', width:14, fontFamily:'var(--mono)', fontSize:10.5,
               fontWeight:600, color:'var(--text-subtle)'}}>{i+1}</span>
-            <span style={{flex:1, minWidth:0, fontFamily:'var(--serif)', fontSize:13.5,
+            <span style={{flex:1, minWidth:0, fontFamily:'var(--display)', fontSize:13.5,
               fontWeight:700, color:'var(--text-primary)', whiteSpace:'nowrap',
               overflow:'hidden', textOverflow:'ellipsis'}}>{e.title}</span>
             {e.stateChange && (
@@ -1150,7 +1148,7 @@ function SpmSceneEvents({scene}){
         </div>
       ))}
       <button type="button" className="press" style={{height:32, border:'1px dashed var(--border-input)',
-        borderRadius:'var(--r-lg)', background:'transparent', color:'var(--text-muted)',
+        borderRadius:'var(--r-pill)', background:'transparent', color:'var(--text-muted)',
         fontSize:11.5, fontWeight:600, cursor:'pointer'}}>
         <I.plus s={12}/> 新增事件
       </button>
@@ -1169,7 +1167,7 @@ function SpmSceneDetail({scene, proj, onBack, onOpenScript}){
         <div className="row" style={{justifyContent:'space-between', padding:'8px 12px', gap:6}}>
           <IconBtn icon="chevL" size={24} onClick={onBack}/>
           <div className="col" style={{alignItems:'center', flex:1, minWidth:0}}>
-            <span className="serif" style={{fontSize:15, fontWeight:700, color:'var(--text-primary)',
+            <span className="display" style={{fontSize:15, fontWeight:700, color:'var(--text-primary)',
               whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'100%'}}>
               {scene.no}、{spSceneName(scene)}
             </span>
@@ -1182,7 +1180,7 @@ function SpmSceneDetail({scene, proj, onBack, onOpenScript}){
       {/* 正文改过之后整理结果就旧了 —— 旧值保留，只标待核对，不清空也不自动重跑。 */}
       {scene.analysisStale && (
         <div className="row gap6" style={{flex:'0 0 auto', alignItems:'center', padding:'7px 20px',
-          background:'rgba(217,119,6,.10)', color:'var(--warning)', fontSize:11.5, lineHeight:1.5}}>
+          background:'color-mix(in srgb, var(--warning-text) 10%, transparent)', color:'var(--warning)', fontSize:11.5, lineHeight:1.5}}>
           <I.warn s={13}/>
           <span style={{flex:1}}>正文改过，下面的情绪与事件还是上一版的结果。</span>
           <button type="button" className="press" style={{display:'inline-flex', alignItems:'center',
@@ -1194,7 +1192,7 @@ function SpmSceneDetail({scene, proj, onBack, onOpenScript}){
       <div className="viewport" style={{padding:'14px 20px 24px'}}>
         <SpmField label="事件短标题" hint="为空就显示地点，不会拿梗概去凑">
           <div contentEditable suppressContentEditableWarning
-            style={{...SPM_BOX, fontFamily:'var(--serif)', fontSize:15, fontWeight:700,
+            style={{...SPM_BOX, fontFamily:'var(--display)', fontSize:15, fontWeight:700,
               color: scene.title ? 'var(--text-primary)' : 'var(--text-subtle)'}}>
             {scene.title || scene.place}
           </div>
@@ -1204,13 +1202,13 @@ function SpmSceneDetail({scene, proj, onBack, onOpenScript}){
           <div style={{flex:1}}>
             <SpmField label="地点">
               <div contentEditable suppressContentEditableWarning
-                style={{...SPM_BOX, fontFamily:'var(--serif)', fontSize:14}}>{scene.place}</div>
+                style={{...SPM_BOX, fontSize:14}}>{scene.place}</div>
             </SpmField>
           </div>
           <div style={{flex:'0 0 96px'}}>
             <SpmField label="时间">
               <div contentEditable suppressContentEditableWarning
-                style={{...SPM_BOX, fontFamily:'var(--serif)', fontSize:14}}>{scene.time}</div>
+                style={{...SPM_BOX, fontSize:14}}>{scene.time}</div>
             </SpmField>
           </div>
         </div>
@@ -1223,7 +1221,7 @@ function SpmSceneDetail({scene, proj, onBack, onOpenScript}){
               return (
                 <button key={v} type="button" className="press" style={{flex: v==='未指定'?1.3:1,
                   height:34, border:'1px solid '+(on?'var(--accent)':'var(--border-input)'),
-                  borderRadius:'var(--r-lg)', background:on?'var(--selected)':'var(--surface)',
+                  borderRadius:'var(--r-pill)', background:on?'var(--selected)':'var(--surface)',
                   color:on?'var(--text-primary)':(v==='未指定'?'var(--text-subtle)':'var(--text-muted)'),
                   fontSize:13, fontWeight:500, cursor:'pointer'}}>{v}</button>
               );
@@ -1282,8 +1280,8 @@ function SpmSceneDetail({scene, proj, onBack, onOpenScript}){
         <div className="col gap8" style={{marginTop:4}}>
           <button type="button" className="press" onClick={()=>onOpenScript(scene)}
             style={{width:'100%', height:40, display:'flex', alignItems:'center',
-              justifyContent:'center', gap:6, border:'1px solid var(--border-input)',
-              borderRadius:'var(--r-lg)', background:'var(--surface)',
+              justifyContent:'center', gap:6, border:'1px solid var(--border)',
+              borderRadius:'var(--r-pill)', background:'var(--surface)',
               color:'var(--text-secondary)', fontSize:12.5, fontWeight:600, cursor:'pointer'}}>
             <I.pencil s={14}/>编辑正文
           </button>
@@ -1392,7 +1390,7 @@ function SpWorkspaceScreen({proj, onBack}){
         <div className="row" style={{justifyContent:'space-between', padding:'8px 12px 8px', gap:6}}>
           <IconBtn icon="chevL" size={24} onClick={onBack}/>
           <div className="col" style={{alignItems:'center', flex:1, minWidth:0}}>
-            <span className="serif" style={{fontSize:15.5, fontWeight:700, color:'var(--text-primary)',
+            <span className="display" style={{fontSize:15.5, fontWeight:700, color:'var(--text-primary)',
               whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'100%'}}>{proj.title}</span>
             {isPlot && curEp ? (
               /* 季/集胶囊：作品名的副标题，点开 bottom sheet 切换。 */

@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../shared/components/reveric_button.dart';
 import '../../../shared/localization/app_localization.dart';
 import '../../../shared/localization/locale_keys.dart';
 import '../../../shared/theme/theme.dart';
@@ -120,36 +121,10 @@ class GreetingHeader extends StatelessWidget {
                   label: Text(context.t(LocaleKeys.libraryCreateNovel)),
                 ),
                 // 快速开书 — 主按钮（accent）：占位建书后进编辑器走创作向导。
-                Material(
-                  color: colors.accent,
-                  borderRadius: BorderRadius.circular(RevericRadius.medium),
-                  child: InkWell(
-                    onTap: onQuickStart,
-                    borderRadius: BorderRadius.circular(RevericRadius.medium),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: RevericSpacing.x3l,
-                        vertical: RevericSpacing.lg,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          RevericIcon(
-                            RevericIcons.auto_awesome,
-                            size: 16,
-                            color: colors.onAccent,
-                          ),
-                          const SizedBox(width: RevericSpacing.xs),
-                          Text(
-                            context.t(LocaleKeys.libraryQuickStart),
-                            style: typo.uiSemibold.copyWith(
-                              color: colors.onAccent,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                RevericButton.primary(
+                  onPressed: onQuickStart,
+                  icon: RevericIcons.auto_awesome,
+                  label: context.t(LocaleKeys.libraryQuickStart),
                 ),
               ],
             ),

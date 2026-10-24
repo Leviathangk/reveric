@@ -8,7 +8,7 @@
 
 :root {
   /* edge semantics — 5 typed relations, warm/literary hues only */
-  --cv-edge-relationship: #3B5182; /* 人物关系 */
+  --cv-edge-relationship: var(--accent); /* 人物关系 */
   --cv-edge-causal:       #6B5B45; /* 因果     */
   --cv-edge-timeline:     #4A7C59; /* 时间线   */
   --cv-edge-foreshadow:   #D97706; /* 伏笔兑现 */
@@ -19,14 +19,14 @@
   --cv-sticky-sage:  #E9F0E9;
   --cv-sticky-rose:  #F7E9E5;
   --cv-sticky-stone: #F0EDE7;
-  --cv-sticky-ink:   #1F2A3D;
+  --cv-sticky-ink:   var(--text-primary);
 
   /* board surface */
-  --cv-board-bg:   #F4F3F0;
-  --cv-board-dot:  #DCDFE6;
+  --cv-board-bg:   color-mix(in srgb, var(--surface-dim) 60%, var(--canvas));
+  --cv-board-dot:  var(--border-input);
 
-  --cv-shadow-node:  0 1px 2px rgba(31, 42, 61, .06), 0 4px 12px rgba(31, 42, 61, .06);
-  --cv-shadow-float: 0 2px 6px rgba(31, 42, 61, .08), 0 12px 32px rgba(31, 42, 61, .10);
+  --cv-shadow-node:  0 1px 2px color-mix(in srgb, var(--shadow-base) 6%, transparent), 0 4px 12px color-mix(in srgb, var(--shadow-base) 6%, transparent);
+  --cv-shadow-float: 0 2px 6px color-mix(in srgb, var(--shadow-base) 8%, transparent), 0 12px 32px color-mix(in srgb, var(--shadow-base) 10%, transparent);
 }
 
 :root[data-theme="dark"] {
@@ -40,10 +40,7 @@
   --cv-sticky-sage:  #29332B;
   --cv-sticky-rose:  #3A2C2A;
   --cv-sticky-stone: #33302B;
-  --cv-sticky-ink:   #EDE6DA;
 
-  --cv-board-bg:  #181D28;
-  --cv-board-dot: #2C3342;
 
   --cv-shadow-node:  0 1px 2px rgba(0, 0, 0, .30), 0 4px 12px rgba(0, 0, 0, .28);
   --cv-shadow-float: 0 2px 6px rgba(0, 0, 0, .34), 0 12px 32px rgba(0, 0, 0, .38);
@@ -168,7 +165,7 @@ textarea.cv-input {
   padding: var(--space-sm) var(--space-md);
   line-height: 1.7;
   resize: vertical;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: var(--type-body-small-size);
 }
 
@@ -300,7 +297,7 @@ textarea.cv-input {
 .cv-sticky__body {
   flex: 1;
   min-height: 0;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: var(--type-body-small-size);
   line-height: 1.75;
   color: color-mix(in srgb, var(--cv-sticky-ink) 88%, transparent);
@@ -411,7 +408,7 @@ textarea.cv-input {
   width: 238px;
   padding: var(--space-sm);
   border-radius: var(--radius-2xl);
-  border: 1px solid var(--border);
+  border: 1px solid var(--card-border);
   background: var(--surface);
   box-shadow: var(--cv-shadow-float);
   cursor: default;
@@ -618,7 +615,7 @@ textarea.cv-input {
   display: flex;
   flex-direction: column;
   border-radius: var(--radius-2xl);
-  border: 1px solid var(--border);
+  border: 1px solid var(--card-border);
   background: var(--surface);
   box-shadow: var(--cv-shadow-float);
   overflow: hidden;

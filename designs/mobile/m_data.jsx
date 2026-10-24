@@ -6,22 +6,22 @@
    ============================================================ */
 
 const NOVELS = [
-  { id:'n1', title:'夜航船', en:'Night Boat', tint:'#8A6E4B', chapters:42, words:'18.4万',
+  { id:'n1', title:'夜航船', en:'Night Boat', tint:'#2D3A36', chapters:42, words:'18.4万',
     status:'创作中', cat:'历史 · 群像', tags:['长篇','明末','群像'], updated:'今天 14:32',
     desc:'明末江南，一艘逆流而上的客船载着失意的画师、逃婚的小姐、隐姓的旧官。每个人都怀着一桩不可对人言的心事，每个人都在等天亮。',
     last:'第 03 章 · 三舱客' },
   { id:'n2', title:'山影渐落', en:'When the Mountains Fade', tint:'#5C6B7E', chapters:18, words:'6.2万',
     status:'创作中', cat:'文学 · 悬疑', tags:['中篇','悬疑','山'], updated:'昨天',
     desc:'一位退休制图师在阿尔卑斯山脚下的小镇接到了一份奇怪的委托——为一座地图上没有的山绘制等高线。' },
-  { id:'n3', title:'天文学家的女儿', en:"The Astronomer's Daughter", tint:'#243B5A', chapters:9, words:'2.8万',
+  { id:'n3', title:'天文学家的女儿', en:"The Astronomer's Daughter", tint:'#34465A', chapters:9, words:'2.8万',
     status:'草稿', cat:'历史虚构', tags:['novella','demo'], updated:'3 天前',
     desc:'里昂，1893。Hélène 继承了父亲的望远镜、未完成的星表，以及他与学院的争执。' },
-  { id:'n4', title:'枯木集', en:'Withered Tree Anthology', tint:'#5E7060', chapters:7, words:'2.0万',
+  { id:'n4', title:'枯木集', en:'Withered Tree Anthology', tint:'#4E7F6E', chapters:7, words:'2.0万',
     status:'已完本', cat:'短篇集 · 宋代', tags:['短篇','宋代'], updated:'上周',
     desc:'一组以宋代山水画为线索的短篇集，每篇围绕一幅画展开。' },
-  { id:'n5', title:'盐与铜锈', en:'Salt & Verdigris', tint:'#7A4B57', chapters:31, words:'13.0万',
+  { id:'n5', title:'盐与铜锈', en:'Salt & Verdigris', tint:'#6E5868', chapters:31, words:'13.0万',
     status:'创作中', cat:'蒸汽朋克', tags:['长篇','蒸汽朋克'], updated:'06/14' },
-  { id:'n6', title:'观星人手记', en:"Stargazer's Notes", tint:'#3A5A4A', chapters:5, words:'1.1万',
+  { id:'n6', title:'观星人手记', en:"Stargazer's Notes", tint:'#3F6E73', chapters:5, words:'1.1万',
     status:'草稿', cat:'科幻', tags:['短篇','科幻'], updated:'06/09' },
 ];
 
@@ -40,11 +40,11 @@ const VOLUMES = [
 ];
 
 const STATE_TONE = {
-  '已定稿':{c:'var(--success)', hex:'#4A7C59'},
-  '已润色':{c:'var(--info)', hex:'#4C6E91'},
-  '草稿':{c:'var(--accent-warm)', hex:'#3B5182'},
-  '大纲':{c:'var(--text-muted)', hex:'#7E8698'},
-  '未开始':{c:'var(--text-subtle)', hex:'#ADB2BF'},
+  '已定稿':{c:'var(--success)'},
+  '已润色':{c:'var(--info)'},
+  '草稿':{c:'var(--accent-warm)'},
+  '大纲':{c:'var(--text-muted)'},
+  '未开始':{c:'var(--text-subtle)'},
 };
 
 const ACTIVE_CHAPTER = {
@@ -61,7 +61,7 @@ const ACTIVE_CHAPTER = {
 
 /* 人物 */
 const CHARACTERS = [
-  { id:'ch1', name:'周清远', role:'主角 · 画师', tint:'#8A6E4B', tag:'视角人物',
+  { id:'ch1', name:'周清远', role:'主角 · 画师', tint:'#2D3A36', tag:'视角人物',
     one:'松江府画师，以化名登船，背负一桩与旧画案有关的旧事。',
     fields:[['身份','松江府画师（隐名）'],['年龄','34'],['动机','寻一幅流落的旧画，避开追查'],['弧光','由回避 → 直面']],
     /* 完整档案字段，对齐 CharacterProfiles 表 */
@@ -69,7 +69,7 @@ const CHARACTERS = [
       roleKey:'protagonist', genderKey:'male', age:'34',
       identity:'松江府画师（隐名）· 旧画案余生者',
       aliases:['周十七','那个画舫上的哑客'],
-      photos:[{tint:'#8A6E4B', label:'登船那夜'},{tint:'#7A4B57', label:'旧画残卷'},{tint:'#5E7060', label:'苏州旧宅'}],
+      photos:[{tint:'#2D3A36', label:'登船那夜'},{tint:'#6E5868', label:'旧画残卷'},{tint:'#4E7F6E', label:'苏州旧宅'}],
       appearance:'瘦高，肩线塌，长年伏案画画留下的。手指关节有洗不掉的靛青。\n\n面上无须，眼下两道浅青，看人时先看半息再开口。惯穿一件半旧的灰青直裰，袖口沾着颜料。',
       biography:'周家原是松江府的画匠世家，父亲在万历末年替人摹了一幅不该摹的画，一案牵连九人。\n\n清远那年十四，被师娘裹在颜料箱里带出城，改名换姓，靠替书铺画插图度日。\n\n二十年后他在一间当铺见到那幅画的残卷——他谁也没说，包括同行的凤瑶。',
       description:'说话慢，句尾常收半拍，像先在心里把话过一遍。\n\n站着时右手总不自觉搭在袖袋上（里面是那卷残画）。生人面前不主动开口，一旦开口就直奔要害。',
@@ -92,7 +92,7 @@ const CHARACTERS = [
       },
     },
     rel:['ch2','ch3'] },
-  { id:'ch2', name:'凤瑶', role:'重要 · 逃婚小姐', tint:'#7A4B57', tag:'伏笔人物',
+  { id:'ch2', name:'凤瑶', role:'重要 · 逃婚小姐', tint:'#6E5868', tag:'伏笔人物',
     one:'女扮男装逃婚的官家小姐，唇线与指甲是她身份的破绽。',
     fields:[['身份','苏州府官家小姐'],['年龄','19'],['动机','逃离指婚，寻自由'],['弧光','由伪装 → 显露']],
     rel:['ch1'] },
@@ -100,7 +100,7 @@ const CHARACTERS = [
     one:'前苏州府同知，怀抱一只嵌银线的乌木匣，失意写在脸上。',
     fields:[['身份','前苏州府同知'],['年龄','58'],['动机','护住木匣中的秘密'],['弧光','由紧守 → 托付']],
     rel:['ch1'] },
-  { id:'ch4', name:'船家', role:'配角', tint:'#5E7060', tag:'',
+  { id:'ch4', name:'船家', role:'配角', tint:'#4E7F6E', tag:'',
     one:'操着江浙口音的撑船人，见惯了夜航船上各怀心事的客人。',
     fields:[['身份','夜航船船家'],['动机','安然抵岸，多得几文']],
     rel:[] },
@@ -108,13 +108,13 @@ const CHARACTERS = [
 
 /* 设定条目 */
 const WORLD = [
-  { id:'w1', icon:'compass', name:'明末江南漕运图', cat:'地理', tint:'#4C6E91',
+  { id:'w1', icon:'compass', name:'明末江南漕运图', cat:'地理', tint:'#56708A',
     desc:'从苏州到松江府的水路网络，夜航船循运河逆流而上，沿途盐铜两税关卡密布。' },
-  { id:'w2', icon:'mountains', name:'苏州城地理', cat:'地理', tint:'#5E7060',
+  { id:'w2', icon:'mountains', name:'苏州城地理', cat:'地理', tint:'#4E7F6E',
     desc:'阊门、平江路、城南水巷；故事开场的码头位于城西夜泊处。' },
-  { id:'w3', icon:'scroll', name:'旧画案始末', cat:'历史', tint:'#8A6E4B',
+  { id:'w3', icon:'scroll', name:'旧画案始末', cat:'历史', tint:'#2D3A36',
     desc:'十年前一桩涉及官库藏画失窃的旧案，牵连数名画师，周清远名列其中。' },
-  { id:'w4', icon:'scales', name:'盐铜两税制度', cat:'制度', tint:'#7A4B57',
+  { id:'w4', icon:'scales', name:'盐铜两税制度', cat:'制度', tint:'#6E5868',
     desc:'明末江南盐铜专卖与税关设置，决定了夜航船的航线与停靠节点。' },
 ];
 
@@ -133,20 +133,20 @@ const FORESHADOW = [
 /* 图鉴：物品 / 势力 / 生物 / 技能；素材仍是独立创作资源。 */
 const ITEMS = [
   { id:'it1', name:'乌木银线匣', tint:'#4A5468', sub:'关键物品', desc:'老沈怀抱之物，盖嵌一道磨旧的银线。' },
-  { id:'it2', name:'油纸伞', tint:'#8A6E4B', sub:'随身', desc:'周清远的伞，柄上自刻其名。' },
-  { id:'it3', name:'三盏小油灯', tint:'#8897D1', sub:'场景', desc:'船舱低梁下的灯，把每张脸照成半张。' },
+  { id:'it2', name:'油纸伞', tint:'#2D3A36', sub:'随身', desc:'周清远的伞，柄上自刻其名。' },
+  { id:'it3', name:'三盏小油灯', tint:'#8C98B0', sub:'场景', desc:'船舱低梁下的灯，把每张脸照成半张。' },
 ];
 const FACTIONS = [
-  { id:'fa1', name:'苏州府衙', tint:'#4C6E91', sub:'官方', desc:'追查旧画案的官署，老沈的前东家。' },
-  { id:'fa2', name:'松江画社', tint:'#5E7060', sub:'民间', desc:'周清远旧时所属的画师同人。' },
+  { id:'fa1', name:'苏州府衙', tint:'#56708A', sub:'官方', desc:'追查旧画案的官署，老沈的前东家。' },
+  { id:'fa2', name:'松江画社', tint:'#4E7F6E', sub:'民间', desc:'周清远旧时所属的画师同人。' },
 ];
 const CREATURES = [
   { id:'cr1', name:'夜航船', tint:'#5C6B7E', sub:'载具/意象', desc:'逆流而上的客船，故事的舞台与隐喻。' },
 ];
 const COMPENDIUM_SKILLS = [
-  { id:'cs1', name:'摹古', tint:'#3B5182', sub:'技艺', desc:'依笔触、纸性与旧痕复原前人画法，周清远最擅长的本事。' },
-  { id:'cs2', name:'装裱', tint:'#8A6E4B', sub:'手艺', desc:'托心、覆背、砑装成卷，也能从装裱层次辨认画作年代。' },
-  { id:'cs3', name:'刻印', tint:'#283C5F', sub:'技艺', desc:'老沈传下的篆刻手法，刀路克制，落款常藏一处断笔。' },
+  { id:'cs1', name:'摹古', tint:'#4A5D7A', sub:'技艺', desc:'依笔触、纸性与旧痕复原前人画法，周清远最擅长的本事。' },
+  { id:'cs2', name:'装裱', tint:'#2D3A36', sub:'手艺', desc:'托心、覆背、砑装成卷，也能从装裱层次辨认画作年代。' },
+  { id:'cs3', name:'刻印', tint:'#34465A', sub:'技艺', desc:'老沈传下的篆刻手法，刀路克制，落款常藏一处断笔。' },
 ];
 const MATERIALS = [
   { id:'ma1', name:'明末漕运参考', icon:'file', sub:'文本 · 1.2k 字' },
@@ -157,12 +157,12 @@ const MATERIALS = [
 /* 实体关系图 — 节点 + 关系（用于 Workspace 的「实体关系图」屏） */
 const GRAPH = {
   nodes:[
-    {id:'ch1', label:'周清远', kind:'character', x:50, y:34, r:30, tint:'#8A6E4B'},
-    {id:'ch2', label:'凤瑶',   kind:'character', x:22, y:62, r:24, tint:'#7A4B57'},
+    {id:'ch1', label:'周清远', kind:'character', x:50, y:34, r:30, tint:'#2D3A36'},
+    {id:'ch2', label:'凤瑶',   kind:'character', x:22, y:62, r:24, tint:'#6E5868'},
     {id:'ch3', label:'老沈',   kind:'character', x:78, y:62, r:24, tint:'#4A5468'},
     {id:'it1', label:'乌木匣', kind:'item',      x:80, y:24, r:18, tint:'#4A5468'},
-    {id:'fa1', label:'苏州府衙', kind:'faction',  x:50, y:84, r:20, tint:'#4C6E91'},
-    {id:'w3',  label:'旧画案',  kind:'lore',      x:20, y:30, r:18, tint:'#8A6E4B'},
+    {id:'fa1', label:'苏州府衙', kind:'faction',  x:50, y:84, r:20, tint:'#56708A'},
+    {id:'w3',  label:'旧画案',  kind:'lore',      x:20, y:30, r:18, tint:'#2D3A36'},
   ],
   edges:[
     {a:'ch1', b:'ch2', label:'同舱'},
@@ -243,14 +243,14 @@ const SESSIONS = [
 
 /* AI 模式 — 圆桌会议 / 独白 / 小剧场 / 角色扮演 */
 const AI_MODES = [
-  {k:'chat', label:'对话', icon:'chat', desc:'与主笔一对一协作，最常用的写作助手模式。', tint:'#283C5F'},
-  {k:'council', label:'圆桌会议', icon:'users3', desc:'多个子智能体围绕同一议题各抒己见，主笔汇总成结论。', tint:'#4C6E91',
+  {k:'chat', label:'对话', icon:'chat', desc:'与主笔一对一协作，最常用的写作助手模式。', tint:'var(--accent)'},
+  {k:'council', label:'圆桌会议', icon:'users3', desc:'多个子智能体围绕同一议题各抒己见，主笔汇总成结论。', tint:'var(--info)',
     members:['情节顾问','人物声音','世界观考据']},
-  {k:'monologue', label:'独白', icon:'user', desc:'让某个角色以第一人称自述，挖掘其内心动机与声音。', tint:'#7A4B57',
+  {k:'monologue', label:'独白', icon:'user', desc:'让某个角色以第一人称自述，挖掘其内心动机与声音。', tint:'#6E5868',
     members:['周清远']},
-  {k:'theater', label:'小剧场', icon:'mask', desc:'指定多个角色即兴演一场戏，用于试探对白与冲突。', tint:'#5E7060',
+  {k:'theater', label:'小剧场', icon:'mask', desc:'指定多个角色即兴演一场戏，用于试探对白与冲突。', tint:'#4E7F6E',
     members:['周清远','凤瑶','老沈']},
-  {k:'roleplay', label:'角色扮演', icon:'chatcircle', desc:'你扮演一个角色，与 AI 扮演的角色对戏。', tint:'#3B5182',
+  {k:'roleplay', label:'角色扮演', icon:'chatcircle', desc:'你扮演一个角色，与 AI 扮演的角色对戏。', tint:'var(--accent-warm)',
     members:['凤瑶']},
 ];
 
@@ -280,37 +280,14 @@ const PROVIDERS = [
   {name:'本地 · Ollama', model:'Qwen2.5 32B', state:'已连接', kind:'ok'},
 ];
 
-/* 主题色板 — 与 lib/.../appearance_settings_section.dart 的 11 个主题对齐 */
-const THEMES = [
-  {k:'reveric',  name:'墨蓝纸本', accent:'#283C5F', canvas:'#FEFCF9', surface:'#FBFAF7', text:'#1F2A3D', desc:'象牙纸面配墨蓝，取自品牌标识'},
-  {k:'manuscript',name:'手稿',     accent:'#1B365D', canvas:'#F5F4ED', surface:'#FAF9F5', text:'#141413', desc:'暖调羊皮纸与靛蓝墨痕，如学者的手稿'},
-  {k:'inkWash',   name:'水墨',     accent:'#A63F35', canvas:'#F3F0E8', surface:'#FAF8F2', text:'#24211D', desc:'传统中国水墨画意，宣纸底色配朱砂点缀'},
-  {k:'classic',   name:'经典',     accent:'#000000', canvas:'#FFFFFF', surface:'#FAFAFA', text:'#000000', desc:'极简、永恒、高对比度'},
-  {k:'azure',     name:'碧空',     accent:'#2563EB', canvas:'#EBEFF4', surface:'#F3F5F9', text:'#333333', desc:'明净而宁静，如晴空万里'},
-  {k:'verdant',   name:'翠色',     accent:'#4ADE80', canvas:'#EAF0ED', surface:'#F2F6F4', text:'#171717', desc:'郁郁葱葱，如晨间花园'},
-  {k:'violet',    name:'紫罗兰',   accent:'#8839EF', canvas:'#EDEEF4', surface:'#F4F5F8', text:'#4C4F69', desc:'细腻而富有表现力，如书页间压好的花朵'},
-  {k:'ember',     name:'余烬',     accent:'#F59E0B', canvas:'#F2EEE9', surface:'#F7F5F2', text:'#262626', desc:'温暖宜人，如壁炉中的火光'},
-  {k:'crimson',   name:'深红',     accent:'#A84370', canvas:'#F4ECED', surface:'#F8F4F4', text:'#501854', desc:'浓郁而热烈，如经年摩挲的皮革书脊'},
-  {k:'ivory',     name:'象牙',     accent:'#A2AF9B', canvas:'#F5F5F0', surface:'#FAFAF9', text:'#333333', desc:'温柔而雅致，如陈年纸与乳脂'},
-  {k:'nebula',    name:'星云',     accent:'#0086A7', canvas:'#E5ECF1', surface:'#F2F6F8', text:'#0B1426', desc:'浩瀚而璀璨，如满夜星空'},
-];
+/* 主题色板 — 对齐 lib/shared/widgets/settings/appearance_settings_section.dart 的 AppTheme。
+   数据来自 ../theme.js（RevericTheme.PALETTES），切换后由 ../themes.css 的 token 生效。 */
+const THEMES = window.RevericTheme.PALETTES;
 
-const THEME_MODES = [
-  {k:'light', label:'浅色', icon:'sun'},
-  {k:'dark', label:'深色', icon:'moon'},
-  {k:'system', label:'跟随系统', icon:'target'},
-];
-
-/* 内置应用背景图（对齐 _appBackgroundImages，移动端用渐变占位） */
-const BACKGROUNDS = [
-  {k:'bg', name:'纸页', tint:'linear-gradient(180deg,#F4ECDD,#E2D5BD)'},
-  {k:'distant_mountains', name:'远山', tint:'linear-gradient(180deg,#cdb993,#7e8698)'},
-  {k:'starry_sky', name:'星空', tint:'linear-gradient(180deg,#2b2f4a,#0d1020)'},
-  {k:'magnificent', name:'壮丽', tint:'linear-gradient(180deg,#caa37a,#6a4a32)'},
-  {k:'withered_tree', name:'枯木', tint:'linear-gradient(180deg,#e7dcc8,#5e5246)'},
-  {k:'plum_blossom', name:'寒梅', tint:'linear-gradient(180deg,#eef0f8,#8897d1)'},
-  {k:'solitary_boat', name:'孤舟', tint:'linear-gradient(180deg,#5c6b7e,#243b5a)'},
-];
+/* 顺序与文案对齐 Flutter AppThemeMode：浅色 / 深色 / 跟随系统 */
+const THEME_MODES = window.RevericTheme.MODES.map(m=>({
+  ...m, icon:{light:'sun', dark:'moon', system:'target'}[m.key],
+}));
 
 /* 小说级智能体规则 — 存于每本作品的 NovelContentDatabase（对齐 AgentRules 表） */
 const NOVEL_AGENT_RULES = [
@@ -408,9 +385,9 @@ const ENTITY_DETAIL = {
    对齐 lib/shared/models/outline.dart：status ∈ in_progress/finished/pending，
    beat 含 status + chapterCount（计划章数）。大纲是整部作品/卷级，而非单章。 */
 const OUTLINE_STATUS = {
-  in_progress:{label:'进行中', hex:'#283C5F'},
-  finished:   {label:'已完成', hex:'#3B5182'},
-  pending:    {label:'待展开', hex:'#D97706'},
+  in_progress:{label:'进行中', hex:'var(--accent)'},
+  finished:   {label:'已完成', hex:'var(--accent-warm)'},
+  pending:    {label:'待展开', hex:'var(--warning-text)'},
 };
 const OUTLINES = [
   { id:'ol_main', title:'全书主线 · 夜航一程', status:'in_progress',
@@ -445,7 +422,7 @@ const LOCATIONS = [
   { id:'lo2', name:'夜泊处', region:'苏州 · 城西河湾', x:50, y:52, appearsIn:['c1','c3'],
     related:[{kind:'world',id:'w2'},{kind:'creature',id:'cr1'}],
     desc:'僻静少灯的码头，三舱客在此登船。故事开场之地，也是全书第一盏灯亮起的地方。',
-    photos:[{tint:'#5E6E7D', name:'河湾夜色'}, {tint:'#7A6A55', name:'旧码头'}, {tint:'#56685A', name:''}] },
+    photos:[{tint:'#5E6E7D', name:'河湾夜色'}, {tint:'#7D8A85', name:'旧码头'}, {tint:'#5A7A6E', name:''}] },
   { id:'lo3', name:'平江路', region:'苏州 · 城内', x:68, y:38, appearsIn:[],
     related:[{kind:'world',id:'w2'}],
     desc:'沿河而市的老街，白日喧闹，入夜渐静；河水把两岸的灯影揉成一片。' },
@@ -494,7 +471,7 @@ Object.assign(window, {
   OUTLINES, OUTLINE_STATUS,
   GRAPH, KIND_META, SECTIONS,
   PRIMARY_AGENT, SUBAGENTS, SKILLS, SHORTCUTS, SESSIONS, AI_MODES,
-  CHAT_MSGS, AGENT_TRACE, PROVIDERS, THEMES, THEME_MODES, BACKGROUNDS, LANGUAGES,
+  CHAT_MSGS, AGENT_TRACE, PROVIDERS, THEMES, THEME_MODES, LANGUAGES,
   NOVEL_AGENT_RULES, NOVEL_AGENT_SKILLS,
   fmt, USAGE,
 });

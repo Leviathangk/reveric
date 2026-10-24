@@ -121,9 +121,10 @@
   min-height: 156px;
   padding: var(--space-2xl);
   background: var(--surface);
-  border: 1px solid var(--border-input);
-  border-radius: var(--radius-xl);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-2xl);
   transition: border-color 140ms ease;
+  box-shadow: var(--shadow-card);
 }
 .as-card:hover { border-color: var(--border); }
 .as-card__head { display: flex; align-items: flex-start; gap: var(--space-lg); }
@@ -141,7 +142,7 @@
   align-items: center;
   justify-content: center;
   border: 2px solid var(--surface);
-  color: #fff;
+  color: var(--on-accent);
 }
 .as-type-dot .m-icon { color: currentColor; }
 .as-type-dot--council { background: var(--accent); }
@@ -201,9 +202,9 @@
   min-width: 168px;
   padding: var(--space-xs);
   background: var(--surface-container-high);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-large);
-  box-shadow: var(--shadow-menu, 0 10px 30px rgba(0, 0, 0, 0.28));
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-menu, 0 10px 30px color-mix(in srgb, var(--shadow-base) 28%, transparent));
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -224,7 +225,7 @@
 }
 .as-kebab__menu button:hover { background: var(--hover); }
 .as-kebab__menu button .m-icon { color: var(--text-muted); }
-.as-kebab__menu button.is-danger { color: var(--danger, #c0463a); }
+.as-kebab__menu button.is-danger { color: var(--error); }
 .as-kebab__menu button.is-danger .m-icon { color: currentColor; }
 
 /* ── model select (compact 变体) ────────────────────────────────────────── */

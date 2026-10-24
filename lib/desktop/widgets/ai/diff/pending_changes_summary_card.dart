@@ -72,7 +72,6 @@ class _PendingChangesSummaryCardState
       fallback: colors.surface,
       margin: widget.margin,
       borderRadius: BorderRadius.circular(RevericRadius.large),
-      borderColor: colors.borderSubtle,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -65,7 +65,7 @@ function NfdCoverPane({ editing, inherited }) {
       <span className="m-field__label">封面</span>
       <div
         className="m-nfd-cover__preview"
-        style={hasCover ? { background: "linear-gradient(160deg, #d9c8a6 0%, #b89558 60%, #6a5740 100%)" } : undefined}
+        style={hasCover ? { background: "linear-gradient(160deg, #3E524C 0%, #2D3A36 55%, #1C2623 100%)" } : undefined}
       >
         {!hasCover && (
           <span className="m-nfd-cover__empty">

@@ -54,7 +54,7 @@ function ModelSelect({value}){
             const Cmp = I[m.icon]||I.robot; const on = sel&&sel.name===m.name;
             return (
               <div key={m.name} className="press" onClick={()=>{setSel(m); setOpen(false);}} style={{display:'flex', alignItems:'center', gap:10, padding:'9px', borderRadius:'var(--r-md)', background:on?'var(--selected)':'transparent'}}>
-                <span style={{width:30,height:30,borderRadius:'var(--r-md)',flex:'0 0 auto',background:'rgba(40,60,95,.13)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center'}}><Cmp s={16}/></span>
+                <span style={{width:30,height:30,borderRadius:'var(--r-md)',flex:'0 0 auto',background:'color-mix(in srgb, var(--accent) 13%, transparent)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center'}}><Cmp s={16}/></span>
                 <div className="col" style={{flex:1, gap:1}}>
                   <span style={{fontSize:13, fontWeight:600}}>{m.name}</span>
                   <span style={{fontSize:11, color:'var(--text-muted)'}}>{m.provider}</span>
@@ -133,7 +133,7 @@ function AiTrack({children}){
 function ThinkingCard({content}){
   const [open, setOpen] = useState(false);
   return (
-    <div style={{background:'var(--surface)', border:'1px solid var(--border-subtle)', borderRadius:'var(--r-xl)'}}>
+    <div style={{background:'var(--surface)', border:'1px solid var(--card-border)', borderRadius:'var(--r-xl)', boxShadow:'var(--shadow-card)'}}>
       <button className="press" onClick={()=>setOpen(o=>!o)} style={{width:'100%', display:'flex', alignItems:'center', gap:8, padding:'10px 14px', background:'transparent', border:'none', cursor:'pointer'}}>
         <I.brain s={16} c="var(--text-muted)"/>
         <span style={{flex:1, textAlign:'left', fontSize:12.5, color:'var(--text-muted)'}}>推理过程</span>
@@ -147,7 +147,7 @@ function ThinkingCard({content}){
 /* ---------- AI 文本气泡（surface + border）对齐 CollapsibleTextBlock ---------- */
 function TextBubble({children}){
   return (
-    <div style={{background:'var(--surface)', border:'1px solid var(--border-subtle)', borderRadius:'var(--r-xl)', padding:14, fontSize:14.5, color:'var(--text-primary)', lineHeight:1.6}}>{children}</div>
+    <div style={{background:'var(--surface)', border:'1px solid var(--card-border)', borderRadius:'var(--r-xl)', boxShadow:'var(--shadow-card)', padding:14, fontSize:14.5, color:'var(--text-primary)', lineHeight:1.6}}>{children}</div>
   );
 }
 
@@ -164,9 +164,9 @@ function TextBubble({children}){
 /* ---------- 步骤状态圆点（对齐 _statusIcon 的语义色）---------- */
 function ToolStepDot({status='success'}){
   const map = {
-    success: {bg:'rgba(74,124,89,.14)',  c:'var(--success)', icon:'check'},
-    running: {bg:'rgba(40,60,95,.16)', c:'var(--accent)',  icon:null},
-    error:   {bg:'rgba(197,48,48,.12)',  c:'var(--error)',   icon:'warn'},
+    success: {bg:'color-mix(in srgb, var(--success) 14%, transparent)',  c:'var(--success)', icon:'check'},
+    running: {bg:'color-mix(in srgb, var(--accent) 16%, transparent)', c:'var(--accent)',  icon:null},
+    error:   {bg:'color-mix(in srgb, var(--error) 12%, transparent)',  c:'var(--error)',   icon:'warn'},
     pending: {bg:'var(--surface-dim)',    c:'var(--text-muted)', icon:'clock'},
   };
   const s = map[status] || map.success;
@@ -188,11 +188,11 @@ function ToolActivity({steps, onOpenDetail, defaultOpen=true}){
   const running = steps.some(s=>s.status==='running');
   const labelOf = (s)=> s.kind==='thinking' ? (s.status==='running'?'思考中':'推理过程') : s.verb;
   return (
-    <div style={{background:'var(--surface)', border:'1px solid var(--border-subtle)', borderRadius:'var(--r-xl)', overflow:'hidden'}}>
+    <div style={{background:'var(--surface)', border:'1px solid var(--card-border)', borderRadius:'var(--r-xl)', boxShadow:'var(--shadow-card)', overflow:'hidden'}}>
       <button className="press" onClick={()=>setOpen(o=>!o)} style={{width:'100%', display:'flex', alignItems:'center', gap:8, padding:'9px 12px', background:'transparent', border:'none', cursor:'pointer'}}>
         <I.magic s={15} c="var(--accent)"/>
         <span style={{flex:1, textAlign:'left', fontSize:12.5, fontWeight:600, color:'var(--text-secondary)'}}>执行过程</span>
-        <span className="chip" style={{height:18,fontSize:10,padding:'0 7px',background:running?'rgba(40,60,95,.14)':'var(--surface-dim)',color:running?'var(--accent-warm)':'var(--text-muted)',fontWeight:600}}>{running?'运行中':steps.length+' 步'}</span>
+        <span className="chip" style={{height:18,fontSize:10,padding:'0 7px',background:running?'color-mix(in srgb, var(--accent) 14%, transparent)':'var(--surface-dim)',color:running?'var(--accent-warm)':'var(--text-muted)',fontWeight:600}}>{running?'运行中':steps.length+' 步'}</span>
         <I.caretD s={15} c="var(--text-muted)" style={{transform:open?'rotate(180deg)':'none', transition:'transform .18s', flex:'0 0 auto'}}/>
       </button>
       {open ? (
@@ -228,11 +228,11 @@ function ToolActivity({steps, onOpenDetail, defaultOpen=true}){
 function ToolDiffDetail({old, now}){
   return (
     <div className="col" style={{gap:10}}>
-      <div style={{background:'rgba(197,48,48,.06)', borderRadius:'var(--r-lg)', padding:'10px 12px'}}>
+      <div style={{background:'color-mix(in srgb, var(--error) 6%, transparent)', borderRadius:'var(--r-lg)', padding:'10px 12px'}}>
         <div style={{fontSize:10.5, fontWeight:700, color:'var(--error)', letterSpacing:.4, marginBottom:5}}>原文</div>
-        <div className="serif" style={{fontSize:14, color:'var(--text-muted)', lineHeight:1.8, textDecoration:'line-through', textDecorationColor:'rgba(197,48,48,.4)'}}>{old}</div>
+        <div className="serif" style={{fontSize:14, color:'var(--text-muted)', lineHeight:1.8, textDecoration:'line-through', textDecorationColor:'color-mix(in srgb, var(--error) 40%, transparent)'}}>{old}</div>
       </div>
-      <div style={{background:'rgba(74,124,89,.07)', borderRadius:'var(--r-lg)', padding:'10px 12px'}}>
+      <div style={{background:'color-mix(in srgb, var(--success) 7%, transparent)', borderRadius:'var(--r-lg)', padding:'10px 12px'}}>
         <div style={{fontSize:10.5, fontWeight:700, color:'var(--success)', letterSpacing:.4, marginBottom:5}}>改为</div>
         <div className="serif" style={{fontSize:14, color:'var(--text-primary)', lineHeight:1.8}}>{now}</div>
       </div>
@@ -268,9 +268,9 @@ function ToolDetailSheet({step, onClose}){
   return (
     <Sheet onClose={onClose} max="80%">
       <SheetHeader
-        iconBox={<div style={{width:34,height:34,borderRadius:9,flex:'0 0 auto',background:'var(--surface-dim)',color:'var(--text-secondary)',display:'flex',alignItems:'center',justifyContent:'center'}}><Cmp s={17}/></div>}
+        iconBox={<div style={{width:34,height:34,borderRadius:'var(--r-md)',flex:'0 0 auto',background:'var(--surface-dim)',color:'var(--text-secondary)',display:'flex',alignItems:'center',justifyContent:'center'}}><Cmp s={17}/></div>}
         title={step.verb} sub={step.target}
-        right={<span className="chip" style={{height:20,fontSize:10,padding:'0 8px',color:'var(--success)',background:'rgba(74,124,89,.12)',fontWeight:600,flex:'0 0 auto'}}>已完成</span>}/>
+        right={<span className="chip" style={{height:20,fontSize:10,padding:'0 8px',color:'var(--success)',background:'color-mix(in srgb, var(--success) 12%, transparent)',fontWeight:600,flex:'0 0 auto'}}>已完成</span>}/>
       <div style={{overflowY:'auto', padding:'14px 18px calc(env(safe-area-inset-bottom,0px) + 26px)'}}>
         {d.type==='diff'    && <ToolDiffDetail old={d.old} now={d.now}/>}
         {d.type==='preview' && <ToolTextDetail label={d.label} text={d.text} mono={d.mono}/>}
@@ -295,7 +295,7 @@ function AskUserInline({question, options, hint}){
   const [picked, setPicked] = useState(null);
   const [extra, setExtra] = useState('');
   return (
-    <div style={{background:'var(--surface)', border:'1px solid var(--border-subtle)', borderRadius:'var(--r-xl)', padding:'12px 13px'}}>
+    <div style={{background:'var(--surface)', border:'1px solid var(--card-border)', borderRadius:'var(--r-xl)', boxShadow:'var(--shadow-card)', padding:'12px 13px'}}>
       <div className="row gap8" style={{marginBottom:8}}>
         <I.info s={15} c="var(--accent-warm)"/>
         <span style={{fontSize:12.5, fontWeight:600, color:'var(--text-primary)'}}>需要你确认</span>
@@ -307,7 +307,7 @@ function AskUserInline({question, options, hint}){
           return (
             <div key={i} className="press" onClick={()=>setPicked(i)}
               style={{display:'flex', alignItems:'center', gap:9, padding:'9px 11px', borderRadius:'var(--r-md)',
-                border:'1px solid '+(on?'var(--accent)':'var(--border-subtle)'), background:on?'rgba(40,60,95,.08)':'var(--surface)'}}>
+                border:'1px solid '+(on?'var(--accent)':'var(--border-subtle)'), background:on?'color-mix(in srgb, var(--accent) 8%, transparent)':'var(--surface)'}}>
               <span style={{width:15, height:15, borderRadius:'50%', flex:'0 0 auto', border:'1.5px solid '+(on?'var(--accent)':'var(--border-input)'),
                 background:on?'radial-gradient(circle, var(--accent) 0 4px, transparent 5px)':'var(--surface)'}}/>
               <span style={{flex:1, fontSize:13, color:'var(--text-primary)'}}>{o}</span>
@@ -319,7 +319,7 @@ function AskUserInline({question, options, hint}){
         style={{width:'100%', boxSizing:'border-box', padding:'9px 11px', marginBottom:9, border:'1px solid var(--border-input)', borderRadius:'var(--r-md)', background:'var(--surface-dim)', fontSize:13, color:'var(--text-primary)'}}/>
       <div className="row" style={{justifyContent:'flex-end', gap:8}}>
         <button className="btn-ghost press" style={{height:34, padding:'0 14px', fontSize:13}}>取消</button>
-        <button className="press" style={{height:34, padding:'0 14px', borderRadius:'var(--r-md)', background:'var(--accent)', color:'#fff', border:'none', fontSize:13, fontWeight:600, opacity:(picked===null?0.5:1)}}>确认</button>
+        <button className="press" style={{height:34, padding:'0 16px', borderRadius:'var(--r-pill)', background:'var(--accent)', color:'var(--on-accent)', border:'none', fontSize:13, fontWeight:600, opacity:(picked===null?0.5:1)}}>确认</button>
       </div>
     </div>
   );
@@ -340,11 +340,11 @@ function TodoBar(){
   const pending = CHAT_TODOS.filter(t=>!t.done).length;
   const allDone = pending===0;
   return (
-    <div style={{margin:'0 16px 14px', background:'var(--surface)', border:'1px solid var(--border-subtle)', borderRadius:'var(--r-xl)', overflow:'hidden'}}>
+    <div style={{margin:'0 16px 14px', background:'var(--surface)', border:'1px solid var(--card-border)', borderRadius:'var(--r-xl)', boxShadow:'var(--shadow-card)', overflow:'hidden'}}>
       <button className="press" onClick={()=>setOpen(o=>!o)} style={{width:'100%', display:'flex', alignItems:'center', gap:8, padding:'10px 14px', background:'transparent', border:'none', cursor:'pointer'}}>
         <I.checks s={16} c={allDone?'var(--success)':'var(--text-muted)'}/>
         <span style={{flex:1, textAlign:'left', fontSize:12.5, fontWeight:600, color:'var(--text-secondary)'}}>任务列表</span>
-        <span className="chip" style={{height:18,fontSize:10,padding:'0 7px',background:allDone?'rgba(74,124,89,.12)':'rgba(40,60,95,.14)',color:allDone?'var(--success)':'var(--accent)',fontWeight:600}}>{done}/{CHAT_TODOS.length}</span>
+        <span className="chip" style={{height:18,fontSize:10,padding:'0 7px',background:allDone?'color-mix(in srgb, var(--success) 12%, transparent)':'color-mix(in srgb, var(--accent) 14%, transparent)',color:allDone?'var(--success)':'var(--accent)',fontWeight:600}}>{done}/{CHAT_TODOS.length}</span>
         <I.caretD s={15} c="var(--text-muted)" style={{transform:open?'rotate(180deg)':'none', transition:'transform .18s'}}/>
       </button>
       {open && (
@@ -352,7 +352,7 @@ function TodoBar(){
           {CHAT_TODOS.map((t,i)=>(
             <div key={i} className="row gap8" style={{padding:'4px 0'}}>
               {t.done
-                ? <span style={{width:16,height:16,borderRadius:5,flex:'0 0 auto',background:'rgba(74,124,89,.13)',color:'var(--success)',display:'flex',alignItems:'center',justifyContent:'center'}}><I.check s={11}/></span>
+                ? <span style={{width:16,height:16,borderRadius:'var(--r-sm)',flex:'0 0 auto',background:'color-mix(in srgb, var(--success) 13%, transparent)',color:'var(--success)',display:'flex',alignItems:'center',justifyContent:'center'}}><I.check s={11}/></span>
                 : <span style={{width:16,height:16,borderRadius:'50%',flex:'0 0 auto',border:'1.5px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center'}}/>}
               <span style={{width:6,height:6,borderRadius:'50%',flex:'0 0 auto',background:TODO_PRIO[t.priority]||TODO_PRIO.medium,marginTop:5}}></span>
               <span style={{fontSize:12.5, color:t.done?'var(--text-muted)':'var(--text-primary)', textDecoration:t.done?'line-through':'none'}}>{t.t}</span>
@@ -393,7 +393,7 @@ function RecentChangesBar({onView}){
   return (
     <div className="press" onClick={onView}
       style={{margin:'0 16px 10px', display:'flex', alignItems:'center', gap:9, padding:'10px 14px',
-        background:'var(--surface)', border:'1px solid var(--border-subtle)', borderRadius:'var(--r-xl)'}}>
+        background:'var(--surface)', border:'1px solid var(--card-border)', borderRadius:'var(--r-xl)', boxShadow:'var(--shadow-card)'}}>
       <I.history s={16} c="var(--accent)"/>
       <span style={{flex:1, minWidth:0, fontSize:12.5, fontWeight:600, color:'var(--text-secondary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>AI 改了 {RECENT_CHANGES.length} 处 · 已自动应用</span>
       <span style={{fontSize:12.5, color:'var(--accent)', fontWeight:600}}>查看</span>
@@ -407,7 +407,7 @@ function ChangesReviewSheet({onClose}){
   return (
     <Sheet onClose={onClose} max="80%">
       <SheetHeader
-        iconBox={<div style={{width:34,height:34,borderRadius:9,flex:'0 0 auto',background:'var(--surface-dim)',color:'var(--text-secondary)',display:'flex',alignItems:'center',justifyContent:'center'}}><I.history s={18}/></div>}
+        iconBox={<div style={{width:34,height:34,borderRadius:'var(--r-md)',flex:'0 0 auto',background:'var(--surface-dim)',color:'var(--text-secondary)',display:'flex',alignItems:'center',justifyContent:'center'}}><I.history s={18}/></div>}
         title="最近改动" sub={RECENT_CHANGES.length+' 处 · 已自动应用'}/>
       <div style={{overflowY:'auto', padding:'4px 18px calc(env(safe-area-inset-bottom,0px) + 20px)'}}>
         <div style={{fontSize:12, color:'var(--text-muted)', lineHeight:1.5, padding:'4px 0 8px'}}>AI 改动已自动应用，如需撤销可逐条或全部回退。</div>
@@ -456,9 +456,9 @@ function BgAgentRow({run, onStop}){
     <div className="row" style={{gap:8, minHeight:48, padding:'0 4px 0 12px'}}>
       <span style={{width:22, height:22, flex:'0 0 auto', borderRadius:'50%', display:'flex',
         alignItems:'center', justifyContent:'center', fontSize:12,
-        background: done?'rgba(74,124,89,.14)':'var(--surface-dim)',
+        background: done?'color-mix(in srgb, var(--success) 14%, transparent)':'var(--surface-dim)',
         color:'var(--success)',
-        boxShadow: done?'none':'0 0 0 1.5px rgba(40,60,95,.45)'}}>
+        boxShadow: done?'none':'0 0 0 1.5px color-mix(in srgb, var(--accent) 45%, transparent)'}}>
         {done ? <I.check s={13}/> : run.emoji}
       </span>
       {/* agent 类型名（内容核验）退到详情页，一行只留子 agent 的名字 */}
@@ -508,7 +508,7 @@ function BackgroundAgentsBar(){
   const multi = runs.length>1;
   return (
     <div style={{margin:'0 16px 10px', background:'var(--surface)',
-      border:'1px solid var(--border-subtle)', borderRadius:'var(--r-xl)', overflow:'hidden'}}>
+      border:'1px solid var(--card-border)', borderRadius:'var(--r-xl)', boxShadow:'var(--shadow-card)', overflow:'hidden'}}>
       {multi && (
         <div className="row press" onClick={()=>setOpen(o=>!o)}
           style={{gap:8, minHeight:44, padding:'0 4px 0 12px',
@@ -517,11 +517,11 @@ function BackgroundAgentsBar(){
               全部停止后到完成项移除之前，live 是 0 —— 那时候不该继续转圈报 0 个。 */}
           {live.length > 0 ? (
             <span className="tspin" style={{width:14, height:14, flex:'0 0 auto', margin:'0 4px',
-              borderRadius:'50%', border:'1.8px solid rgba(40,60,95,.35)', borderTopColor:'var(--accent)'}}/>
+              borderRadius:'50%', border:'1.8px solid color-mix(in srgb, var(--accent) 35%, transparent)', borderTopColor:'var(--accent)'}}/>
           ) : (
             <span style={{width:22, height:22, flex:'0 0 auto', borderRadius:'50%', display:'flex',
               alignItems:'center', justifyContent:'center',
-              background:'rgba(74,124,89,.14)', color:'var(--success)'}}><I.check s={13}/></span>
+              background:'color-mix(in srgb, var(--success) 14%, transparent)', color:'var(--success)'}}><I.check s={13}/></span>
           )}
           <span style={{flex:'0 0 auto', fontSize:13.5, fontWeight:600, color:'var(--text-secondary)'}}>
             {live.length > 0 ? live.length + ' 个后台任务' : '后台任务已结束'}
@@ -559,12 +559,12 @@ function Composer({value, onChange, modelLabel, effort, onPickModel}){
   const [refs, setRefs] = useState(['人物 / 周清远','人物 / 凤瑶']);
   return (
     <div style={{flex:'0 0 auto', padding:'8px 16px calc(env(safe-area-inset-bottom,0px) + 12px)'}}>
-      <div style={{background:'var(--surface-container)', border:'1px solid var(--border-subtle)', borderRadius:'var(--r-2xl)', padding:'8px 12px'}}>
+      <div style={{background:'var(--surface)', border:'1px solid var(--card-border)', borderRadius:'var(--r-2xl)', boxShadow:'var(--shadow-card)', padding:'8px 12px'}}>
         {/* 引用 chip（对齐桌面端 m-composer__refs） */}
         {refs.length>0 && (
           <div className="row" style={{flexWrap:'wrap', gap:6, marginBottom:6}}>
             {refs.map((r,i)=>(
-              <span key={i} className="chip press" style={{height:24,fontSize:11,padding:'0 9px',gap:4,background:'rgba(40,60,95,.10)',border:'1px solid rgba(40,60,95,.25)',color:'var(--accent-warm)'}}>
+              <span key={i} className="chip press" style={{height:24,fontSize:11,padding:'0 9px',gap:4,background:'color-mix(in srgb, var(--accent) 10%, transparent)',border:'1px solid color-mix(in srgb, var(--accent) 25%, transparent)',color:'var(--accent-warm)'}}>
                 <I.link s={11}/>{r}<I.x s={11} style={{marginLeft:2,cursor:'pointer'}} onClick={()=>setRefs(rs=>rs.filter((_,j)=>j!==i))}/>
               </span>
             ))}
@@ -599,7 +599,7 @@ function Composer({value, onChange, modelLabel, effort, onPickModel}){
 /* ---------- slash 建议条（动态匹配子智能体）对齐 _SlashSuggestions ---------- */
 function SlashList({matches, onSelect}){
   return (
-    <div style={{margin:'0 16px 8px', background:'var(--surface)', border:'1px solid var(--border-subtle)', borderRadius:'var(--r-xl)', overflow:'hidden', maxHeight:200, overflowY:'auto'}}>
+    <div style={{margin:'0 16px 8px', background:'var(--surface)', border:'1px solid var(--card-border)', borderRadius:'var(--r-xl)', boxShadow:'var(--shadow-card)', overflow:'hidden', maxHeight:200, overflowY:'auto'}}>
       {matches.map((a,i)=>(
         <div key={a.id} className="press" onClick={()=>onSelect(a)} style={{display:'flex', alignItems:'center', gap:8, padding:'10px 16px', borderTop:i?'1px solid var(--border-subtle)':'none'}}>
           <I.spark s={16} c="var(--accent)"/>
@@ -623,7 +623,7 @@ function ModelSheet({selected, effortByModel, onPick, onPickEffort, onClose}){
       <Sheet onClose={onClose} max="70%">
         <SheetHeader
           iconBox={<button className="press" onClick={()=>setCfg(null)} aria-label="返回"
-            style={{width:34,height:34,borderRadius:9,flex:'0 0 auto',background:'var(--surface-dim)',color:'var(--text-secondary)',border:'none',display:'flex',alignItems:'center',justifyContent:'center'}}><I.arrowL s={19}/></button>}
+            style={{width:34,height:34,borderRadius:'var(--r-md)',flex:'0 0 auto',background:'var(--surface-dim)',color:'var(--text-secondary)',border:'none',display:'flex',alignItems:'center',justifyContent:'center'}}><I.arrowL s={19}/></button>}
           title="推理强度" sub={cfg.name}/>
         <div className="slide-in" style={{overflowY:'auto', padding:'6px 8px 12px'}}>
           {cfg.efforts.map((ef,ei)=>{
@@ -649,7 +649,7 @@ function ModelSheet({selected, effortByModel, onPick, onPickEffort, onClose}){
   return (
     <Sheet onClose={onClose} max="64%">
       <SheetHeader
-        iconBox={<div style={{width:34,height:34,borderRadius:9,flex:'0 0 auto',background:'rgba(40,60,95,.13)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center'}}><I.brain s={18}/></div>}
+        iconBox={<div style={{width:34,height:34,borderRadius:'var(--r-md)',flex:'0 0 auto',background:'color-mix(in srgb, var(--accent) 13%, transparent)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center'}}><I.brain s={18}/></div>}
         title="选择模型" sub="作用于当前会话"/>
       <div style={{overflowY:'auto', padding:'6px 8px 10px'}}>
         {MODEL_OPTIONS.map(m=>{
@@ -659,7 +659,7 @@ function ModelSheet({selected, effortByModel, onPick, onPickEffort, onClose}){
           const cur = reasoning ? effortByModel[m.name] : null;
           return (
             <div key={m.name} className="press" onClick={()=>{onPick(m.name); onClose();}} style={{display:'flex', alignItems:'center', gap:11, padding:'10px 12px', borderRadius:'var(--r-lg)', background:on?'var(--selected)':'transparent'}}>
-              <div style={{width:32,height:32,borderRadius:9,flex:'0 0 auto',background:'rgba(40,60,95,.13)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center'}}><Cmp s={16}/></div>
+              <div style={{width:32,height:32,borderRadius:'var(--r-md)',flex:'0 0 auto',background:'color-mix(in srgb, var(--accent) 13%, transparent)',color:'var(--accent)',display:'flex',alignItems:'center',justifyContent:'center'}}><Cmp s={16}/></div>
               <div className="col" style={{flex:1, gap:1, minWidth:0}}>
                 <span style={{fontSize:13.5, fontWeight:600, color:'var(--text-primary)'}}>{m.name}</span>
                 <span style={{fontSize:11.5, color:'var(--text-muted)'}}>{m.provider}</span>
@@ -667,8 +667,8 @@ function ModelSheet({selected, effortByModel, onPick, onPickEffort, onClose}){
               {reasoning ? (
                 <button className="press" onClick={(e)=>{e.stopPropagation(); setCfg(m);}} aria-label="推理强度"
                   style={{display:'flex', alignItems:'center', gap:6, flex:'0 0 auto', padding:'5px 8px',
-                    border:'1px solid '+(on?'rgba(40,60,95,.35)':'var(--border-subtle)'), borderRadius:'var(--r-pill)',
-                    background:on?'rgba(40,60,95,.10)':'var(--surface)'}}>
+                    border:'1px solid '+(on?'color-mix(in srgb, var(--accent) 35%, transparent)':'var(--border-subtle)'), borderRadius:'var(--r-pill)',
+                    background:on?'color-mix(in srgb, var(--accent) 10%, transparent)':'var(--surface)'}}>
                   <EffortBars total={m.efforts.length} level={m.efforts.indexOf(cur)}/>
                   <span style={{fontSize:12, fontWeight:600, color:'var(--accent-warm)'}}>{EFFORT_LABELS[cur]}</span>
                   <I.chevR s={14} c="var(--text-subtle)"/>
@@ -715,7 +715,7 @@ function HistorySheet({modeKey, modeLabel, onClose}){
   return (
     <Sheet onClose={onClose} max="72%">
       <SheetHeader
-        iconBox={<div style={{width:34,height:34,borderRadius:9,flex:'0 0 auto',background:'var(--surface-dim)',color:'var(--text-muted)',display:'flex',alignItems:'center',justifyContent:'center'}}><I.history s={18}/></div>}
+        iconBox={<div style={{width:34,height:34,borderRadius:'var(--r-md)',flex:'0 0 auto',background:'var(--surface-dim)',color:'var(--text-muted)',display:'flex',alignItems:'center',justifyContent:'center'}}><I.history s={18}/></div>}
         title="历史会话" sub={modeLabel+' · '+sessions.length+' 条'}/>
       {sessions.length===0 ? (
         <div style={{padding:'18px 18px 28px', fontSize:13, color:'var(--text-muted)'}}>暂无历史会话</div>
@@ -754,7 +754,7 @@ function ModeActionBar({primaryIcon, primaryLabel}){
 }
 
 /* ---------- 圆桌会议：单轮卡片（对齐 _RoundSection / _MessageBubble） ---------- */
-const COUNCIL_TINTS = {'情节顾问':'#4C6E91','人物声音':'#7A4B57','世界观考据':'#5E7060'};
+const COUNCIL_TINTS = {'情节顾问':'#56708A','人物声音':'#6E5868','世界观考据':'#4E7F6E'};
 const COUNCIL_DESC = {
   '情节顾问':'结构顾问 · 主线/副线与节奏',
   '人物声音':'守护角色语气一致性',
@@ -777,7 +777,7 @@ function CouncilRound(){
       </div>
       {members.map((m,i)=>(
         <div key={m}>
-          {i>0 && <div style={{height:1, background:'rgba(234,230,224,.7)', margin:'14px 0'}}></div>}
+          {i>0 && <div style={{height:1, background:'var(--border-subtle)', margin:'14px 0'}}></div>}
           <div className="row" style={{alignItems:'flex-start', gap:12}}>
             <Avatar label={m[0]} size={36} tint={COUNCIL_TINTS[m]} fs={15}/>
             <div className="col" style={{flex:1, gap:2, minWidth:0}}>
@@ -796,7 +796,7 @@ function CouncilRound(){
 function MonologueCard(){
   return (
     <div className="row" style={{alignItems:'flex-start', gap:12}}>
-      <Avatar label="周" size={36} tint="#8A6E4B" fs={15}/>
+      <Avatar label="周" size={36} tint="#2D3A36" fs={15}/>
       <div className="col" style={{flex:1, gap:8, minWidth:0}}>
         <span style={{fontSize:14, fontWeight:700, color:'var(--accent)'}}>周清远</span>
         <div style={{background:'var(--surface)', borderRadius:'var(--r-2xl)', padding:12}}>
@@ -811,7 +811,7 @@ function MonologueCard(){
 }
 
 /* ---------- 小剧场台词（对齐 _TheaterLineCard：舞台指示 + 台词） ---------- */
-const THEATER_TINTS = {'周清远':'#8A6E4B','凤瑶':'#7A4B57','老沈':'#4A5468'};
+const THEATER_TINTS = {'周清远':'#2D3A36','凤瑶':'#6E5868','老沈':'#4A5468'};
 const THEATER_LINES = [
   {name:'周清远', turn:1, stage:'没有回头', line:'……雨大，先生坐稳。'},
   {name:'凤瑶', turn:1, stage:'压低声音', line:'你也去松江府？'},
@@ -843,14 +843,14 @@ function RoleplaySample(){
       <div className="row" style={{alignItems:'flex-start', gap:12}}>
         <div className="col" style={{flex:1, alignItems:'flex-end', gap:6}}>
           <span style={{fontSize:12.5, fontWeight:600, color:'var(--accent)'}}>我</span>
-          <div style={{background:'rgba(40,60,95,.08)', borderRadius:'var(--r-2xl)', padding:12, maxWidth:'88%'}}>
+          <div style={{background:'color-mix(in srgb, var(--accent) 8%, transparent)', borderRadius:'var(--r-2xl)', padding:12, maxWidth:'88%'}}>
             <div className="serif" style={{fontSize:14.5, color:'var(--text-primary)', lineHeight:1.7}}>（压低声音）你怀里抱的，是什么？</div>
           </div>
         </div>
-        <Avatar label="我" size={32} tint="#283C5F" fs={13}/>
+        <Avatar label="我" size={32} fs={13}/>
       </div>
       <div className="row" style={{alignItems:'flex-start', gap:12}}>
-        <Avatar label="凤" size={32} tint="#7A4B57" fs={13}/>
+        <Avatar label="凤" size={32} tint="#6E5868" fs={13}/>
         <div className="col" style={{flex:1, gap:6, minWidth:0}}>
           <span style={{fontSize:14, fontWeight:700, color:'var(--accent-warm)'}}>凤瑶</span>
           <div style={{background:'var(--surface)', borderRadius:'var(--r-2xl)', padding:12}}>
@@ -942,7 +942,7 @@ function ChatEmptyState({actions, onPick}){
               style={{padding:13, display:'flex', gap:12, alignItems:'center'}}>
               <div style={{width:36, height:36, flex:'0 0 auto', borderRadius:'var(--r-xl)',
                 display:'flex', alignItems:'center', justifyContent:'center',
-                background:'var(--surface-high)', border:'1px solid var(--border-subtle)'}}>
+                background:'var(--selected)', border:'none'}}>
                 <Ico s={17} c="var(--accent)"/>
               </div>
               <div className="col" style={{flex:1, gap:3, minWidth:0}}>
@@ -964,7 +964,7 @@ const DEMO_STATES = [{id:'suggest', label:'有建议'}, {id:'none', label:'无�
 function DemoSwitch({value, onChange}){
   return (
     <div className="row" style={{gap:5, padding:'6px 16px', borderBottom:'1px dashed var(--border-subtle)',
-      background:'repeating-linear-gradient(45deg,transparent,transparent 6px,rgba(126,134,152,.045) 6px,rgba(126,134,152,.045) 12px)'}}>
+      background:'repeating-linear-gradient(45deg,transparent,transparent 6px,color-mix(in srgb, var(--text-muted) 4.5%, transparent) 6px,color-mix(in srgb, var(--text-muted) 4.5%, transparent) 12px)'}}>
       <span style={{fontSize:11, fontWeight:500, color:'var(--text-subtle)', marginRight:2}}>演示态</span>
       {DEMO_STATES.map(s=>(
         <button key={s.id} className="press" onClick={()=>onChange(s.id)}
@@ -1069,7 +1069,7 @@ function ChatScreen({modeKey='chat', novelTitle='夜航船', embedded, onBack, o
         <div className="row" style={{padding:'6px 4px 6px', gap:0}}>
           {!embedded ? <IconBtn icon="chevL" size={24} onClick={onBack}/> : <div style={{width:MOBILE_ICON_BUTTON_SIZE,flexShrink:0}}></div>}
           <div className="col" style={{flex:1, minWidth:0, alignItems:'flex-start', paddingLeft:2}}>
-            <span className="serif" style={{fontSize:16, fontWeight:700, color:'var(--text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'100%'}}>{title}</span>
+            <span className="display" style={{fontSize:16, fontWeight:700, color:'var(--text-primary)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', maxWidth:'100%'}}>{title}</span>
             {subtitle && <span style={{fontSize:11.5, color:'var(--text-muted)'}}>{subtitle}</span>}
           </div>
           <IconBtn icon="history" ariaLabel="历史会话" onClick={()=>setHistory(true)}/>
@@ -1128,10 +1128,10 @@ function ChatScreen({modeKey='chat', novelTitle='夜航船', embedded, onBack, o
               <AiTrack>
                 <ToolActivity steps={charSteps} onOpenDetail={setToolDetail}/>
                 <TextBubble>已起草并保存到 <b>人物 / 凤瑶</b>。</TextBubble>
-                <div className="press" style={{background:'var(--surface)', border:'1px solid var(--border-subtle)', borderRadius:'var(--r-xl)', padding:'12px 13px', display:'flex', gap:11, alignItems:'center'}}>
-                  <Avatar label="凤" size={40} tint="#7A4B57" fs={16}/>
+                <div className="press" style={{background:'var(--surface)', border:'1px solid var(--card-border)', borderRadius:'var(--r-xl)', boxShadow:'var(--shadow-card)', padding:'12px 13px', display:'flex', gap:11, alignItems:'center'}}>
+                  <Avatar label="凤" size={40} tint="#6E5868" fs={16}/>
                   <div className="col" style={{flex:1, gap:3, minWidth:0}}>
-                    <span className="serif" style={{fontSize:13, fontWeight:700}}>凤瑶 — 人物简介</span>
+                    <span className="display" style={{fontSize:13, fontWeight:700}}>凤瑶 — 人物简介</span>
                     <span style={{fontSize:11.5, color:'var(--text-muted)', lineHeight:1.5}}>苏州府官家小姐，女扮男装逃婚，唇线与指甲是身份的破绽……</span>
                   </div>
                   <I.chevR s={18} c="var(--text-subtle)"/>
@@ -1211,10 +1211,10 @@ function AIHub({onOpenChat, onOpenMode, onOpenManage}){
         right={<IconBtn icon="plus" ariaLabel="新会话"/>}/>
       <div className="viewport" ref={ref} style={{padding:'4px 20px 24px'}}>
         {/* primary chat entry */}
-        <div className="card press fade-in" onClick={()=>onOpenChat('chat')} style={{padding:14, display:'flex', gap:13, alignItems:'center', marginBottom:18, background:'linear-gradient(135deg,#FFFFFF,#F1F3FA)'}}>
-          <Avatar label="" size={48} tint="linear-gradient(135deg,#283C5F,#3B5182)" fs={0}><I.spark s={22} c="#fff"/></Avatar>
+        <div className="card press fade-in" onClick={()=>onOpenChat('chat')} style={{padding:14, display:'flex', gap:13, alignItems:'center', marginBottom:18}}>
+          <Avatar label="" size={48} fs={0}><I.spark s={22} c="var(--on-accent)"/></Avatar>
           <div className="col" style={{flex:1, gap:3}}>
-            <span className="serif" style={{fontSize:17, fontWeight:700}}>写作助手</span>
+            <span className="display" style={{fontSize:17, fontWeight:700}}>写作助手</span>
             <span style={{fontSize:12, color:'var(--text-muted)'}}>AI · mimo-v2.5 · 作用于《夜航船》</span>
           </div>
           <button className="btn-accent press" style={{height:36, padding:'0 14px'}}><I.chat s={15}/>对话</button>
@@ -1228,7 +1228,7 @@ function AIHub({onOpenChat, onOpenMode, onOpenManage}){
             return (
               <div key={m.k} className="card press" onClick={()=>onOpenMode(m.k)} style={{padding:'13px 13px'}}>
                 <div className="row gap8" style={{marginBottom:7}}>
-                  <span style={{width:32,height:32,borderRadius:9,background:m.tint,color:'#fff',display:'flex',alignItems:'center',justifyContent:'center'}}><Cmp s={17}/></span>
+                  <span style={{width:32,height:32,borderRadius:'var(--r-md)',background:m.tint,color:m.tint.startsWith('var(')?'var(--on-accent)':'#fff',display:'flex',alignItems:'center',justifyContent:'center'}}><Cmp s={17}/></span>
                   <span style={{fontSize:14, fontWeight:700}}>{m.label}</span>
                 </div>
                 <p style={{margin:0, fontSize:11.5, color:'var(--text-muted)', lineHeight:1.55,
@@ -1248,7 +1248,7 @@ function AIHub({onOpenChat, onOpenMode, onOpenManage}){
             const Cmp = I[icon]||I.robot;
             return (
               <div key={k} className="srow" onClick={()=>onOpenManage(k)}>
-                <div className="sicon" style={{background:'rgba(40,60,95,.13)', color:'var(--accent-warm)'}}><Cmp s={18}/></div>
+                <div className="sicon" style={{background:'color-mix(in srgb, var(--accent) 13%, transparent)', color:'var(--accent-warm)'}}><Cmp s={18}/></div>
                 <span style={{flex:1, fontSize:14.5, fontWeight:500}}>{label}</span>
                 <span style={{fontSize:13, color:'var(--text-muted)'}}>{val}</span>
                 <I.chevR s={18} c="var(--text-subtle)"/>
@@ -1262,7 +1262,7 @@ function AIHub({onOpenChat, onOpenMode, onOpenManage}){
         <div className="col gap10">
           {SESSIONS.map(s=>(
             <div key={s.id} className="card press" onClick={()=>onOpenChat('chat')} style={{padding:'12px 14px', display:'flex', gap:11, alignItems:'center'}}>
-              <div style={{width:34,height:34,borderRadius:9,flex:'0 0 auto',background:'var(--surface-dim)',color:'var(--text-muted)',display:'flex',alignItems:'center',justifyContent:'center'}}><I.chat s={17}/></div>
+              <div style={{width:34,height:34,borderRadius:'var(--r-md)',flex:'0 0 auto',background:'var(--surface-dim)',color:'var(--text-muted)',display:'flex',alignItems:'center',justifyContent:'center'}}><I.chat s={17}/></div>
               <div className="col" style={{flex:1, gap:2, minWidth:0}}>
                 <span style={{fontSize:13.5, fontWeight:600}}>{s.title}</span>
                 <span style={{fontSize:11.5, color:'var(--text-subtle)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis'}}>{s.preview}</span>
@@ -1294,20 +1294,20 @@ function ManageScreen({kind, onBack, onOpenEdit}){
         <div className="col gap10">
           {cfg.list.map((e,i)=>(
             <div key={e.id||i} className="card press" onClick={()=>cfg.render!=='prompt'&&onOpenEdit(kind,e)} style={{padding:'13px 14px', display:'flex', gap:12, alignItems:'center'}}>
-              <div style={{width:42,height:42,borderRadius:11,flex:'0 0 auto',background:'rgba(40,60,95,.13)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>
+              <div style={{width:42,height:42,borderRadius:'var(--r-lg)',flex:'0 0 auto',background:'color-mix(in srgb, var(--accent) 13%, transparent)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}}>
                 {e.emoji ? e.emoji : React.createElement(I[e.icon]||I.robot,{s:20,c:'var(--accent)'})}
               </div>
               <div className="col" style={{flex:1, gap:3, minWidth:0}}>
                 <div className="row gap6">
-                  <span className="serif" style={{fontSize:14.5, fontWeight:700}}>{e.name}</span>
+                  <span className="display" style={{fontSize:14.5, fontWeight:700}}>{e.name}</span>
                   {e.builtin && <span className="chip" style={{height:17,fontSize:9.5,padding:'0 6px',background:'var(--surface-dim)',color:'var(--text-subtle)'}}>内置</span>}
-                  {cfg.render==='sub' && <span className="chip" style={{height:17,fontSize:9.5,padding:'0 6px',background:e.mode==='council'?'rgba(76,110,145,.12)':'rgba(40,60,95,.12)',color:e.mode==='council'?'var(--info)':'var(--accent-warm)'}}>{e.mode==='council'?'议会':'对话'}</span>}
+                  {cfg.render==='sub' && <span className="chip" style={{height:17,fontSize:9.5,padding:'0 6px',background:e.mode==='council'?'color-mix(in srgb, var(--info) 12%, transparent)':'color-mix(in srgb, var(--accent) 12%, transparent)',color:e.mode==='council'?'var(--info)':'var(--accent-warm)'}}>{e.mode==='council'?'议会':'对话'}</span>}
                 </div>
                 <span style={{fontSize:12, color:'var(--text-muted)', lineHeight:1.5,
                   display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden'}}>{e.desc||e.when||e.en||'—'}</span>
               </div>
               {cfg.render!=='prompt' && (e.enabled!==undefined
-                ? <span className="chip" style={{height:20,fontSize:10,padding:'0 8px',color:e.enabled?'var(--success)':'var(--text-subtle)',background:e.enabled?'rgba(74,124,89,.12)':'var(--surface-dim)',flex:'0 0 auto'}}>{e.enabled?'已启用':'已停用'}</span>
+                ? <span className="chip" style={{height:20,fontSize:10,padding:'0 8px',color:e.enabled?'var(--success)':'var(--text-subtle)',background:e.enabled?'color-mix(in srgb, var(--success) 12%, transparent)':'var(--surface-dim)',flex:'0 0 auto'}}>{e.enabled?'已启用':'已停用'}</span>
                 : <I.chevR s={16} c="var(--text-subtle)"/>)}
             </div>
           ))}
@@ -1332,15 +1332,15 @@ function EditPanel({kind, entity, onBack}){
   return (
     <div className="screen fade-in" data-screen-label={"edit-"+kind}>
       <PageHead title={isNew?('新建'+title):e.name} onBack={onBack} scrolled={scrolled} center
-        right={<button className="press" style={{height:32, padding:'0 14px', borderRadius:'var(--r-lg)', background:'var(--accent)', color:'#fff', border:'none', fontSize:13, fontWeight:600}}>保存</button>}/>
+        right={<button className="press" style={{height:32, padding:'0 16px', borderRadius:'var(--r-pill)', background:'var(--accent)', color:'var(--on-accent)', border:'none', fontSize:13, fontWeight:600}}>保存</button>}/>
       <div className="viewport" ref={ref} style={{padding:'14px 20px 28px'}}>
         {/* hero */}
         <div className="row gap12" style={{marginBottom:18, alignItems:'center'}}>
-          <div style={{width:60,height:60,borderRadius:14,flex:'0 0 auto',background:'rgba(40,60,95,.13)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28}}>
+          <div style={{width:60,height:60,borderRadius:'var(--r-2xl)',flex:'0 0 auto',background:'color-mix(in srgb, var(--accent) 13%, transparent)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:28}}>
             {e.emoji ? e.emoji : React.createElement(isSkill?I.spark:I.robot,{s:28,c:'var(--accent)'})}
           </div>
           <div className="col" style={{flex:1, gap:4}}>
-            <span className="serif" style={{fontSize:18, fontWeight:700}}>{isNew?('新建'+title):e.name}</span>
+            <span className="display" style={{fontSize:18, fontWeight:700}}>{isNew?('新建'+title):e.name}</span>
             <span style={{fontSize:12, color:'var(--text-muted)'}}>{isSkill?'编辑技能的触发时机与提示词':'编辑身份、行为与提示词'}</span>
           </div>
         </div>
@@ -1409,7 +1409,7 @@ function EditPanel({kind, entity, onBack}){
         )}
 
         {!isNew && (
-          <button className="btn-ghost press" style={{width:'100%', height:44, marginTop:8, color:'var(--error)', borderColor:'rgba(197,48,48,.4)'}}>
+          <button className="btn-ghost press" style={{width:'100%', height:44, marginTop:8, color:'var(--error)', borderColor:'color-mix(in srgb, var(--error) 40%, transparent)'}}>
             <I.trash s={16}/>删除{title}</button>
         )}
       </div>

@@ -53,7 +53,7 @@ class RevericChrome extends ConsumerWidget {
   }
 }
 
-/// Elevated 卡片 — 启用全局背景时为毛玻璃（[appElevatedGlassAlpha]），保留 border。
+/// Elevated 卡片 — 默认无描边 + 柔和投影（深色改极淡描边）；启用全局背景时为毛玻璃（[appElevatedGlassAlpha]）。
 class RevericElevatedCard extends ConsumerWidget {
   const RevericElevatedCard({
     super.key,
@@ -90,8 +90,8 @@ class RevericElevatedCard extends ConsumerWidget {
     final colors = RevericTheme.colorsOf(context);
     final active = ref.watch(appBackgroundActiveProvider);
     final fill = appElevatedBackgroundColor(colors, active, fallback);
-    final radius = borderRadius ?? BorderRadius.circular(RevericRadius.pill);
-    final border = borderColor ?? colors.borderSubtle;
+    final radius = borderRadius ?? BorderRadius.circular(RevericRadius.card);
+    final border = borderColor ?? revericCardBorder(colors);
     final gradientBuilder = gradientColors;
 
     return Container(
@@ -112,6 +112,7 @@ class RevericElevatedCard extends ConsumerWidget {
               ),
         borderRadius: radius,
         border: Border.all(color: border),
+        boxShadow: revericCardShadows(colors),
         image: image,
       ),
       child: child,
@@ -151,8 +152,8 @@ class RevericElevatedInkWell extends ConsumerWidget {
     final colors = RevericTheme.colorsOf(context);
     final active = ref.watch(appBackgroundActiveProvider);
     final fill = appElevatedBackgroundColor(colors, active, fallback);
-    final radius = borderRadius ?? BorderRadius.circular(RevericRadius.x2l);
-    final border = borderColor ?? colors.border;
+    final radius = borderRadius ?? BorderRadius.circular(RevericRadius.card);
+    final border = borderColor ?? revericCardBorder(colors);
 
     return Container(
       margin: margin,
@@ -169,6 +170,7 @@ class RevericElevatedInkWell extends ConsumerWidget {
               color: fill,
               borderRadius: radius,
               border: Border.all(color: border),
+              boxShadow: revericCardShadows(colors),
             ),
             child: alignment == null
                 ? child

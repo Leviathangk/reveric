@@ -46,12 +46,6 @@ class NovelMemoryPanel extends ConsumerWidget {
                 },
                 icon: const RevericIcon(RevericIcons.add, size: 16),
                 label: Text(context.t(LocaleKeys.commonCreate)),
-                style: FilledButton.styleFrom(
-                  backgroundColor: colors.accent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(RevericRadius.medium),
-                  ),
-                ),
               ),
             ],
           ),

@@ -28,8 +28,14 @@ class RevericRadius {
   /// 胶囊形浮层（画布悬浮工具条）：半径远大于高度的一半，两端总是半圆。
   static const double capsule = 999;
 
-  /// 按钮统一圆角（FilledButton / OutlinedButton / TextButton / ElevatedButton）。
-  static const double button = 8;
+  /// 按钮统一胶囊形（FilledButton / OutlinedButton / TextButton / ElevatedButton）。
+  static const double button = capsule;
+
+  /// 纯图标按钮保持圆角方形，不随普通按钮变胶囊。
+  static const double iconButton = 8;
+
+  /// 卡片、面板、Dialog 与移动端 sheet 顶部：无描边卡片配柔和投影时的大圆角。
+  static const double card = 18;
 }
 
 class RevericSizes {

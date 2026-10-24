@@ -83,8 +83,8 @@ class RevericDialog extends StatelessWidget {
       backgroundColor: colors.surface,
       surfaceTintColor: colors.surface,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(RevericRadius.x2l),
-        side: BorderSide(color: colors.borderSubtle),
+        borderRadius: BorderRadius.circular(RevericRadius.card),
+        side: BorderSide(color: revericCardBorder(colors)),
       ),
       constraints: BoxConstraints.tightFor(width: dialogWidth),
       insetPadding: const EdgeInsets.all(inset),
@@ -112,9 +112,7 @@ class RevericDialog extends StatelessWidget {
       ),
       actionsAlignment: MainAxisAlignment.end,
       actionsOverflowButtonSpacing: RevericSpacing.sm,
-      buttonPadding: const EdgeInsetsDirectional.only(
-        start: RevericSpacing.sm,
-      ),
+      buttonPadding: const EdgeInsetsDirectional.only(start: RevericSpacing.sm),
       title:
           _header ??
           Row(

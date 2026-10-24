@@ -51,7 +51,7 @@ class MobileSegmentedTabs extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: colors.selected,
-                    borderRadius: BorderRadius.circular(RevericRadius.medium),
+                    borderRadius: BorderRadius.circular(RevericRadius.capsule),
                   ),
                 ),
               ),
@@ -67,7 +67,7 @@ class MobileSegmentedTabs extends StatelessWidget {
                           child: InkWell(
                             onTap: () => onSelected(i),
                             borderRadius: BorderRadius.circular(
-                              RevericRadius.medium,
+                              RevericRadius.capsule,
                             ),
                             child: Padding(
                               padding: const EdgeInsets.symmetric(

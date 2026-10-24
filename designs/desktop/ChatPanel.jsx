@@ -372,7 +372,7 @@ function TopTodoPanel({ todos }) {
           className="m-todobar__badge"
           style={{
             color: allDone ? "var(--addition-border)" : "var(--accent)",
-            background: allDone ? "rgba(74,124,89,0.12)" : "rgba(40,60,95,0.14)",
+            background: allDone ? "color-mix(in srgb, var(--success) 12%, transparent)" : "color-mix(in srgb, var(--accent) 14%, transparent)",
           }}
         >
           {done}/{total}

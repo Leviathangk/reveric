@@ -202,14 +202,14 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-4xl);
-  background: rgba(250, 249, 246, 0.72);
+  background: color-mix(in srgb, var(--canvas) 72%, transparent);
 }
 .m-ms-empty, .m-ms-gen {
   position: relative;
   width: 100%;
   max-width: 460px;
   background: var(--surface);
-  border: 1px solid var(--border-input);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius-2xl);
   padding: var(--space-4xl);
   box-shadow: var(--shadow-overlay);
@@ -242,7 +242,7 @@
 .m-ms-gen__sheen {
   position: absolute;
   inset: 0;
-  background: linear-gradient(100deg, transparent 30%, rgba(40, 60, 95, 0.12) 50%, transparent 70%);
+  background: linear-gradient(100deg, transparent 30%, color-mix(in srgb, var(--accent) 12%, transparent) 50%, transparent 70%);
   background-size: 220% 100%;
   animation: ms-sheen 1.6s linear infinite;
   pointer-events: none;
@@ -561,7 +561,7 @@
   position: absolute; top: 4px; right: 4px;
   width: 20px; height: 20px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  border: 0; background: rgba(31, 42, 61, .55); color: #fff; cursor: pointer;
+  border: 0; background: rgba(0, 0, 0, .55); color: #fff; cursor: pointer;
   opacity: 0; transition: opacity .12s;
 }
 .m-ms-photo:hover .m-ms-photo__remove { opacity: 1; }
@@ -663,9 +663,10 @@
 }
 .m-ms-blank__stats > div {
   background: var(--surface);
-  border: 1px solid var(--border-input);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius-large);
   padding: var(--space-md);
+  box-shadow: var(--shadow-card);
 }
 .m-ms-blank__stats span {
   display: block;
@@ -675,7 +676,7 @@
 .m-ms-blank__stats strong {
   display: block;
   margin-top: 2px;
-  font: 600 var(--type-body-small-size)/1.2 var(--font-serif);
+  font: 600 var(--type-body-small-size)/1.2 var(--font-display);
   color: var(--text-primary);
 }
 
@@ -691,8 +692,8 @@
   width: 210px;
   padding: var(--space-sm);
   background: var(--surface);
-  border: 1px solid var(--border-input);
-  border-radius: var(--radius-large);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
   box-shadow: var(--shadow-overlay);
 }
 .m-ms-debug__label {

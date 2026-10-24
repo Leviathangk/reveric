@@ -409,7 +409,7 @@ class _DebugActionButton extends StatelessWidget {
           vertical: RevericSpacing.md,
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(RevericRadius.small),
+          borderRadius: BorderRadius.circular(RevericRadius.button),
         ),
       ),
       child: Text(label, style: typo.ui.copyWith(color: colors.accent)),
