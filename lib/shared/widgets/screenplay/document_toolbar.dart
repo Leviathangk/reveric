@@ -1,4 +1,4 @@
-// 职责: 按双端原有紧凑工具条样式呈现整集文档的元素命令。
+// 职责: 按双端原有紧凑工具条样式呈现整集文档的元素命令与宿主操作。
 // 关联文件:
 //   lib/shared/widgets/screenplay/document_editor.dart
 //   lib/shared/widgets/screenplay/document_rows.dart
@@ -24,9 +24,11 @@ class ScreenplayDocumentToolbar extends HookWidget {
     super.key,
     this.actions,
     this.mobile = false,
+    this.trailing,
   });
   final ScreenplayDocumentActions? actions;
   final bool mobile;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -119,70 +121,83 @@ class ScreenplayDocumentToolbar extends HookWidget {
         color: colors.surfaceContainer,
         border: Border(bottom: BorderSide(color: colors.borderSubtle)),
       ),
-      child: Stack(
-        alignment: Alignment.centerRight,
+      child: Row(
         children: [
-          if (mobile)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+          Expanded(
+            child: Stack(
+              alignment: Alignment.centerRight,
               children: [
-                Flexible(
-                  child: HorizontalWheelScroll(
-                    builder: (context, scroll) => SingleChildScrollView(
-                      controller: scroll,
-                      scrollDirection: Axis.horizontal,
-                      child: Row(children: buttons),
-                    ),
-                  ),
-                ),
-              ],
-            )
-          else
-            LayoutBuilder(
-              builder: (context, constraints) => Stack(
-                alignment: Alignment.centerRight,
-                children: [
-                  Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(
-                        maxWidth: RevericSizes.screenplayPageMaxWidth,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: RevericSpacing.editorPaddingH,
-                        ),
-                        child: Row(children: buttons),
-                      ),
-                    ),
-                  ),
-                  if (constraints.maxWidth >= 960) const _ElementHint(),
-                ],
-              ),
-            ),
-          // 保存失败入口覆盖在工具条上，不改变正常工具条和正文的尺寸。
-          if (actions != null)
-            Positioned(
-              top: 0,
-              bottom: 0,
-              right: 0,
-              child: ListenableBuilder(
-                listenable: actions.session.queue,
-                builder: (context, _) => actions.session.queue.lastError == null
-                    ? const SizedBox.shrink()
-                    : Material(
-                        color: colors.surfaceContainer,
-                        child: IconButton(
-                          tooltip: context.t(LocaleKeys.screenplaySaveFailed),
-                          onPressed: () => actions.showSaveError(context),
-                          icon: RevericIcon(
-                            RevericIcons.error_outline,
-                            size: 16,
-                            color: colors.error,
+                if (mobile)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: HorizontalWheelScroll(
+                          builder: (context, scroll) => SingleChildScrollView(
+                            controller: scroll,
+                            scrollDirection: Axis.horizontal,
+                            child: Row(children: buttons),
                           ),
                         ),
                       ),
-              ),
+                    ],
+                  )
+                else
+                  LayoutBuilder(
+                    builder: (context, constraints) => Stack(
+                      alignment: Alignment.centerRight,
+                      children: [
+                        Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxWidth: RevericSizes.screenplayPageMaxWidth,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                left: RevericSpacing.editorPaddingH,
+                              ),
+                              child: Row(children: buttons),
+                            ),
+                          ),
+                        ),
+                        if (constraints.maxWidth >= 960) const _ElementHint(),
+                      ],
+                    ),
+                  ),
+                // 保存失败入口覆盖在工具条上，不改变正常工具条和正文的尺寸。
+                if (actions != null)
+                  Positioned(
+                    top: 0,
+                    bottom: 0,
+                    right: 0,
+                    child: ListenableBuilder(
+                      listenable: actions.session.queue,
+                      builder: (context, _) =>
+                          actions.session.queue.lastError == null
+                          ? const SizedBox.shrink()
+                          : Material(
+                              color: colors.surfaceContainer,
+                              child: IconButton(
+                                tooltip: context.t(
+                                  LocaleKeys.screenplaySaveFailed,
+                                ),
+                                onPressed: () => actions.showSaveError(context),
+                                icon: RevericIcon(
+                                  RevericIcons.error_outline,
+                                  size: 16,
+                                  color: colors.error,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ),
+              ],
             ),
+          ),
+          if (trailing != null) ...[
+            const SizedBox(width: RevericSpacing.sm),
+            trailing!,
+          ],
         ],
       ),
     );

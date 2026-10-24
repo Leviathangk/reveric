@@ -3893,6 +3893,36 @@ abstract final class LocaleKeys {
   static const settingsWebDavRemoteDirectoryInvalid =
       'settings.webdav_remote_directory_invalid';
 
+  static const narrationTitle = 'screenplay.narration.title';
+  static const narrationChooseVoice = 'screenplay.narration.chooseVoice';
+  static const narrationUseNarrator = 'screenplay.narration.useNarrator';
+  static const narrationHint = 'screenplay.narration.hint';
+  static const narrationNoModels = 'screenplay.narration.noModels';
+  static const narrationNoModelsHint = 'screenplay.narration.noModelsHint';
+  static const narrationConfigure = 'screenplay.narration.configure';
+  static const narrationModel = 'screenplay.narration.model';
+  static const narrationChooseModel = 'screenplay.narration.chooseModel';
+  static const narrationNarrator = 'screenplay.narration.narrator';
+  static const narrationCharacters = 'screenplay.narration.characters';
+  static const narrationInclude = 'screenplay.narration.include';
+  static const narrationProgress = 'screenplay.narration.progress';
+  static const narrationGenerating = 'screenplay.narration.generating';
+  static const narrationComplete = 'screenplay.narration.complete';
+  static const narrationPlaying = 'screenplay.narration.playing';
+  static const narrationPaused = 'screenplay.narration.paused';
+  static const narrationPrevious = 'screenplay.narration.previous';
+  static const narrationNext = 'screenplay.narration.next';
+  static const narrationSpeed = 'screenplay.narration.speed';
+  static const narrationChangeVoices = 'screenplay.narration.changeVoices';
+  static const narrationFailed = 'screenplay.narration.failed';
+  static const narrationEmpty = 'screenplay.narration.empty';
+  static const narrationMissingCharacter =
+      'screenplay.narration.missingCharacter';
+  static const narrationMissingScene = 'screenplay.narration.missingScene';
+  static const narrationInvalidConfig = 'screenplay.narration.invalidConfig';
+  static const narrationAuthentication = 'screenplay.narration.authentication';
+  static const narrationRateLimited = 'screenplay.narration.rateLimited';
+
   static const screenplayAddBeat = 'screenplay.add_beat';
   static const screenplayAddEpisode = 'screenplay.add_episode';
   static const screenplayAddScene = 'screenplay.add_scene';

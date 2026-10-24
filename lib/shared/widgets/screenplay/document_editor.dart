@@ -60,6 +60,7 @@ class ScreenplayDocumentEditor extends HookConsumerWidget {
     required this.pickCharacter,
     this.mobile = false,
     this.footerBuilder,
+    this.toolbarTrailingBuilder,
     this.onVisibleSceneChanged,
   });
   final Novel novel;
@@ -70,6 +71,8 @@ class ScreenplayDocumentEditor extends HookConsumerWidget {
 
   /// 正文滚动到新场次时上报，供宿主把选中态跟到阅读位置。必须传稳定回调。
   final ValueChanged<String>? onVisibleSceneChanged;
+  final Widget Function(BuildContext, ScreenplayDocumentSession)?
+  toolbarTrailingBuilder;
   final Widget Function(BuildContext, ScreenplayDocumentSession?)?
   footerBuilder;
 
@@ -377,7 +380,10 @@ class _DocumentEditorBody extends HookConsumerWidget {
       },
       child: Column(
         children: [
-          ScreenplayDocumentToolbar(actions: actions),
+          ScreenplayDocumentToolbar(
+            actions: actions,
+            trailing: host.toolbarTrailingBuilder?.call(context, session),
+          ),
           Expanded(child: editor),
           if (host.footerBuilder != null) host.footerBuilder!(context, session),
         ],

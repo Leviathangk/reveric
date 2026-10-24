@@ -1,4 +1,4 @@
-// 职责: 将桌面当前集挂接到共享剧本文档编辑器，并按场次 ID 双向同步定位与阅读位置。
+// 职责: 将桌面当前集挂接到共享剧本文档编辑器，提供朗读入口并按场次 ID 双向同步定位。
 // 关联文件:
 //   lib/shared/widgets/screenplay/document_editor.dart
 //   lib/shared/providers/screenplay_workspace_state_provider.dart
@@ -15,6 +15,7 @@ import '../../../shared/database/app_database.dart';
 import '../../../shared/providers/screenplay_workspace_state_provider.dart';
 import '../../../shared/widgets/screenplay/document_editor.dart';
 import 'character_picker.dart';
+import '../narration/button.dart';
 export 'script_status.dart';
 
 class ScreenplayScriptRegion extends HookConsumerWidget {
@@ -53,6 +54,11 @@ class ScreenplayScriptRegion extends HookConsumerWidget {
       scope: ScreenplayEditorScope(episode, selectedSceneId: workspace.sceneId),
       registerFlush: registerFlush,
       onVisibleSceneChanged: onVisibleSceneChanged,
+      toolbarTrailingBuilder: (context, session) => NarrationButton(
+        workId: novel.id,
+        session: session,
+        sceneId: workspace.sceneId,
+      ),
       pickCharacter: (context, element) async {
         final box = context.findRenderObject()! as RenderBox;
         final result = await showScreenplayCharacterPickerPopover(
