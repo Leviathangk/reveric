@@ -41,14 +41,15 @@ class SpatialGrid<T extends SpatialIndexable> {
 
   /// Add or update an object in the spatial index
   void addOrUpdate(T object) {
-    _objects[object.id] = object;
+    final objectId = object.id;
+    _objects[objectId] = object;
 
-    if (_isDragging && _draggingObjectIds.contains(object.id)) {
+    if (_isDragging && _draggingObjectIds.contains(objectId)) {
       // For dragging objects, update immediately
       _updateSpatialIndexForObject(object);
     } else {
       // For non-dragging objects, batch updates for better performance
-      _pendingUpdates.add(object.id);
+      _pendingUpdates.add(objectId);
       _processPendingUpdatesIfNeeded();
     }
   }
@@ -57,15 +58,18 @@ class SpatialGrid<T extends SpatialIndexable> {
   void remove(String objectId) {
     final object = _objects.remove(objectId);
     if (object != null) {
-      _removeFromSpatialGrid(object);
-      _spatialRects.remove(objectId);
+      _removeFromSpatialGrid(objectId);
+      _pendingUpdates.remove(objectId);
       _invalidateCache();
     }
   }
 
   /// Clear all objects from the spatial index
   void clear() {
-    if (_objects.isEmpty) return;
+    _pendingUpdates.clear();
+    if (_objects.isEmpty) {
+      return;
+    }
     _objects.clear();
     _spatialGrid.clear();
     _spatialRects.clear();
@@ -373,19 +377,18 @@ class SpatialGrid<T extends SpatialIndexable> {
   // Internal implementation methods
 
   void _updateSpatialIndexForObject(T object) {
-    final bounds = object.getBounds();
-    _spatialRects[object.id] = bounds;
-    _updateSpatialGrid(object, bounds);
+    _updateSpatialIndexForObjectWithoutCacheInvalidation(object);
     // Always invalidate cache to ensure real-time updates
     _invalidateCache();
   }
 
-  void _updateSpatialGrid(T object, Rect bounds) {
+  void _updateSpatialGrid(String objectId, Rect bounds) {
     // Remove from old grid cells
-    _removeFromSpatialGrid(object);
+    _removeFromSpatialGrid(objectId);
 
     // Add to new grid cells
-    _addToGridCells(object.id, bounds);
+    _addToGridCells(objectId, bounds);
+    _spatialRects[objectId] = bounds;
   }
 
   /// Add object to grid cells based on bounds
@@ -403,11 +406,29 @@ class SpatialGrid<T extends SpatialIndexable> {
     }
   }
 
-  void _removeFromSpatialGrid(T object) {
-    _spatialGrid.removeWhere((key, objectSet) {
-      objectSet.remove(object.id);
-      return objectSet.isEmpty;
-    });
+  void _removeFromSpatialGrid(String objectId) {
+    // Use the last indexed bounds, not the object's possibly updated bounds.
+    final bounds = _spatialRects.remove(objectId);
+    if (bounds == null) {
+      return;
+    }
+    final startX = (bounds.left / gridSize).floor();
+    final endX = (bounds.right / gridSize).floor();
+    final startY = (bounds.top / gridSize).floor();
+    final endY = (bounds.bottom / gridSize).floor();
+
+    for (var x = startX; x <= endX; x++) {
+      for (var y = startY; y <= endY; y++) {
+        final key = '${x}_$y';
+        final objectSet = _spatialGrid[key];
+        if (objectSet != null) {
+          objectSet.remove(objectId);
+          if (objectSet.isEmpty) {
+            _spatialGrid.remove(key);
+          }
+        }
+      }
+    }
   }
 
   void _queryWithSpatialGrid(Rect bounds, List<T> result) {
@@ -550,9 +571,7 @@ class SpatialGrid<T extends SpatialIndexable> {
   /// Updates spatial index for an object without invalidating cache.
   /// Used during batch processing to avoid redundant cache invalidations.
   void _updateSpatialIndexForObjectWithoutCacheInvalidation(T object) {
-    final bounds = object.getBounds();
-    _spatialRects[object.id] = bounds;
-    _updateSpatialGrid(object, bounds);
+    _updateSpatialGrid(object.id, object.getBounds());
   }
 
   /// Force process any pending updates immediately

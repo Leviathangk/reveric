@@ -115,13 +115,6 @@ class NodeContainer<T> extends StatelessWidget {
         final isSelected = node.isSelected;
         final size = node.size.value;
 
-        // Derive cursor from interaction state
-        final cursor = theme.cursorTheme.cursorFor(
-          ElementType.node,
-          controller.interaction,
-          isLocked: node.locked,
-        );
-
         // Get LOD visibility state - default to full visibility if not configured
         final lodVisibility =
             controller.lod?.currentVisibility ?? DetailVisibility.full;
@@ -145,38 +138,46 @@ class NodeContainer<T> extends StatelessWidget {
               children: [
                 // Main node visual with gesture handling via ElementScope
                 Positioned.fill(
-                  child: ElementScope(
-                    // Session for canvas locking during drag
-                    createSession: () =>
-                        controller.createSession(DragSessionType.nodeDrag),
-                    // Drag lifecycle - unified for all node types
-                    // Check both node lock state AND behavior mode
-                    isDraggable: !node.locked && controller.behavior.canDrag,
-                    onDragStart: (_) => controller.startNodeDrag(node.id),
-                    onDragUpdate: (details) =>
-                        controller.moveNodeDrag(details.delta),
-                    onDragEnd: (_) => controller.endNodeDrag(),
-                    // Interaction callbacks
-                    onTap: onTap,
-                    onDoubleTap: onDoubleTap,
-                    onContextMenu: onContextMenu,
-                    onMouseEnter: onMouseEnter,
-                    onMouseLeave: onMouseLeave,
-                    cursor: cursor,
-                    // Background/foreground layers use translucent for hit testing
-                    hitTestBehavior: HitTestBehavior.opaque,
-                    // Autopan configuration
-                    autoPan: controller.autoPan,
-                    getViewportBounds: () =>
-                        controller.viewportScreenBounds.rect,
-                    onAutoPan: (delta) {
-                      final zoom = controller.viewport.zoom;
-                      controller.panBy(
-                        ScreenOffset(
-                          Offset(-delta.dx * zoom, -delta.dy * zoom),
-                        ),
-                      );
-                    },
+                  // Cursor changes must not rebuild the node's ports.
+                  child: Observer.withBuiltChild(
+                    builder: (context, content) => ElementScope(
+                      // Session for canvas locking during drag
+                      createSession: () =>
+                          controller.createSession(DragSessionType.nodeDrag),
+                      // Drag lifecycle - unified for all node types
+                      // Check both node lock state AND behavior mode
+                      isDraggable: !node.locked && controller.behavior.canDrag,
+                      onDragStart: (_) => controller.startNodeDrag(node.id),
+                      onDragUpdate: (details) =>
+                          controller.moveNodeDrag(details.delta),
+                      onDragEnd: (_) => controller.endNodeDrag(),
+                      // Interaction callbacks
+                      onTap: onTap,
+                      onDoubleTap: onDoubleTap,
+                      onContextMenu: onContextMenu,
+                      onMouseEnter: onMouseEnter,
+                      onMouseLeave: onMouseLeave,
+                      cursor: theme.cursorTheme.cursorFor(
+                        ElementType.node,
+                        controller.interaction,
+                        isLocked: node.locked,
+                      ),
+                      // Background/foreground layers use translucent for hit testing
+                      hitTestBehavior: HitTestBehavior.opaque,
+                      // Autopan configuration
+                      autoPan: controller.autoPan,
+                      getViewportBounds: () =>
+                          controller.viewportScreenBounds.rect,
+                      onAutoPan: (delta) {
+                        final zoom = controller.viewport.zoom;
+                        controller.panBy(
+                          ScreenOffset(
+                            Offset(-delta.dx * zoom, -delta.dy * zoom),
+                          ),
+                        );
+                      },
+                      child: content,
+                    ),
                     child: child,
                   ),
                 ),
@@ -197,9 +198,7 @@ class NodeContainer<T> extends StatelessWidget {
                 if (lodVisibility.showPorts && node.outputPorts.isNotEmpty)
                   ...node.outputPorts
                       .where((port) => !port.isInput)
-                      .map(
-                        (port) => _buildPort(context, port, port.isOutput),
-                      ),
+                      .map((port) => _buildPort(context, port, port.isOutput)),
 
                 // Resize handles (shown when selected and resizable)
                 if (showResizer)

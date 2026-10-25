@@ -254,6 +254,13 @@ class ProductionBoard extends HookConsumerWidget {
     final nodes = content.data?.nodes ?? const <CanvasNode>[];
     final edges = content.data?.edges ?? const <ProductionConnection>[];
     final byId = {for (final n in nodes) n.id: n};
+    final membersByParent = <String, List<CanvasNode>>{};
+    for (final node in nodes) {
+      final parentId = node.parentId;
+      if (parentId != null) {
+        (membersByParent[parentId] ??= []).add(node);
+      }
+    }
     // 拖线时同步判断落点：视频节点的生成方式随库更新，素材类型不会变、查一次即可。
     // 片段比例同一条 stream 带出，卡片尺寸跟着画面比例走。
     final clipIds = nodes.map((n) => n.clipId).nonNulls.toList()..sort();
@@ -321,8 +328,7 @@ class ProductionBoard extends HookConsumerWidget {
                   'title': group.title.isEmpty
                       ? context.t(LocaleKeys.productionGroupStoryboard)
                       : group.title,
-                  'count':
-                      '${nodes.where((n) => n.parentId == group.id).length}',
+                  'count': '${membersByParent[group.id]?.length ?? 0}',
                 },
               )
             : group.title.isEmpty
@@ -482,15 +488,12 @@ class ProductionBoard extends HookConsumerWidget {
       }
       for (final row in nodes.where((n) => n.type == canvasNodeTypeGroup)) {
         final group = controller.getNode(row.id) as ProductionFlowGroup;
+        final groupMembers = membersByParent[row.id] ?? const <CanvasNode>[];
         group.layout = ProductionGroupLayout.fromStyle(row.style);
         group.slots = {
-          for (final member in nodes.where((n) => n.parentId == row.id))
-            member.sortOrder: member.id,
+          for (final member in groupMembers) member.sortOrder: member.id,
         };
-        final members = nodes
-            .where((n) => n.parentId == row.id)
-            .map((n) => n.id)
-            .toSet();
+        final members = {for (final member in groupMembers) member.id};
         for (final id in group.nodeIds.difference(members)) {
           group.removeNode(id);
         }
@@ -594,9 +597,7 @@ class ProductionBoard extends HookConsumerWidget {
           for (final edge in latestEdges.value)
             (edge.sourceNodeId, edge.targetNodeId),
         ],
-        sceneOrder: [
-          for (final segment in bands.segments) ?segment.sceneId,
-        ],
+        sceneOrder: [for (final segment in bands.segments) ?segment.sceneId],
         scope: scope,
       );
       if (positions.isEmpty) {

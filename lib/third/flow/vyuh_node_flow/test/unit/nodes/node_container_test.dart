@@ -12,7 +12,10 @@
 library;
 
 import 'package:flutter/material.dart';
+// Vendored tests live under lib/ but use the root package's dev dependency.
+// ignore: depend_on_referenced_packages
 import 'package:flutter_test/flutter_test.dart';
+import 'package:reveric/third/flow/vyuh_node_flow/lib/src/editor/element_scope.dart';
 import 'package:reveric/third/flow/vyuh_node_flow/lib/src/editor/resizer_widget.dart';
 // Import NodeContainer and ResizerWidget directly as they're not part of the public API
 import 'package:reveric/third/flow/vyuh_node_flow/lib/src/nodes/node_container.dart';
@@ -1130,6 +1133,84 @@ void main() {
 
     tearDown(() {
       controller.dispose();
+    });
+
+    testWidgets('cursor changes preserve ports and node interaction state', (
+      tester,
+    ) async {
+      final node = createTestNodeWithPorts(position: const Offset(50, 50));
+      controller.addNode(node);
+      var portBuilds = 0;
+      var taps = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Stack(
+            children: [
+              NodeContainer<String>(
+                node: node,
+                controller: controller,
+                portBuilder: (_, _, _) {
+                  portBuilds++;
+                  return const SizedBox();
+                },
+                onTap: () => taps++,
+                child: const ColoredBox(
+                  key: Key('node-body'),
+                  color: Colors.transparent,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(portBuilds, 2);
+      final scope = find.byType(ElementScope);
+      final state = tester.state(scope);
+      expect(
+        tester.widget<ElementScope>(scope).cursor,
+        SystemMouseCursors.click,
+      );
+
+      controller.interaction.setViewportInteracting(true);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<ElementScope>(scope).cursor,
+        SystemMouseCursors.grabbing,
+      );
+      expect(tester.state(scope), same(state));
+      expect(portBuilds, 2, reason: 'viewport gestures only change the cursor');
+
+      controller.interaction.setCursorOverride(
+        SystemMouseCursors.resizeLeftRight,
+      );
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<ElementScope>(scope).cursor,
+        SystemMouseCursors.resizeLeftRight,
+      );
+      expect(portBuilds, 2);
+
+      controller.interaction.setCursorOverride(null);
+      controller.interaction.setViewportInteracting(false);
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<ElementScope>(scope).cursor,
+        SystemMouseCursors.click,
+      );
+      expect(portBuilds, 2);
+      await tester.tap(find.byKey(const Key('node-body')));
+      expect(taps, 1);
+
+      // Position changes must still propagate after cursor updates are isolated.
+      node.setVisualPosition(const Offset(200, 200));
+      await tester.pumpAndSettle();
+      expect(
+        tester.getTopLeft(find.byKey(const Key('node-body'))),
+        const Offset(200, 200),
+      );
+      expect(tester.state(scope), same(state));
+      await tester.pumpWidget(const SizedBox.shrink());
     });
 
     testWidgets('renders visible node without ports', (tester) async {

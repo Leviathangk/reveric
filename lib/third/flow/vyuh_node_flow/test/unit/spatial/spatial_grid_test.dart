@@ -14,6 +14,8 @@
 library;
 
 import 'package:flutter/material.dart';
+// Vendored tests live under lib/ but use the root package's dev dependency.
+// ignore: depend_on_referenced_packages
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reveric/third/flow/vyuh_node_flow/lib/src/shared/spatial/spatial_grid.dart';
 import 'package:reveric/third/flow/vyuh_node_flow/lib/src/shared/spatial/spatial_item.dart';
@@ -179,6 +181,85 @@ void main() {
   });
 
   group('Removing Entries', () {
+    test('moving across cells removes old coverage and keeps neighbours', () {
+      final grid = SpatialGrid<SpatialItem>(gridSize: 100);
+      const moving = NodeSpatialItem(
+        nodeId: 'moving',
+        bounds: Rect.fromLTRB(-150, -150, 100, 100),
+      );
+      const neighbour = NodeSpatialItem(
+        nodeId: 'neighbour',
+        bounds: Rect.fromLTWH(10, 10, 20, 20),
+      );
+      grid.addOrUpdate(moving);
+      grid.addOrUpdate(neighbour);
+      grid.flushPendingUpdates();
+      expect(grid.activeCellKeys.length, 16);
+
+      final moved = moving.copyWithBounds(
+        const Rect.fromLTWH(320, 320, 30, 30),
+      );
+      grid.addOrUpdate(moved);
+      grid.flushPendingUpdates();
+
+      expect(grid.activeCellKeys, unorderedEquals(['0_0', '3_3']));
+      expect(grid.getObjectCountInCell('0_0'), 1);
+      expect(grid.queryPoint(const Offset(20, 20)), [neighbour]);
+      expect(grid.queryPoint(const Offset(330, 330)), [moved]);
+      expect(grid.queryPoint(const Offset(-120, -120)), isEmpty);
+
+      grid.remove(moved.id);
+      expect(grid.activeCellKeys, ['0_0']);
+      expect(grid.queryPoint(const Offset(20, 20)), [neighbour]);
+    });
+
+    test('removal before flush clears last indexed and queued positions', () {
+      final grid = SpatialGrid<SpatialItem>(gridSize: 100);
+      const item = ConnectionSegmentItem(
+        connectionId: 'moving-edge',
+        segmentIndex: 0,
+        bounds: Rect.fromLTWH(-120, 10, 300, 10),
+      );
+      grid.addOrUpdate(item);
+      grid.flushPendingUpdates();
+      grid.addOrUpdate(
+        item.copyWithBounds(const Rect.fromLTWH(800, 10, 200, 10)),
+      );
+      grid.remove(item.id);
+      grid.flushPendingUpdates();
+      expect(grid.activeCellKeys, isEmpty);
+      expect(grid.objectCount, 0);
+      expect(grid.diagnoseConsistency().pendingCount, 0);
+
+      grid.addOrUpdate(item);
+      grid.clear();
+      grid.addOrUpdate(
+        item.copyWithBounds(const Rect.fromLTWH(320, 10, 10, 10)),
+      );
+      grid.flushPendingUpdates();
+      expect(grid.activeCellKeys, ['3_0']);
+    });
+
+    test('drag completion relocates the last indexed coverage', () {
+      final grid = SpatialGrid<SpatialItem>(gridSize: 100);
+      const item = PortSpatialItem(
+        portId: 'output',
+        nodeId: 'moving-node',
+        isOutput: true,
+        bounds: Rect.fromLTWH(90, 90, 20, 20),
+      );
+      grid.addOrUpdate(item);
+      grid.flushPendingUpdates();
+      grid.startDragging([item.id]);
+      grid.updateDraggingObjects([
+        item.copyWithBounds(const Rect.fromLTWH(-90, -90, 20, 20)),
+      ]);
+      grid.endDragging();
+      expect(grid.activeCellKeys, ['-1_-1']);
+      expect(grid.queryPoint(const Offset(95, 95)), isEmpty);
+      expect(grid.queryPoint(const Offset(-80, -80)).single.id, item.id);
+    });
+
     test('remove deletes existing item', () {
       final grid = SpatialGrid<SpatialItem>();
       const item = NodeSpatialItem(
