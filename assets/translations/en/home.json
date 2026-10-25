@@ -13,6 +13,7 @@
   "home.greeting_afternoon_short": "Good afternoon",
   "home.greeting_evening_short": "Good evening",
   "home.greeting_night_short": "Late night",
+  "home.greeting_personalized": "{greeting}, {name} — keep pushing «{title}»",
   "home.greeting_personalized_simple": "{greeting}, {name}",
   "home.featured_continue_writing": "Continue writing",
   "home.featured_more": "More",

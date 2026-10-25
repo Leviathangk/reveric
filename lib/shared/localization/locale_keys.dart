@@ -2837,6 +2837,7 @@ abstract final class LocaleKeys {
   static const homeGreetingMorningShort = 'home.greeting_morning_short';
   static const homeGreetingNight = 'home.greeting_night';
   static const homeGreetingNightShort = 'home.greeting_night_short';
+  static const homeGreetingPersonalized = 'home.greeting_personalized';
   static const homeGreetingPersonalizedSimple =
       'home.greeting_personalized_simple';
   static const homeRecentSessions = 'home.recent_sessions';

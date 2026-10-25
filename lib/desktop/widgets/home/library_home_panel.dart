@@ -155,6 +155,7 @@ class HomeLibraryPanel extends HookConsumerWidget {
                       onCreateNovel: createWork,
                       onImportNovel: onImportNovel,
                       username: username,
+                      featuredTitle: recent.firstOrNull?.title,
                       headerGestureExclusionKey: headerGestureExclusionKey,
                     ),
                   ),

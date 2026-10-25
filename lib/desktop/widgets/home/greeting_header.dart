@@ -1,4 +1,4 @@
-// 职责: 桌面端首页问候区 — 时段问候文案与新建/导入快捷操作
+// 职责: 桌面端首页问候区 — 展示时段问候、最近作品提示与新建/导入快捷操作
 // 关联文件:
 //   lib/desktop/widgets/home/library_home_panel.dart
 //   lib/desktop/widgets/desktop_window_frame.dart
@@ -37,6 +37,7 @@ class GreetingHeader extends StatelessWidget {
     required this.onCreateNovel,
     required this.onImportNovel,
     required this.username,
+    required this.featuredTitle,
     required this.headerGestureExclusionKey,
   });
 
@@ -44,6 +45,7 @@ class GreetingHeader extends StatelessWidget {
   final VoidCallback onCreateNovel;
   final VoidCallback onImportNovel;
   final String? username;
+  final String? featuredTitle;
   final GlobalKey headerGestureExclusionKey;
 
   @override
@@ -53,10 +55,19 @@ class GreetingHeader extends StatelessWidget {
     final hour = DateTime.now().hour;
     final name = username;
 
-    // 正在写的作品交给下面的「继续写」区，问候只打招呼。
+    final title = featuredTitle;
     final String headline;
     if (name == null) {
       headline = context.t(_greetingKey(hour));
+    } else if (title != null && title.isNotEmpty) {
+      headline = context.t(
+        LocaleKeys.homeGreetingPersonalized,
+        namedArgs: {
+          'greeting': context.t(_greetingShortKey(hour)),
+          'name': name,
+          'title': title,
+        },
+      );
     } else {
       headline = context.t(
         LocaleKeys.homeGreetingPersonalizedSimple,

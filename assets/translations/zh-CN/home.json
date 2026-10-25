@@ -13,6 +13,7 @@
   "home.greeting_afternoon_short": "下午好",
   "home.greeting_evening_short": "晚上好",
   "home.greeting_night_short": "夜深了",
+  "home.greeting_personalized": "{greeting}，{name}，继续推进《{title}》",
   "home.greeting_personalized_simple": "{greeting}，{name}",
   "home.featured_continue_writing": "继续写作",
   "home.featured_more": "更多",

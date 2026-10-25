@@ -54,154 +54,160 @@ void main() {
     TargetPlatform.linux,
   ]) {
     for (final kind in ['management', 'greeting']) {
-      testWidgets('Home $kind clears window buttons on ${platform.name}', (
-        tester,
-      ) async {
-        addTearDown(() => tester.binding.setSurfaceSize(null));
-        var taps = 0;
-        final headerKey = GlobalKey();
-        for (final width in [1100.0, 560.0]) {
-          await tester.binding.setSurfaceSize(Size(width, 300));
-          final header = switch (kind) {
-            'management' => SizedBox(
-              height: 200,
-              child: HomeManagementScaffold(
-                headerGestureExclusionKey: headerKey,
-                headerTrailingInset: DesktopWindowFrame.trailingInset,
-                icon: RevericIcons.groups_outlined,
-                titleKey: LocaleKeys.commonSave,
-                createLabelKey: LocaleKeys.commonCreate,
-                onCreate: () => taps++,
-                child: const SizedBox(key: ValueKey('management_body')),
+      testWidgets(
+        'Home $kind clears window buttons on ${platform.name}',
+        (tester) async {
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+          var taps = 0;
+          final headerKey = GlobalKey();
+          for (final width in [1100.0, 560.0]) {
+            await tester.binding.setSurfaceSize(Size(width, 300));
+            final header = switch (kind) {
+              'management' => SizedBox(
+                height: 200,
+                child: HomeManagementScaffold(
+                  headerGestureExclusionKey: headerKey,
+                  headerTrailingInset: DesktopWindowFrame.trailingInset,
+                  icon: RevericIcons.groups_outlined,
+                  titleKey: LocaleKeys.commonSave,
+                  createLabelKey: LocaleKeys.commonCreate,
+                  onCreate: () => taps++,
+                  child: const SizedBox(key: ValueKey('management_body')),
+                ),
               ),
-            ),
-            _ => Padding(
-              padding: const EdgeInsets.fromLTRB(40, 24, 40, 24),
-              child: GreetingHeader(
-                onQuickStart: () {},
-                onCreateNovel: () => taps++,
-                onImportNovel: () {},
-                username: 'Writer',
-                headerGestureExclusionKey: headerKey,
+              _ => Padding(
+                padding: const EdgeInsets.fromLTRB(40, 24, 40, 24),
+                child: GreetingHeader(
+                  onQuickStart: () {},
+                  onCreateNovel: () => taps++,
+                  onImportNovel: () {},
+                  username: 'Writer',
+                  featuredTitle: 'A very long novel title that keeps on going',
+                  headerGestureExclusionKey: headerKey,
+                ),
               ),
-            ),
-          };
-          await tester.pumpWidget(_wrap(header));
-          await tester.pumpAndSettle();
-          final title = kind == 'management'
-              ? find.text('Save')
-              : find
-                    .descendant(
-                      of: find.byType(GreetingHeader),
-                      matching: find.byType(Text),
-                    )
-                    .first;
-          final action = kind == 'greeting'
-              ? find
-                    .byWidgetPredicate((widget) => widget is OutlinedButton)
-                    .last
-              : find.byWidgetPredicate((widget) => widget is FilledButton);
-          if (kind == 'management') {
-            expect(tester.getCenter(title).dy, closeTo(24, 1));
-            expect(
-              tester
-                  .getTopLeft(find.byKey(const ValueKey('management_body')))
-                  .dy,
-              DesktopWindowFrame.titleBarHeight + RevericSizes.dividerThickness,
-            );
-          } else {
-            expect(tester.getTopLeft(title).dy, closeTo(24, 1));
-            expect(tester.getRect(action).top, greaterThanOrEqualTo(48));
+            };
+            await tester.pumpWidget(_wrap(header));
+            await tester.pumpAndSettle();
+            final title = kind == 'management'
+                ? find.text('Save')
+                : find
+                      .descendant(
+                        of: find.byType(GreetingHeader),
+                        matching: find.byType(Text),
+                      )
+                      .first;
+            final action = kind == 'greeting'
+                ? find
+                      .byWidgetPredicate((widget) => widget is OutlinedButton)
+                      .last
+                : find.byWidgetPredicate((widget) => widget is FilledButton);
+            if (kind == 'management') {
+              expect(tester.getCenter(title).dy, closeTo(24, 1));
+              expect(
+                tester
+                    .getTopLeft(find.byKey(const ValueKey('management_body')))
+                    .dy,
+                DesktopWindowFrame.titleBarHeight +
+                    RevericSizes.dividerThickness,
+              );
+            } else {
+              expect(tester.getTopLeft(title).dy, closeTo(24, 1));
+              expect(tester.getRect(action).top, greaterThanOrEqualTo(48));
+            }
+            expect(tester.getRect(action).left, greaterThanOrEqualTo(0));
+            expect(tester.getRect(action).right, lessThanOrEqualTo(width));
+            if (platform != TargetPlatform.macOS) {
+              final captionButtons = Rect.fromLTWH(
+                width - DesktopWindowFrame.windowsCaptionButtonsWidth,
+                0,
+                DesktopWindowFrame.windowsCaptionButtonsWidth,
+                DesktopWindowFrame.titleBarHeight,
+              );
+              expect(tester.getRect(action).overlaps(captionButtons), isFalse);
+              expect(tester.getRect(title).overlaps(captionButtons), isFalse);
+            }
+            if (kind != 'management') {
+              expect(
+                tester.getTopLeft(find.byKey(const ValueKey('body'))).dy,
+                greaterThanOrEqualTo(tester.getRect(action).bottom),
+              );
+            }
+            await tester.tap(action);
+            await tester.pumpAndSettle();
+            expect(taps, width == 1100 ? 1 : 2);
+            expect(tester.takeException(), isNull);
           }
-          expect(tester.getRect(action).left, greaterThanOrEqualTo(0));
-          expect(tester.getRect(action).right, lessThanOrEqualTo(width));
-          if (platform != TargetPlatform.macOS) {
-            final captionButtons = Rect.fromLTWH(
-              width - DesktopWindowFrame.windowsCaptionButtonsWidth,
-              0,
-              DesktopWindowFrame.windowsCaptionButtonsWidth,
-              DesktopWindowFrame.titleBarHeight,
-            );
-            expect(tester.getRect(action).overlaps(captionButtons), isFalse);
-            expect(tester.getRect(title).overlaps(captionButtons), isFalse);
-          }
-          if (kind != 'management') {
-            expect(
-              tester.getTopLeft(find.byKey(const ValueKey('body'))).dy,
-              greaterThanOrEqualTo(tester.getRect(action).bottom),
-            );
-          }
-          await tester.tap(action);
-          await tester.pumpAndSettle();
-          expect(taps, width == 1100 ? 1 : 2);
-          expect(tester.takeException(), isNull);
-        }
-      }, variant: TargetPlatformVariant({platform}));
+        },
+        variant: TargetPlatformVariant({platform}),
+      );
     }
     for (final kind in ['canvas']) {
-      testWidgets('$kind keeps its title at the top on ${platform.name}', (
-        tester,
-      ) async {
-        addTearDown(() => tester.binding.setSurfaceSize(null));
-        var taps = 0;
-        void onTap() => taps++;
-        final header = switch (kind) {
-          _ => CanvasToolbar(
-            canvasName: 'Canvas title',
-            onClose: () {},
-            onSave: onTap,
-          ),
-        };
-        final title = find.text(switch (kind) {
-          _ => 'Canvas title',
-        });
-        final action = kind == 'canvas'
-            ? find.byKey(const ValueKey('canvas_toolbar_save_button'))
-            : find.byTooltip('Refresh');
-        for (final width in [1100.0, 560.0]) {
-          await tester.binding.setSurfaceSize(Size(width, 300));
-          await tester.pumpWidget(_wrap(header));
-          await tester.pumpAndSettle();
-          const titleCenter = DesktopWindowFrame.titleBarHeight / 2;
-          final actionCenter =
-              titleCenter +
-              (platform == TargetPlatform.windows
-                  ? DesktopWindowFrame.titleBarHeight
-                  : 0);
-          expect(tester.getCenter(title).dy, closeTo(titleCenter, 1));
-          expect(tester.getCenter(action).dy, closeTo(actionCenter, 1));
-          final headerBottom = actionCenter + titleCenter;
-          expect(
-            tester.getTopLeft(find.byKey(const ValueKey('body'))).dy,
-            headerBottom,
-          );
-          if (platform == TargetPlatform.windows) {
+      testWidgets(
+        '$kind keeps its title at the top on ${platform.name}',
+        (tester) async {
+          addTearDown(() => tester.binding.setSurfaceSize(null));
+          var taps = 0;
+          void onTap() => taps++;
+          final header = switch (kind) {
+            _ => CanvasToolbar(
+              canvasName: 'Canvas title',
+              onClose: () {},
+              onSave: onTap,
+            ),
+          };
+          final title = find.text(switch (kind) {
+            _ => 'Canvas title',
+          });
+          final action = kind == 'canvas'
+              ? find.byKey(const ValueKey('canvas_toolbar_save_button'))
+              : find.byTooltip('Refresh');
+          for (final width in [1100.0, 560.0]) {
+            await tester.binding.setSurfaceSize(Size(width, 300));
+            await tester.pumpWidget(_wrap(header));
+            await tester.pumpAndSettle();
+            const titleCenter = DesktopWindowFrame.titleBarHeight / 2;
+            final actionCenter =
+                titleCenter +
+                (platform == TargetPlatform.windows
+                    ? DesktopWindowFrame.titleBarHeight
+                    : 0);
+            expect(tester.getCenter(title).dy, closeTo(titleCenter, 1));
+            expect(tester.getCenter(action).dy, closeTo(actionCenter, 1));
+            final headerBottom = actionCenter + titleCenter;
             expect(
-              tester.getRect(action).top,
-              greaterThanOrEqualTo(DesktopWindowFrame.titleBarHeight),
+              tester.getTopLeft(find.byKey(const ValueKey('body'))).dy,
+              headerBottom,
             );
-          }
-          await tester.tap(action);
-          await tester.pumpAndSettle();
-          expect(taps, width == 1100 ? 1 : 2);
-          expect(tester.takeException(), isNull);
-          if (const bool.fromEnvironment('HEADER_CAPTURE')) {
-            await tester.runAsync(() async {
-              final boundary =
-                  _captureKey.currentContext!.findRenderObject()!
-                      as RenderRepaintBoundary;
-              final image = await boundary.toImage();
-              final bytes = await image.toByteData(
-                format: ui.ImageByteFormat.png,
+            if (platform == TargetPlatform.windows) {
+              expect(
+                tester.getRect(action).top,
+                greaterThanOrEqualTo(DesktopWindowFrame.titleBarHeight),
               );
-              await File(
-                '/tmp/header-$kind-${platform.name}-${width.toInt()}.png',
-              ).writeAsBytes(bytes!.buffer.asUint8List());
-              image.dispose();
-            });
+            }
+            await tester.tap(action);
+            await tester.pumpAndSettle();
+            expect(taps, width == 1100 ? 1 : 2);
+            expect(tester.takeException(), isNull);
+            if (const bool.fromEnvironment('HEADER_CAPTURE')) {
+              await tester.runAsync(() async {
+                final boundary =
+                    _captureKey.currentContext!.findRenderObject()!
+                        as RenderRepaintBoundary;
+                final image = await boundary.toImage();
+                final bytes = await image.toByteData(
+                  format: ui.ImageByteFormat.png,
+                );
+                await File(
+                  '/tmp/header-$kind-${platform.name}-${width.toInt()}.png',
+                ).writeAsBytes(bytes!.buffer.asUint8List());
+                image.dispose();
+              });
+            }
           }
-        }
-      }, variant: TargetPlatformVariant({platform}));
+        },
+        variant: TargetPlatformVariant({platform}),
+      );
     }
   }
 }
