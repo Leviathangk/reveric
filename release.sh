@@ -63,8 +63,8 @@ existing_tag_target() {
 
 # 检查分支
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-if [[ "$BRANCH" != "main" && "$BRANCH" != "master" ]]; then
-  echo "WARNING: 当前在 '$BRANCH' 分支。release 应该从 main/master 创建。"
+if [[ "$BRANCH" != "unstable" ]]; then
+  echo "WARNING: 当前在 '$BRANCH' 分支。release 应该从 unstable 创建。"
   read -r -p "继续? (y/N) " reply
   [[ "$reply" != "y" ]] && exit 1
 fi
