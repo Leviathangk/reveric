@@ -28,7 +28,13 @@ void main() {
     TargetPlatform.macOS,
     TargetPlatform.android,
   ]) {
-    for (final type in ['minimax', 'volcengine', 'openrouter']) {
+    for (final type in [
+      'minimax',
+      'volcengine',
+      'openrouter',
+      'atlascloud',
+      'qwen',
+    ]) {
       testWidgets('$type audio models can be added and removed on $platform', (
         tester,
       ) async {
@@ -74,6 +80,8 @@ void main() {
         );
         await tester.pumpAndSettle();
         final model = switch (type) {
+          'qwen' => 'qwen-audio-3.1-tts-next',
+          'atlascloud' => 'bytedance/seed-audio-1.0',
           'minimax' => 'music-3.0',
           'openrouter' => 'bytedance-seed/seed-audio-1-0',
           _ => 'seed-audio-1.0',

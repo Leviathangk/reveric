@@ -71,16 +71,33 @@ class GenerationTaskDao extends DatabaseAccessor<AppDatabase>
       task.submittedAt == null &&
       task.errorCode != 'provider_configuration_changed';
 
-  Future<void> requestCancellation(String id) async {
+  /// 音视频一旦拿到输出便继续下载和保存，避免丢弃已经生成的结果。
+  static bool canRequestCancellation(GenerationTask task) =>
+      !task.status.isTerminal &&
+      (task.kind == GenerationKind.image ||
+          (task.status != GenerationTaskStatus.saving &&
+              task.outputUrl == null &&
+              task.outputHash == null &&
+              task.path == null &&
+              task.resultAssetId == null));
+
+  Future<bool> requestCancellation(String id) async {
     try {
-      await (update(
-        generationTasks,
-      )..where((t) => t.id.equals(id) & t.cancelRequestedAt.isNull())).write(
-        GenerationTasksCompanion(
-          cancelRequestedAt: Value(DateTime.now()),
-          updatedAt: Value(DateTime.now()),
-        ),
-      );
+      return await transaction(() async {
+        final task = await getById(id);
+        if (task == null || !canRequestCancellation(task)) {
+          return false;
+        }
+        await (update(
+          generationTasks,
+        )..where((t) => t.id.equals(id) & t.cancelRequestedAt.isNull())).write(
+          GenerationTasksCompanion(
+            cancelRequestedAt: Value(DateTime.now()),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+        return true;
+      });
     } catch (error, stack) {
       AppLogger.error(
         '[DB] generation_tasks UPDATE cancellation id=$id',

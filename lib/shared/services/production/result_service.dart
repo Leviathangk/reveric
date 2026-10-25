@@ -135,7 +135,9 @@ class ProductionResultService {
         if (latestTask.status.isTerminal) {
           return (accepted: false, resultApplied: applied);
         }
-        await database.generationTaskDao.requestCancellation(taskId);
+        if (!await database.generationTaskDao.requestCancellation(taskId)) {
+          return (accepted: false, resultApplied: applied);
+        }
         await database.generationTaskDao.transition(
           taskId,
           {GenerationTaskStatus.prepared},

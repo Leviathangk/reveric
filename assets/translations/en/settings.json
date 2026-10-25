@@ -1,10 +1,7 @@
 {
-  "settings.provider_openrouter_audio_hint": "Fetch speech models from OpenRouter using this provider’s API key. Voice selection, delivery instructions and reference audio support depend on the model.",
   "settings.provider_type_volcengine": "Volcengine",
-  "settings.provider_volcengine_audio_hint": "Audio uses the same API key. Enable Doubao Speech access in Volcengine before use.",
   "settings.provider_model_id_hint": "Enter model ID",
   "settings.provider_video_models_label": "Video models",
-  "settings.provider_video_models_hint": "Video generation uses this provider’s API key and is billed by the provider. Local references require a connected storage service before they can be uploaded with your confirmation; results are saved locally. Pricing cannot be estimated here.",
   "settings.codex_check_login": "Check login",
   "settings.codex_checking": "Checking local Codex login…",
   "settings.codex_auth_ready": "Local Codex credentials are available",
@@ -491,7 +488,6 @@
   "settings.usage_session_not_found": "This session has no recorded usage",
   "settings.usage_open_current_session": "Open this session's usage",
   "settings.provider_audio_models_label": "Audio models",
-  "settings.provider_minimax_audio_hint": "Supports MiniMax music and speech generation using this provider’s API key, with MP3 output.",
   "settings.provider_asset_section": "Asset library",
   "settings.provider_asset_project_label": "Project name",
   "settings.provider_asset_project_hint": "Defaults to default",

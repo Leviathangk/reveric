@@ -1,4 +1,4 @@
-// 职责: 管理同步音频任务、取消和不重复生成的输出恢复登记。
+// 职责: 管理音频任务、预测轮询、取消和不重复生成的输出恢复登记。
 // 关联文件:
 //   lib/shared/database/daos/generation_task_dao.dart
 //   lib/shared/services/production/audio_generate_orchestrator.dart
@@ -12,6 +12,7 @@
 //   .agents/rules/service-naming.md
 //   .agents/rules/error-handling.md
 import 'dart:io';
+import 'dart:async';
 import '../../utils/storage_paths.dart';
 import 'package:reveric/shared/models/asset_purpose.dart';
 import 'package:collection/collection.dart';
@@ -20,8 +21,10 @@ import '../../models/audio/exception.dart';
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 import '../../database/app_database.dart';
+import '../../database/daos/generation_task_dao.dart';
 import '../../logger/app_logger.dart';
 import '../../models/audio/request.dart';
+import '../../models/ai_provider.dart';
 import '../../models/audio/channels.dart';
 import '../../utils/short_entity_id.dart';
 import '../../utils/random_id.dart';
@@ -40,10 +43,14 @@ class AudioTaskService {
     required this.beforeCreate,
     required this.beforeSubmit,
     required this.recoverSources,
+    this.query,
+    this.pollInterval = const Duration(seconds: 2),
   });
   final AppDatabase database;
   final MediaLibraryService library;
   final ProductionAudioInvoke invoke;
+  final ProductionAudioQuery? query;
+  final Duration pollInterval;
   final Future<Uint8List> Function(Uri url) download;
   final _outputs = <String, Uint8List>{};
   final Future<void> Function(String novelId, String type, String id)
@@ -87,6 +94,15 @@ class AudioTaskService {
       if (_disposed) {
         return;
       }
+      if (row.providerTaskId != null &&
+          row.outputUrl == null &&
+          {
+            GenerationTaskStatus.running,
+            GenerationTaskStatus.action_required,
+          }.contains(row.status)) {
+        unawaited(_track(_resumePrediction(row)));
+        continue;
+      }
       if ({
         GenerationTaskStatus.prepared,
         GenerationTaskStatus.running,
@@ -113,6 +129,54 @@ class AudioTaskService {
     if (!_disposed) {
       await recoverSources();
     }
+  }
+
+  Future<void> _resumePrediction(GenerationTask task) async {
+    if (_disposed || _active.containsKey(task.id)) {
+      return;
+    }
+    final operation = ProductionAudioGenerateOrchestrator();
+    _active[task.id] = operation;
+    try {
+      final provider = await database.aiProviderDao.getById(task.providerId);
+      if (provider == null ||
+          provider.type != task.providerType ||
+          !provider.enabled) {
+        throw const AudioException('invalid_config');
+      }
+      if (!await database.generationTaskDao.transition(
+            task.id,
+            {
+              GenerationTaskStatus.running,
+              GenerationTaskStatus.action_required,
+            },
+            const GenerationTasksCompanion(
+              status: Value(GenerationTaskStatus.running),
+              errorCode: Value(null),
+              errorMessage: Value(null),
+              errorDetail: Value(null),
+            ),
+          ) ||
+          _disposed ||
+          operation.cancelled) {
+        return;
+      }
+      await operation.poll(this, task.id, provider, task.providerTaskId!);
+    } catch (error, stack) {
+      await recordFailure(task.id, error, stack);
+    } finally {
+      operation.cancel();
+      _active.remove(task.id);
+    }
+  }
+
+  Future<void> recordPrediction(String id, String predictionId) async {
+    if (_disposed) {
+      return;
+    }
+    await database.generationTaskDao.transition(id, {
+      GenerationTaskStatus.running,
+    }, GenerationTasksCompanion(providerTaskId: Value(predictionId)));
   }
 
   Future<String> submit({
@@ -168,7 +232,7 @@ class AudioTaskService {
     }
     if (!AudioCapabilities(request.modelId).supportsProvider(provider) ||
         !provider.enabled ||
-        !provider.audioModels.contains(request.modelId)) {
+        !provider.availableAudioModels.contains(request.modelId)) {
       throw const StoryboardException('invalid_config');
     }
     request = resolveAudioRequest(provider.type, request);
@@ -248,35 +312,44 @@ class AudioTaskService {
   }
 
   Future<void> _cancel(String id) async {
-    await requireRun(id);
-    _active[id]?.cancel();
-    _outputs.remove(id);
-    await database.generationTaskDao.transition(
-      id,
-      {
-        GenerationTaskStatus.prepared,
-        GenerationTaskStatus.running,
-        GenerationTaskStatus.saving,
-        GenerationTaskStatus.action_required,
-      },
-      const GenerationTasksCompanion(
-        status: Value(GenerationTaskStatus.cancelled),
-      ),
-    );
+    final cancelled = await database.transaction(() async {
+      final task = await requireRun(id);
+      if (!GenerationTaskDao.canRequestCancellation(task)) {
+        return false;
+      }
+      return database.generationTaskDao.transition(
+        id,
+        {task.status},
+        const GenerationTasksCompanion(
+          status: Value(GenerationTaskStatus.cancelled),
+        ),
+      );
+    });
+    if (cancelled) {
+      _active[id]?.cancel();
+      _outputs.remove(id);
+    }
   }
 
   Future<void> recordOutput(String id, AudioGenerationResult result) async {
     if (_disposed) {
       return;
     }
-    _outputs[id] = result.bytes;
+    if (result.bytes.isNotEmpty) {
+      _outputs[id] = result.bytes;
+    }
     final saved = await database.generationTaskDao.transition(
       id,
       {GenerationTaskStatus.running},
       GenerationTasksCompanion(
         status: const Value(GenerationTaskStatus.saving),
+        providerTaskId: result.providerTaskId == null
+            ? const Value.absent()
+            : Value(result.providerTaskId),
         outputUrl: Value(result.url?.toString()),
-        outputHash: Value(sha256.convert(result.bytes).toString()),
+        outputHash: Value(
+          result.bytes.isEmpty ? null : sha256.convert(result.bytes).toString(),
+        ),
       ),
     );
     if (!saved) {
@@ -303,6 +376,10 @@ class AudioTaskService {
         .first;
     if (latest.firstOrNull?.id == id) {
       await beforeSubmit(task);
+    }
+    if (task.providerTaskId != null && task.outputUrl == null) {
+      await _resumePrediction(task);
+      return;
     }
     try {
       await saveOutput(id);
@@ -448,29 +525,28 @@ class AudioTaskService {
         stackTrace: stack,
       );
     }
+    final hasOutput = task.outputHash != null || task.outputUrl != null;
+    final canResumePrediction =
+        task.providerTaskId != null && !hasOutput && code != 'rejected';
     await database.generationTaskDao.transition(
       id,
       {task.status},
       GenerationTasksCompanion(
         status: Value(
-          task.outputHash == null
-              ? GenerationTaskStatus.failed
-              : GenerationTaskStatus.action_required,
+          hasOutput || canResumePrediction
+              ? GenerationTaskStatus.action_required
+              : GenerationTaskStatus.failed,
         ),
         errorMessage: Value(
-          task.outputHash == null &&
-                  error is AudioException &&
-                  error.messageKey != null
+          !hasOutput && error is AudioException && error.messageKey != null
               ? tr(error.messageKey!)
               : null,
         ),
         errorDetail: Value(
-          task.outputHash == null && error is AudioException
-              ? error.detail
-              : null,
+          !hasOutput && error is AudioException ? error.detail : null,
         ),
         errorCode: Value(
-          task.outputHash == null
+          !hasOutput
               ? code ?? 'audio_submission_unknown'
               : code == 'audio_output_unavailable'
               ? code

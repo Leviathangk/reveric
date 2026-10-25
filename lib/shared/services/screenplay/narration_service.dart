@@ -1,4 +1,4 @@
-// 职责: 持久化作品朗读配置并校验供应商与模型后调用既有语音生成接口。
+// 职责: 持久化朗读配置，校验语音模型并完成生成、预测查询与音频下载。
 // 关联文件:
 //   lib/shared/providers/narration.dart
 //   lib/shared/models/narration.dart
@@ -7,9 +7,11 @@
 
 import 'dart:async';
 import 'dart:convert';
+import '../ai/audio/client.dart';
 import '../../database/app_database.dart';
 import '../../logger/app_logger.dart';
 import '../../models/audio/channels.dart';
+import '../../models/ai_provider.dart';
 import '../../models/audio/exception.dart';
 import '../../models/audio/request.dart';
 import '../../models/narration.dart';
@@ -17,9 +19,16 @@ import '../production/audio_generate_orchestrator.dart';
 import 'narration_orchestrator.dart';
 
 class NarrationService {
-  NarrationService({required this.database, required this.invoke});
+  NarrationService({
+    required this.database,
+    required this.invoke,
+    this.query,
+    this.pollInterval = const Duration(seconds: 2),
+  });
   final AppDatabase database;
   final ProductionAudioInvoke invoke;
+  final ProductionAudioQuery? query;
+  final Duration pollInterval;
 
   Future<NarrationSettings> load(String workId) async {
     final raw = await database.appStateDao.get('screenplay_narration:$workId');
@@ -52,7 +61,7 @@ class NarrationService {
     final provider = await database.aiProviderDao.getById(settings.providerId);
     if (provider == null ||
         !provider.enabled ||
-        !provider.audioModels.contains(settings.modelId) ||
+        !provider.availableAudioModels.contains(settings.modelId) ||
         lookupAudioChannelModel(
               provider.type,
               settings.modelId,
@@ -87,15 +96,35 @@ class NarrationService {
         ),
       ),
     );
-    final result = await invoke(provider, request, const [], abort);
+    var result = await invoke(provider, request, const [], abort);
+    if (result.isPending) {
+      if (query == null) {
+        throw const AudioException('invalid_config');
+      }
+      result = await waitForAudioPrediction(
+        query!,
+        provider,
+        result.providerTaskId!,
+        abort,
+        interval: pollInterval,
+      );
+    }
     if (cancelled) {
       throw const AudioException('cancelled');
     }
-    if (result.bytes.isEmpty) {
+    final bytes = result.bytes.isNotEmpty
+        ? result.bytes
+        : result.url != null
+        ? await downloadAudioOutput(result.url!, abortTrigger: abort)
+        : result.bytes;
+    if (cancelled) {
+      throw const AudioException('cancelled');
+    }
+    if (bytes.isEmpty) {
       throw const AudioException('invalid_result');
     }
     return NarrationAudio(
-      result.bytes,
+      bytes,
       audioOutputFileFormat(request.parameters.responseFormat),
     );
   }

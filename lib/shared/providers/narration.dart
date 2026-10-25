@@ -13,5 +13,6 @@ final narrationServiceProvider = Provider<NarrationService>(
   (ref) => NarrationService(
     database: ref.watch(appDatabaseProvider),
     invoke: ref.watch(productionAudioInvokeProvider),
+    query: ref.watch(productionAudioQueryProvider),
   ),
 );

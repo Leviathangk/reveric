@@ -27,6 +27,7 @@ typedef _TaskFeedback = ({
   String? errorCode,
   String? error,
   bool resultReady,
+  bool pendingAudioPrediction,
   bool adoptedDraft,
   bool completingDraft,
 });
@@ -103,6 +104,11 @@ class ProductionTaskStatus extends HookWidget {
                         errorCode: task.errorCode,
                         error: task.errorMessage,
                         resultReady: task.resultAssetId != null,
+                        pendingAudioPrediction:
+                            task.kind == app.GenerationKind.audio &&
+                            task.providerTaskId != null &&
+                            task.outputUrl == null &&
+                            task.outputHash == null,
                         adoptedDraft: rows.any(
                           (row) =>
                               row.draft &&
@@ -137,7 +143,7 @@ class ProductionTaskStatus extends HookWidget {
     final saveFailure =
         task != null &&
         (image
-            ? task.status == 'action_required'
+            ? task.status == 'action_required' && !task.pendingAudioPrediction
             : (task.status == 'saving' && task.errorCode != null) ||
                   (task.status == 'action_required' &&
                       task.errorCode == 'asset_registration_failed'));

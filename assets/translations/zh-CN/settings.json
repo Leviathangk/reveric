@@ -1,10 +1,7 @@
 {
-  "settings.provider_openrouter_audio_hint": "从 OpenRouter 获取语音模型，共用此渠道的 API Key。音色选择、演绎说明和参考音频支持取决于模型。",
   "settings.provider_type_volcengine": "火山引擎",
-  "settings.provider_volcengine_audio_hint": "音频使用同一 API Key，请先在火山引擎开通豆包语音权限。",
   "settings.provider_model_id_hint": "输入模型 ID",
   "settings.provider_video_models_label": "视频模型",
-  "settings.provider_video_models_hint": "视频生成使用此供应商的 API Key，费用由供应商收取。本地参考素材需先接入存储服务，经确认后上传；生成结果保存在本地。此处暂无法估算费用。",
   "settings.codex_check_login": "检测登录态",
   "settings.codex_checking": "正在检测本机 Codex 登录态…",
   "settings.codex_auth_ready": "已读取本机 Codex 登录凭据",
@@ -491,7 +488,6 @@
   "settings.usage_session_not_found": "该会话暂无用量记录",
   "settings.usage_open_current_session": "查看当前会话用量",
   "settings.provider_audio_models_label": "音频模型",
-  "settings.provider_minimax_audio_hint": "支持 MiniMax 配乐及语音合成，共用此渠道的 API Key，输出为 MP3。",
   "settings.provider_asset_section": "素材库认证",
   "settings.provider_asset_project_label": "项目名称",
   "settings.provider_asset_project_hint": "默认 default",

@@ -215,7 +215,10 @@ Map<String, dynamic>? _audio(AiProvider provider, String model) {
       'requires_all_audio_references_mentioned':
           channel.protocolOptions.requiresAllAudioReferencesMentioned,
       'output_formats': switch (provider.typeConfig.audioProtocol!) {
-        AudioProtocol.seed_audio => ['wav'],
+        AudioProtocol.seed_audio || AudioProtocol.qwen_tts => ['wav'],
+        AudioProtocol.atlascloud_audio => [
+          channel.requestDefaults.responseFormat!,
+        ],
         AudioProtocol.minimax_music => ['mp3'],
         AudioProtocol.openrouter_speech => ['pcm', 'mp3'],
       },

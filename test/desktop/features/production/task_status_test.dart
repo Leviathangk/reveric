@@ -16,6 +16,7 @@ import 'package:reveric/shared/database/novel_content_database.dart';
 import 'package:reveric/shared/localization/merging_asset_loader.dart';
 import 'package:reveric/shared/models/production/image_request.dart';
 import 'package:reveric/shared/models/video/request.dart';
+import 'package:reveric/shared/models/audio/request.dart';
 import 'package:reveric/shared/services/screenplay_service.dart';
 import 'package:reveric/shared/services/storyboard/service.dart';
 import 'package:reveric/shared/theme/theme.dart';
@@ -293,6 +294,14 @@ void main() {
 
   // 生成失败打开「结果」看原因；结果已生成只差保存时只重新保存，不重新提交。
   for (final (kind, status, errorCode, label, action) in [
+    ('audio', 'action_required', 'unavailable', 'Action required', 'See why'),
+    (
+      'audio',
+      'action_required',
+      'result_save_failed',
+      'Could not save result',
+      'Save again',
+    ),
     ('image', 'failed', 'generation_failed', 'Generation failed', 'See why'),
     (
       'image',
@@ -331,10 +340,43 @@ void main() {
       final episode = (await ScreenplayService(
         db,
       ).createInitialStructure()).episodeId;
-      final clip = kind == 'image'
-          ? await service.createImage(episode)
-          : await service.createVideo(episode);
-      if (kind == 'image') {
+      final clip = switch (kind) {
+        'audio' => await service.createAudio(episode),
+        'image' => await service.createImage(episode),
+        _ => await service.createVideo(episode),
+      };
+      if (kind == 'audio') {
+        await appDb
+            .into(appDb.generationTasks)
+            .insert(
+              app.GenerationTasksCompanion.insert(
+                id: 'task',
+                kind: GenerationKind.audio,
+                novelId: 'work',
+                sourceType: 'production_clip',
+                sourceId: clip.id,
+                providerId: 'p',
+                providerType: 'atlascloud',
+                modelId: 'bytedance/seed-audio-1.0',
+                providerTaskId: const Value('prediction'),
+                status: GenerationTaskStatus.action_required,
+                errorCode: Value(errorCode),
+                outputUrl: Value(
+                  errorCode == 'result_save_failed'
+                      ? 'https://cdn.example/audio.wav'
+                      : null,
+                ),
+                requestJson: AudioGenerationRequest(
+                  AudioRequest(
+                    providerId: 'p',
+                    modelId: 'bytedance/seed-audio-1.0',
+                    prompt: 'Hello',
+                    originalPrompt: 'Hello',
+                  ),
+                ),
+              ),
+            );
+      } else if (kind == 'image') {
         await appDb
             .into(appDb.generationTasks)
             .insert(
@@ -417,7 +459,7 @@ void main() {
       } else {
         expect(opened, isEmpty);
         expect(retried, [
-          (taskId: 'task', status: status, image: kind == 'image'),
+          (taskId: 'task', status: status, image: kind != 'video'),
         ]);
       }
       expect(tester.takeException(), isNull);

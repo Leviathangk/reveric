@@ -58,6 +58,172 @@ void main() {
     },
   );
 
+  for (final (baseUrl, endpoint) in [
+    (
+      'https://dashscope.aliyuncs.com/compatible-mode/v1',
+      'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation',
+    ),
+    (
+      'https://proxy.example/qwen/compatible-mode/v1/',
+      'https://proxy.example/qwen/api/v1/services/aigc/multimodal-generation/generation',
+    ),
+    (
+      'https://proxy.example/qwen/',
+      'https://proxy.example/qwen/api/v1/services/aigc/multimodal-generation/generation',
+    ),
+  ]) {
+    test(
+      'Qwen audio uses its own key and configured endpoint $baseUrl',
+      () async {
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
+        final provider = aiProviderBuiltinById(
+          'openai',
+        )!.copyWith(type: 'qwen', apiKey: 'qwen-key', baseUrl: baseUrl);
+        var calls = 0;
+        final result = await http.runWithClient(
+          () => container.read(productionAudioInvokeProvider)(
+            provider,
+            AudioRequest(
+              providerId: provider.id,
+              modelId: 'qwen3-tts-flash',
+              prompt: 'Hello',
+              originalPrompt: 'Hello',
+              parameters: const AudioRequestDefaults(
+                voice: ConfigValue('Cherry'),
+              ),
+            ),
+            [],
+            Completer<void>().future,
+          ),
+          () => MockClient((r) async {
+            calls++;
+            expect(r.method, 'POST');
+            expect(r.url.toString(), endpoint);
+            expect(r.headers['Authorization'], 'Bearer qwen-key');
+            expect(r.headers['X-Product-Code'], isNull);
+            expect(jsonDecode(r.body), {
+              'model': 'qwen3-tts-flash',
+              'input': {'text': 'Hello', 'voice': 'Cherry'},
+            });
+            return http.Response(
+              '{"output":{"audio":{"url":"https://output.test/result.wav"}}}',
+              200,
+            );
+          }),
+        );
+        expect(calls, 1);
+        expect(result.url.toString(), 'https://output.test/result.wav');
+        expect(result.bytes, isEmpty);
+      },
+    );
+  }
+  for (final model in [
+    'qwen-audio-3.1-tts-plus',
+    'qwen-audio-3.0-tts-flash',
+    'qwen-audio-3.1-tts-next',
+  ]) {
+    test('Qwen factory selects SpeechSynthesizer for $model', () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final provider = aiProviderBuiltinById('openai')!.copyWith(
+        type: 'qwen',
+        apiKey: 'qwen-key',
+        baseUrl: 'https://proxy.example/qwen/compatible-mode/v1/',
+      );
+      var calls = 0;
+      await http.runWithClient(
+        () => container.read(productionAudioInvokeProvider)(
+          provider,
+          AudioRequest(
+            providerId: provider.id,
+            modelId: model,
+            prompt: 'Hello',
+            originalPrompt: 'Hello',
+          ),
+          [],
+          Completer<void>().future,
+        ),
+        () => MockClient((r) async {
+          calls++;
+          expect(
+            r.url.toString(),
+            'https://proxy.example/qwen/api/v1/services/audio/tts/SpeechSynthesizer',
+          );
+          expect(r.headers['Authorization'], 'Bearer qwen-key');
+          expect(r.headers['X-DashScope-SSE'], isNull);
+          final body = jsonDecode(r.body) as Map;
+          expect(body['model'], model);
+          expect(body['input']['format'], 'wav');
+          expect(
+            body['input'][model.endsWith('-next') ? 'text_prompt' : 'text'],
+            'Hello',
+          );
+          return http.Response(
+            '{"output":{"audio":{"url":"https://output.test/result.wav"}}}',
+            200,
+          );
+        }),
+      );
+      expect(calls, 1);
+    });
+  }
+  test(
+    'AtlasCloud factory submits and queries with the channel key and fixed routes',
+    () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final provider = aiProviderBuiltinById('openai')!.copyWith(
+        type: 'atlascloud',
+        apiKey: 'atlas-key',
+        baseUrl: 'https://ignored.invalid',
+      );
+      final calls = <String>[];
+      await http.runWithClient(
+        () async {
+          final receipt = await container.read(productionAudioInvokeProvider)(
+            provider,
+            AudioRequest(
+              providerId: provider.id,
+              modelId: 'bytedance/seed-audio-1.0',
+              prompt: 'Hello',
+              originalPrompt: 'Hello',
+            ),
+            [],
+            Completer<void>().future,
+          );
+          expect(receipt.isPending, isTrue);
+          final result = await container.read(productionAudioQueryProvider)(
+            provider,
+            receipt.providerTaskId!,
+            Completer<void>().future,
+          );
+          expect(result.url.toString(), 'https://cdn.example/audio.wav');
+        },
+        () => MockClient((r) async {
+          calls.add('${r.method} ${r.url}');
+          expect(r.headers['Authorization'], 'Bearer atlas-key');
+          return http.Response(
+            jsonEncode({
+              'code': 200,
+              'data': {
+                'id': 'pred',
+                'status': r.method == 'POST' ? 'processing' : 'completed',
+                if (r.method == 'GET')
+                  'outputs': ['https://cdn.example/audio.wav'],
+              },
+            }),
+            200,
+          );
+        }),
+      );
+      expect(calls, [
+        'POST https://api.atlascloud.ai/api/v1/model/generateAudio',
+        'GET https://api.atlascloud.ai/api/v1/model/prediction/pred',
+      ]);
+    },
+  );
+
   final wav = Uint8List(44)
     ..setRange(0, 4, ascii.encode('RIFF'))
     ..setRange(8, 12, ascii.encode('WAVE'));

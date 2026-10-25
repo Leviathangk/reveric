@@ -8,14 +8,23 @@
 import '../ai_provider.dart' show ModelIdSource, aiProviderTypeConfigFor;
 import 'catalog.dart';
 import 'speech.dart';
+import 'atlascloud.dart';
 
-enum AudioProtocol { seed_audio, minimax_music, openrouter_speech }
+enum AudioProtocol {
+  seed_audio,
+  minimax_music,
+  openrouter_speech,
+  qwen_tts,
+  atlascloud_audio,
+}
 
 class AudioProtocolOptions {
   const AudioProtocolOptions({
     this.requiresAllAudioReferencesMentioned = false,
+    this.qwenUsesSpeechSynthesizer = false,
   });
   final bool requiresAllAudioReferencesMentioned;
+  final bool qwenUsesSpeechSynthesizer;
 }
 
 class AudioChannelModel {
@@ -38,6 +47,25 @@ class AudioChannelModel {
 }
 
 final audioChannelModels = <AudioProtocol, Map<String, AudioChannelModel>>{
+  AudioProtocol.atlascloud_audio: {
+    'bytedance/seed-audio-1.0': AudioChannelModel(catalogId: 'seed-audio-1.0'),
+    'minimax/music-3.0': AudioChannelModel(catalogId: 'music-3.0'),
+    'minimax/music-2.6': AudioChannelModel(catalogId: 'music-2.6'),
+    for (final id in atlasCloudSpeechModels.keys)
+      id: AudioChannelModel(catalogId: id),
+  },
+  AudioProtocol.qwen_tts: {
+    'qwen3-tts-flash': AudioChannelModel(catalogId: 'qwen3-tts-flash'),
+    for (final id in [
+      'qwen-audio-3.1-tts-plus',
+      'qwen-audio-3.0-tts-flash',
+      'qwen-audio-3.1-tts-next',
+    ])
+      id: AudioChannelModel(
+        catalogId: id,
+        protocolOptions: AudioProtocolOptions(qwenUsesSpeechSynthesizer: true),
+      ),
+  },
   AudioProtocol.seed_audio: {
     'seed-audio-1.0': AudioChannelModel(catalogId: 'seed-audio-1.0'),
   },

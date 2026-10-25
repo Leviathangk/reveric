@@ -142,6 +142,44 @@ void main() {
     return service;
   }
 
+  test(
+    'video download rejects cancellation and still registers its result',
+    () async {
+      final entered = Completer<void>();
+      final downloaded = Completer<http.Response>();
+      final service = make(
+        download: (_) {
+          entered.complete();
+          return downloaded.future;
+        },
+      );
+      final id = await service.create(
+        providerId: provider.id,
+        novelId: 'work',
+        sourceType: 'production_clip',
+        sourceId: 'clip',
+        request: request,
+      );
+      await service.submit(id);
+      final pending = service.refresh(id);
+      await entered.future;
+      try {
+        expect(
+          (await service.getTask(id))!.status,
+          GenerationTaskStatus.saving,
+        );
+        expect(await db.generationTaskDao.requestCancellation(id), isFalse);
+        expect((await service.getTask(id))!.cancelRequestedAt, isNull);
+      } finally {
+        downloaded.complete(http.Response.bytes([1, 2, 3, 4], 200));
+      }
+      await pending;
+      final task = (await service.getTask(id))!;
+      expect(task.status, GenerationTaskStatus.completed);
+      expect(task.resultAssetId, isNotNull);
+    },
+  );
+
   test('Volcengine draft survives restart and completes through Ark', () async {
     provider = provider.copyWith(type: 'volcengine');
     await db.aiProviderDao.upsert(provider);

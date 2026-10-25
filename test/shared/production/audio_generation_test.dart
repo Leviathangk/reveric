@@ -9,6 +9,7 @@ import 'package:reveric/shared/services/ai/video/client.dart' show videoContent;
 import 'package:reveric/shared/models/video/task_result.dart';
 import 'dart:convert';
 import 'package:reveric/shared/models/audio/exception.dart';
+import 'package:reveric/shared/models/audio/request.dart';
 import 'package:reveric/shared/models/audio/channels.dart';
 import 'package:reveric/shared/models/production/asset_content.dart';
 import 'package:reveric/shared/localization/locale_keys.dart';
@@ -90,14 +91,17 @@ void main() {
   AudioTaskService jobs(
     ProductionAudioInvoke invoke, {
     Future<Uint8List> Function(Uri)? download,
+    ProductionAudioQuery? query,
+    Duration pollInterval = Duration.zero,
   }) {
     final results = ProductionResultService(appDb, (_) async => canvas);
     return AudioTaskService(
       database: appDb,
       library: canvas.library,
       invoke: invoke,
+      query: query,
+      pollInterval: pollInterval,
       download: download ?? (_) async => bytes,
-
       beforeCreate: results.beforeCreate,
       beforeSubmit: results.beforeSubmit,
       recoverSources: results.recover,
@@ -106,6 +110,22 @@ void main() {
 
   Future<ProductionAudioPreview> preview() =>
       ProductionAudioGenerateOrchestrator().preview(canvas, node.id);
+  Future<ProductionAudioPreview> atlasPreview() async {
+    final provider = (await appDb.aiProviderDao.getById('audio'))!;
+    await appDb.aiProviderDao.upsert(
+      provider.copyWith(
+        type: 'atlascloud',
+        audioModels: ['bytedance/seed-audio-1.0'],
+      ),
+    );
+    final clip = (await canvas.shots.getShot(node.clipId!))!;
+    await canvas.shots.apply(clip.id, {
+      ...canvas.shots.snapshot(clip),
+      'model_id': 'bytedance/seed-audio-1.0',
+    });
+    return preview();
+  }
+
   Future<String> submit(AudioTaskService service, ProductionAudioPreview p) =>
       service.submit(
         novelId: p.novelId,
@@ -174,6 +194,204 @@ void main() {
         );
     await root.delete(recursive: true);
   });
+  test(
+    'AtlasCloud persists prediction before polling and saves one completed output',
+    () async {
+      final p = await atlasPreview();
+      var submits = 0;
+      var polls = 0;
+      final service = jobs(
+        (_, _, _, _) async {
+          submits++;
+          return AudioGenerationResult.pending('atlas-prediction');
+        },
+        query: (provider, id, abort) async {
+          final row = await running();
+          expect(row.providerTaskId, id);
+          expect(provider.type, 'atlascloud');
+          polls++;
+          return polls == 1
+              ? AudioGenerationResult.pending(id)
+              : AudioGenerationResult(
+                  Uint8List(0),
+                  url: Uri.parse('https://cdn.example/audio.wav'),
+                  providerTaskId: id,
+                );
+        },
+      );
+      addTearDown(service.shutdown);
+      final task = await service.requireRun(await submit(service, p));
+      expect(submits, 1);
+      expect(polls, 2);
+      expect(task.providerTaskId, 'atlas-prediction');
+      expect(task.status, GenerationTaskStatus.completed);
+      expect(task.resultAssetId, isNotNull);
+    },
+  );
+
+  test(
+    'AtlasCloud restart resumes saved prediction without another submission',
+    () async {
+      final p = await atlasPreview();
+      var submits = 0;
+      final queried = Completer<void>();
+      final first = jobs(
+        (_, _, _, _) async {
+          submits++;
+          return AudioGenerationResult.pending('saved-prediction');
+        },
+        query: (_, id, abort) async {
+          queried.complete();
+          await abort;
+          throw const AudioException('cancelled');
+        },
+      );
+      final submitted = submit(first, p);
+      await queried.future;
+      final row = await running();
+      expect(row.providerTaskId, 'saved-prediction');
+      await first.shutdown();
+      await submitted;
+      var polls = 0;
+      final restarted = jobs(
+        (_, _, _, _) async {
+          fail('Recovery must never POST');
+        },
+        query: (_, id, abort) async {
+          expect(id, 'saved-prediction');
+          polls++;
+          return AudioGenerationResult(
+            Uint8List(0),
+            url: Uri.parse('https://cdn.example/recovered.wav'),
+            providerTaskId: id,
+          );
+        },
+      );
+      addTearDown(restarted.shutdown);
+      await restarted.recover();
+      final completed = await appDb.generationTaskDao
+          .watchTask(row.id)
+          .firstWhere((task) => task!.status.isTerminal)
+          .timeout(const Duration(seconds: 5));
+      expect(completed!.status, GenerationTaskStatus.completed);
+      expect(submits, 1);
+      expect(polls, 1);
+    },
+  );
+
+  test('AtlasCloud query failure can retry the same prediction', () async {
+    final p = await atlasPreview();
+    var submits = 0;
+    var polls = 0;
+    final service = jobs(
+      (_, _, _, _) async {
+        submits++;
+        return AudioGenerationResult.pending('retry-prediction');
+      },
+      query: (_, id, abort) async {
+        if (++polls == 1) {
+          throw const AudioException('unavailable');
+        }
+        return AudioGenerationResult(bytes, providerTaskId: id);
+      },
+    );
+    addTearDown(service.shutdown);
+    final id = await submit(service, p);
+    expect(
+      (await service.requireRun(id)).status,
+      GenerationTaskStatus.action_required,
+    );
+    await service.retrySaveOutput(id);
+    expect(
+      (await service.requireRun(id)).status,
+      GenerationTaskStatus.completed,
+    );
+    expect(submits, 1);
+    expect(polls, 2);
+  });
+
+  test(
+    'AtlasCloud URL-only output download failure retries saving without generating',
+    () async {
+      final p = await atlasPreview();
+      var downloads = 0;
+      var submits = 0;
+      final service = jobs(
+        (_, _, _, _) async {
+          submits++;
+          return AudioGenerationResult.pending('download-prediction');
+        },
+        query: (_, id, abort) async => AudioGenerationResult(
+          Uint8List(0),
+          url: Uri.parse('https://cdn.example/audio.wav'),
+          providerTaskId: id,
+        ),
+        download: (_) async {
+          if (++downloads == 1) {
+            throw const AudioException('audio_output_unavailable');
+          }
+          return bytes;
+        },
+      );
+      addTearDown(service.shutdown);
+      final id = await submit(service, p);
+      final failed = await service.requireRun(id);
+      expect(failed.status, GenerationTaskStatus.action_required);
+      expect(failed.outputHash, isNull);
+      expect(failed.outputUrl, isNotNull);
+      await service.retrySaveOutput(id);
+      expect(
+        (await service.requireRun(id)).status,
+        GenerationTaskStatus.completed,
+      );
+      expect(submits, 1);
+      expect(downloads, 2);
+    },
+  );
+
+  test(
+    'AtlasCloud cancellation wakes polling delay and never registers an output',
+    () async {
+      final p = await atlasPreview();
+      final queried = Completer<void>();
+      var polls = 0;
+      final service = jobs(
+        (_, _, _, _) async =>
+            AudioGenerationResult.pending('cancel-prediction'),
+        pollInterval: const Duration(minutes: 1),
+        query: (_, id, abort) async {
+          polls++;
+          queried.complete();
+          return AudioGenerationResult.pending(id);
+        },
+      );
+      addTearDown(service.shutdown);
+      final submitted = submit(service, p);
+      await queried.future;
+      final row = await running();
+      await service.cancel(row.id);
+      await submitted.timeout(const Duration(seconds: 2));
+      final task = await service.requireRun(row.id);
+      expect(task.status, GenerationTaskStatus.cancelled);
+      expect(task.resultAssetId, isNull);
+      expect(polls, 1);
+    },
+  );
+
+  test(
+    'AtlasCloud terminal failure does not become a resumable query',
+    () async {
+      final p = await atlasPreview();
+      final service = jobs(
+        (_, _, _, _) async =>
+            AudioGenerationResult.pending('failed-prediction'),
+        query: (_, id, abort) async => throw const AudioException('rejected'),
+      );
+      addTearDown(service.shutdown);
+      final task = await service.requireRun(await submit(service, p));
+      expect(task.status, GenerationTaskStatus.failed);
+    },
+  );
   test(
     'success registers audio, adopts history, and provider audio model survives roundtrip',
     () async {
@@ -362,6 +580,45 @@ void main() {
     );
     expect((await canvas.shots.getShot(node.clipId!))!.adoptedAssetId, isNull);
   });
+  test(
+    'audio download rejects cancellation and still saves and adopts',
+    () async {
+      final entered = Completer<void>();
+      final downloaded = Completer<Uint8List>();
+      final service = jobs(
+        (_, _, _, _) async => AudioGenerationResult(
+          Uint8List(0),
+          url: Uri.https('outputs.example', '/result.wav'),
+        ),
+        download: (_) {
+          entered.complete();
+          return downloaded.future;
+        },
+      );
+      final pending = submit(service, await preview());
+      await entered.future;
+      try {
+        final task = (await appDb.select(appDb.generationTasks).get()).single;
+        expect(task.status, GenerationTaskStatus.saving);
+        await service.cancel(task.id);
+        final results = ProductionResultService(appDb, (_) async => canvas);
+        expect((await results.requestCancellation(task.id)).accepted, isFalse);
+        final saving = await service.requireRun(task.id);
+        expect(saving.status, GenerationTaskStatus.saving);
+        expect(saving.cancelRequestedAt, isNull);
+      } finally {
+        downloaded.complete(bytes);
+      }
+      final id = await pending;
+      final completed = await service.requireRun(id);
+      expect(completed.status, GenerationTaskStatus.completed);
+      expect(completed.resultAssetId, isNotNull);
+      expect(
+        (await canvas.shots.getShot(node.clipId!))!.adoptedAssetId,
+        completed.resultAssetId,
+      );
+    },
+  );
   for (final shutdown in [false, true]) {
     test(
       '${shutdown ? "shutdown" : "cancel"} signals the active audio request',
@@ -899,6 +1156,82 @@ void main() {
       expect(downloads, 1);
     },
   );
+  for (final providerType in ['qwen']) {
+    test(
+      '$providerType Qwen audio passes preparation and saves the result',
+      () async {
+        const providerId = 'audio';
+        final provider = (await appDb.aiProviderDao.getById('audio'))!;
+        await appDb.aiProviderDao.upsert(
+          provider.copyWith(
+            id: providerId,
+            type: providerType,
+            audioModels: ['qwen3-tts-flash'],
+          ),
+        );
+        var posts = 0;
+        final service = jobs((_, request, references, _) async {
+          posts++;
+          expect(request.parameters.responseFormat, 'wav');
+          expect(request.parameters.voice, 'Cherry');
+          expect(references, isEmpty);
+          return AudioGenerationResult(
+            Uint8List(0),
+            url: Uri.https('outputs.example', '/qwen.wav'),
+          );
+        });
+        addTearDown(service.shutdown);
+        final id = await service.submit(
+          novelId: 'work',
+          sourceType: 'production_clip',
+          sourceId: node.clipId!,
+          request: AudioRequest(
+            providerId: providerId,
+            modelId: 'qwen3-tts-flash',
+            prompt: 'Hello',
+            originalPrompt: 'Hello',
+            parameters: const AudioRequestDefaults(
+              voice: ConfigValue('Cherry'),
+            ),
+          ),
+        );
+        final task = await service.requireRun(id);
+        expect(task.status, GenerationTaskStatus.completed);
+        expect(task.resultAssetId, isNotNull);
+        expect(posts, 1);
+      },
+    );
+  }
+
+  test(
+    'URL-only audio receipt downloads and saves without another generation',
+    () async {
+      var posts = 0;
+      var downloads = 0;
+      final service = jobs(
+        (_, request, _, _) async {
+          posts++;
+          return AudioGenerationResult(
+            Uint8List(0),
+            url: Uri.https('outputs.example', '/qwen.wav'),
+          );
+        },
+        download: (url) async {
+          downloads++;
+          expect(url.path, '/qwen.wav');
+          return bytes;
+        },
+      );
+      final id = await submit(service, await preview());
+      expect(
+        (await service.requireRun(id)).status,
+        GenerationTaskStatus.completed,
+      );
+      expect(posts, 1);
+      expect(downloads, 1);
+    },
+  );
+
   test(
     'expired output remains explicitly recoverable and does not regenerate',
     () async {
@@ -1001,7 +1334,14 @@ void main() {
               await pendingFile.writeAsBytes(bytes.take(7).toList());
             }
             if (cancelled) {
-              await taskService.cancel(id);
+              // 保留旧版本已取消任务的备份恢复覆盖。
+              await appDb.generationTaskDao.transition(
+                id,
+                {GenerationTaskStatus.saving},
+                const app.GenerationTasksCompanion(
+                  status: Value(GenerationTaskStatus.cancelled),
+                ),
+              );
             } else {
               await taskService.recordFailure(
                 id,

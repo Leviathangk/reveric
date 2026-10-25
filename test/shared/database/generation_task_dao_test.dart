@@ -70,6 +70,30 @@ void main() {
   );
 
   for (final kind in GenerationKind.values) {
+    for (final state in ['running', 'saving', 'output_retry']) {
+      test('$kind cancellation respects the $state output boundary', () async {
+        final status = switch (state) {
+          'saving' => GenerationTaskStatus.saving,
+          'output_retry' => GenerationTaskStatus.action_required,
+          _ => GenerationTaskStatus.running,
+        };
+        await db.generationTaskDao.create(
+          task('cancel-boundary', kind: kind, status: status).copyWith(
+            outputUrl: state == 'output_retry'
+                ? const Value('https://output.test/result')
+                : const Value.absent(),
+          ),
+        );
+        final allowed = kind == GenerationKind.image || state == 'running';
+        expect(
+          await db.generationTaskDao.requestCancellation('cancel-boundary'),
+          allowed,
+        );
+        final stored = (await db.generationTaskDao.getById('cancel-boundary'))!;
+        expect(stored.status, status);
+        expect(stored.cancelRequestedAt != null, allowed);
+      });
+    }
     test(
       '$kind blocks concurrent attempts with independent task IDs',
       () async {

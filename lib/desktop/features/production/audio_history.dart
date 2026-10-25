@@ -3,6 +3,7 @@
 //   lib/shared/providers/production_audio.dart
 //   lib/desktop/features/production/history.dart
 //   lib/desktop/features/production/node_bar.dart
+//   lib/shared/database/daos/generation_task_dao.dart
 //   lib/shared/localization/locale_keys.dart
 //   assets/translations/en/screenplay.json
 //   assets/translations/zh-CN/screenplay.json
@@ -17,6 +18,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../shared/components/reveric_button.dart';
 import '../../../shared/database/novel_content_database.dart';
 import '../../../shared/database/app_database.dart' show GenerationTask;
+import '../../../shared/database/daos/generation_task_dao.dart';
 import '../../../shared/localization/app_localization.dart';
 import '../../../shared/localization/locale_keys.dart';
 import '../../../shared/providers/production_audio.dart';
@@ -124,12 +126,7 @@ class ProductionAudioHistory extends HookConsumerWidget {
                         () => jobs.retrySaveOutput(run.id),
                       ),
                     ),
-                  if ([
-                    'prepared',
-                    'running',
-                    'saving',
-                    'action_required',
-                  ].contains(run.status.name))
+                  if (GenerationTaskDao.canRequestCancellation(run))
                     RevericButton.text(
                       label: context.t(LocaleKeys.commonCancel),
                       size: RevericButtonSize.compact,

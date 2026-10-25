@@ -4,9 +4,12 @@
 //   lib/shared/models/narration.dart
 
 import 'dart:async';
-import 'package:drift/drift.dart';
+import 'dart:typed_data';
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:reveric/shared/database/app_database.dart';
 import 'package:reveric/shared/models/audio/exception.dart';
 import 'package:reveric/shared/models/audio/request.dart';
@@ -61,6 +64,161 @@ void main() {
     );
   });
   tearDown(() => db.close());
+
+  for (final (model, voice, instructions) in [
+    ('qwen3-tts-flash', 'Cherry', ''),
+    ('qwen-audio-3.1-tts-plus', 'longanhuan_v3.1', '轻声'),
+    ('qwen-audio-3.0-tts-flash', 'longanhuan_v3.6', '轻声'),
+    ('qwen-audio-3.1-tts-next', '', ''),
+  ]) {
+    test('Qwen narration accepts only speech models: $model', () async {
+      final provider = (await db.aiProviderDao.getById('speech'))!;
+      await db.aiProviderDao.upsert(
+        provider.copyWith(type: 'qwen', audioModels: [model]),
+      );
+      final pending = service.generate(
+        NarrationSettings(
+          providerId: 'speech',
+          modelId: model,
+          narrator: voice,
+        ),
+        NarrationSegment(
+          text: '别走。',
+          voice: voice,
+          sceneId: 's',
+          instructions: instructions,
+        ),
+        Completer<void>().future,
+      );
+      if (model.endsWith('-next')) {
+        await expectLater(
+          pending,
+          throwsA(
+            isA<AudioException>().having(
+              (e) => e.code,
+              'code',
+              'invalid_config',
+            ),
+          ),
+        );
+        expect(requests, isEmpty);
+      } else {
+        final audio = await pending;
+        expect(audio.extension, 'wav');
+        expect(requests.single.parameters.voice, voice);
+        expect(requests.single.parameters.instructions, instructions);
+        expect(requests.single.prompt, '别走。');
+      }
+    });
+  }
+
+  test(
+    'AtlasCloud narration waits for prediction before returning audio',
+    () async {
+      const model = 'google/gemini-3.1-flash-tts';
+      final provider = (await db.aiProviderDao.getById('speech'))!;
+      await db.aiProviderDao.upsert(
+        provider.copyWith(type: 'atlascloud', audioModels: [model]),
+      );
+      var submissions = 0;
+      var polls = 0;
+      final atlas = NarrationService(
+        database: db,
+        pollInterval: Duration.zero,
+        invoke: (_, request, _, _) async {
+          submissions++;
+          expect(request.parameters.voice, 'Puck');
+          return AudioGenerationResult.pending('narration-prediction');
+        },
+        query: (_, id, _) async {
+          expect(id, 'narration-prediction');
+          polls++;
+          return polls == 1
+              ? AudioGenerationResult.pending(id)
+              : AudioGenerationResult(
+                  Uint8List.fromList([1, 2]),
+                  providerTaskId: id,
+                );
+        },
+      );
+      final audio = await atlas.generate(
+        NarrationSettings(
+          providerId: 'speech',
+          modelId: model,
+          narrator: 'Kore',
+        ),
+        const NarrationSegment(text: 'Hello', voice: 'Puck', sceneId: 'scene'),
+        Completer<void>().future,
+      );
+      expect(audio.extension, 'wav');
+      expect(audio.bytes, [1, 2]);
+      expect(submissions, 1);
+      expect(polls, 2);
+    },
+  );
+
+  for (final asynchronous in [false, true]) {
+    test(
+      'narration downloads ${asynchronous ? 'polled' : 'immediate'} URL output without provider credentials',
+      () async {
+        final provider = (await db.aiProviderDao.getById('speech'))!;
+        final model = asynchronous
+            ? 'google/gemini-3.1-flash-tts'
+            : 'qwen3-tts-flash';
+        final voice = asynchronous ? 'Kore' : 'Cherry';
+        await db.aiProviderDao.upsert(
+          provider.copyWith(
+            type: asynchronous ? 'atlascloud' : 'qwen',
+            audioModels: [model],
+          ),
+        );
+        var submissions = 0;
+        var downloads = 0;
+        final output = AudioGenerationResult(
+          Uint8List(0),
+          url: Uri.parse(
+            'https://cdn.example/voice.wav?signature=signed-output',
+          ),
+        );
+        final narrator = NarrationService(
+          database: db,
+          invoke: (_, _, _, _) async {
+            submissions++;
+            return asynchronous
+                ? AudioGenerationResult.pending('prediction')
+                : output;
+          },
+          query: (_, id, _) async {
+            expect(id, 'prediction');
+            return output;
+          },
+        );
+        final audio = await http.runWithClient(
+          () => narrator.generate(
+            NarrationSettings(
+              providerId: 'speech',
+              modelId: model,
+              narrator: voice,
+            ),
+            NarrationSegment(text: 'Hello', voice: voice, sceneId: 'scene'),
+            Completer<void>().future,
+          ),
+          () => MockClient((request) async {
+            downloads++;
+            expect(request.method, 'GET');
+            expect(request.url, output.url);
+            expect(request.headers['Authorization'], isNull);
+            expect(request.headers['X-Api-Key'], isNull);
+            return http.Response.bytes([1, 2, 3], 200);
+          }),
+        );
+        expect(audio.bytes, [1, 2, 3]);
+        expect(audio.extension, 'wav');
+        expect(submissions, 1);
+        expect(downloads, 1);
+      },
+    );
+  }
 
   test(
     'per-work configuration round trips without changing character data',

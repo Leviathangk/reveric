@@ -104,6 +104,7 @@ const Map<AiProviderType, AiProviderTypeConfig> aiProviderTypeConfigs = {
     textModelKinds: _chatOnlyKinds,
     imageProtocol: ImageProtocol.atlascloud_image,
     videoProtocol: VideoProtocol.atlascloud_video,
+    audioProtocol: AudioProtocol.atlascloud_audio,
     fixedBaseUrl: true,
   ),
   AiProviderType.openai: AiProviderTypeConfig(
@@ -151,6 +152,7 @@ const Map<AiProviderType, AiProviderTypeConfig> aiProviderTypeConfigs = {
     textModelKinds: _chatOnlyKinds,
     imageProtocol: ImageProtocol.qwen_image,
     videoProtocol: VideoProtocol.wan_video,
+    audioProtocol: AudioProtocol.qwen_tts,
   ),
   AiProviderType.gemini: AiProviderTypeConfig(
     displayName: 'Gemini',

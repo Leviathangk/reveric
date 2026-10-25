@@ -54,10 +54,17 @@ class ProductionAudioSubmit extends HookConsumerWidget {
     final active = runs.data?.where(GenerationTaskDao.blocksSource).firstOrNull;
     final preparing = useState(false);
     if (active != null) {
+      final canCancel = GenerationTaskDao.canRequestCancellation(active);
       return ProductionSendButton(
-        icon: RevericIcons.stop_rounded,
-        tooltip: context.t(LocaleKeys.commonCancel),
-        onPressed: () => productionRun(context, () => jobs.cancel(active.id)),
+        icon: canCancel ? RevericIcons.stop_rounded : RevericIcons.download,
+        tooltip: context.t(
+          canCancel
+              ? LocaleKeys.commonCancel
+              : 'screenplay.production.task.saving',
+        ),
+        onPressed: canCancel
+            ? () => productionRun(context, () => jobs.cancel(active.id))
+            : null,
       );
     }
     final blocked = preparing.value

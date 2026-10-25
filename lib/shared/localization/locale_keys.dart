@@ -510,8 +510,6 @@ abstract final class LocaleKeys {
   static const storyboardDown = 'screenplay.storyboard.down';
   static const storyboardChooseScene = 'screenplay.storyboard.choose_scene';
 
-  static const settingsProviderMinimaxAudioHint =
-      'settings.provider_minimax_audio_hint';
   static const settingsProviderAudioModelsLabel =
       'settings.provider_audio_models_label';
   static const settingsProviderAssetSection = 'settings.provider_asset_section';
@@ -548,17 +546,11 @@ abstract final class LocaleKeys {
       'screenplay.production.audioReferenceHint';
   static const productionAudioInterrupted =
       'screenplay.production.audioInterrupted';
-  static const settingsProviderOpenrouterAudioHint =
-      'settings.provider_openrouter_audio_hint';
   static const settingsProviderTypeVolcengine =
       'settings.provider_type_volcengine';
-  static const settingsProviderVolcengineAudioHint =
-      'settings.provider_volcengine_audio_hint';
   static const settingsProviderModelIdHint = 'settings.provider_model_id_hint';
   static const settingsProviderVideoModelsLabel =
       'settings.provider_video_models_label';
-  static const settingsProviderVideoModelsHint =
-      'settings.provider_video_models_hint';
   // ── account ────────────────────────────────────────
   static const accountUsageCached = 'account.usage_cached';
   // ── agent ────────────────────────────────────────

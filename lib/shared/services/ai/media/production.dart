@@ -522,10 +522,14 @@ class ProductionToolHost {
           return;
         }
         final decision = await results.requestCancellation(task.id);
+        final current = (await database.generationTaskDao.getById(task.id))!;
+        if (!decision.accepted && !current.status.isTerminal) {
+          return;
+        }
         if (!cancelled.isCompleted) {
           cancelled.complete(
-            task.status.isTerminal
-                ? await summary(task)
+            current.status.isTerminal
+                ? await summary(current)
                 : {
                     'ok': false,
                     'cancelled': true,

@@ -15,6 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:reveric/shared/localization/locale_keys.dart';
 import 'package:reveric/shared/models/ai_provider.dart';
+import 'package:reveric/shared/models/audio/channels.dart';
 import 'package:reveric/shared/models/image/channels.dart';
 import 'package:reveric/shared/models/video/channels.dart';
 import 'package:reveric/shared/models/video/request.dart';
@@ -126,6 +127,16 @@ void main() {
     'audio picker keeps provider catalogs separate without a models API',
     () async {
       for (final sample in [
+        ('atlascloud', audioModelsForProvider('atlascloud')),
+        (
+          'qwen',
+          [
+            'qwen3-tts-flash',
+            'qwen-audio-3.1-tts-plus',
+            'qwen-audio-3.0-tts-flash',
+            'qwen-audio-3.1-tts-next',
+          ],
+        ),
         ('volcengine', ['seed-audio-1.0']),
         ('minimax', ['speech-2.8-hd', 'music-3.0', 'music-2.6']),
       ]) {

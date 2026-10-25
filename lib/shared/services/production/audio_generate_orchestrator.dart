@@ -32,6 +32,13 @@ typedef ProductionAudioInvoke =
       Future<void> abortTrigger,
     );
 
+typedef ProductionAudioQuery =
+    Future<AudioGenerationResult> Function(
+      AiProvider provider,
+      String predictionId,
+      Future<void> abortTrigger,
+    );
+
 class ProductionAudioPreview {
   const ProductionAudioPreview(
     this.novelId,
@@ -105,7 +112,7 @@ class ProductionAudioGenerateOrchestrator {
     if (provider == null ||
         !provider.enabled ||
         !AudioCapabilities(clip.modelId ?? '').supportsProvider(provider) ||
-        !provider.audioModels.contains(clip.modelId)) {
+        !provider.availableAudioModels.contains(clip.modelId)) {
       throw const StoryboardException('invalid_config');
     }
     final inputs = await service.draftInputs(node.id);
@@ -156,8 +163,8 @@ class ProductionAudioGenerateOrchestrator {
     AiProvider provider,
   ) async {
     try {
-      if (cancelled ||
-          (await jobs.requireRun(id)).status != GenerationTaskStatus.running) {
+      final task = await jobs.requireRun(id);
+      if (cancelled || task.status != GenerationTaskStatus.running) {
         return;
       }
       final references = await prepareReferences(
@@ -168,7 +175,7 @@ class ProductionAudioGenerateOrchestrator {
       if (cancelled) {
         return;
       }
-      final bytes = await jobs.invoke(
+      final result = await jobs.invoke(
         provider,
         request,
         references,
@@ -177,7 +184,12 @@ class ProductionAudioGenerateOrchestrator {
       if (cancelled) {
         return;
       }
-      await jobs.recordOutput(id, bytes);
+      if (result.isPending) {
+        await jobs.recordPrediction(id, result.providerTaskId!);
+        await poll(jobs, id, provider, result.providerTaskId!);
+        return;
+      }
+      await jobs.recordOutput(id, result);
       if (!cancelled) {
         await jobs.saveOutput(id);
       }
@@ -189,6 +201,67 @@ class ProductionAudioGenerateOrchestrator {
       if (!_abort.isCompleted) {
         _abort.complete();
       }
+    }
+  }
+
+  Future<void> poll(
+    AudioTaskService jobs,
+    String id,
+    AiProvider provider,
+    String predictionId,
+  ) async {
+    final query = jobs.query;
+    if (query == null) {
+      throw const AudioException('invalid_config');
+    }
+    final result = await waitForAudioPrediction(
+      query,
+      provider,
+      predictionId,
+      _abort.future,
+      interval: jobs.pollInterval,
+    );
+    if (!cancelled) {
+      await jobs.recordOutput(id, result);
+      if (!cancelled) {
+        await jobs.saveOutput(id);
+      }
+    }
+  }
+}
+
+/// Poll an accepted task without submitting another charged request.
+Future<AudioGenerationResult> waitForAudioPrediction(
+  ProductionAudioQuery query,
+  AiProvider provider,
+  String predictionId,
+  Future<void> abort, {
+  Duration interval = const Duration(seconds: 2),
+}) async {
+  var cancelled = false;
+  unawaited(abort.then((_) => cancelled = true));
+  final deadline = DateTime.now().add(const Duration(minutes: 30));
+  while (true) {
+    await Future<void>.value();
+    if (cancelled) {
+      throw const AudioException('cancelled');
+    }
+    if (DateTime.now().isAfter(deadline)) {
+      throw const AudioException('unavailable');
+    }
+    final result = await query(provider, predictionId, abort);
+    if (cancelled) {
+      throw const AudioException('cancelled');
+    }
+    if (!result.isPending) {
+      return result;
+    }
+    final wait = Completer<void>();
+    final timer = Timer(interval, wait.complete);
+    try {
+      await Future.any([wait.future, abort]);
+    } finally {
+      timer.cancel();
     }
   }
 }

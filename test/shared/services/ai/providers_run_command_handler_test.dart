@@ -95,6 +95,27 @@ void main() {
   );
 
   test(
+    'third-party audio discovery exposes channel output formats and defaults',
+    () {
+      for (final (type, model, format) in [
+        ('qwen', 'qwen3-tts-flash', 'wav'),
+        ('qwen', 'qwen-audio-3.1-tts-next', 'wav'),
+        ('atlascloud', 'google/gemini-3.1-flash-tts', 'wav'),
+        ('atlascloud', 'minimax/speech-2.6-turbo', 'mp3'),
+        ('atlascloud', 'bytedance/seed-audio-1.0', 'wav'),
+        ('atlascloud', 'minimax/music-3.0', 'mp3'),
+      ]) {
+        final configured = provider(type).copyWith(audioModels: [model]);
+        final resource = providerModelResource(configured, 'audio', model);
+        expect(resource['available'], true);
+        expect(resource['capabilities_known'], true);
+        expect(resource['capabilities']['output_formats'], [format]);
+        expect(resource['defaults']['response_format'], format);
+      }
+    },
+  );
+
+  test(
     'Run discovery, live configuration, filtering and credentials redaction',
     () async {
       final help = await manager.executeTool(

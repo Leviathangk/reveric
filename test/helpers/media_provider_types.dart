@@ -21,6 +21,8 @@ String audioProviderType(AudioProtocol protocol) => switch (protocol) {
   AudioProtocol.seed_audio => 'volcengine',
   AudioProtocol.minimax_music => 'minimax',
   AudioProtocol.openrouter_speech => 'openrouter',
+  AudioProtocol.qwen_tts => 'qwen',
+  AudioProtocol.atlascloud_audio => 'atlascloud',
 };
 
 String imageProviderType(ImageProtocol protocol) => switch (protocol) {

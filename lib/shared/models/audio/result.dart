@@ -6,10 +6,16 @@ import 'dart:typed_data';
 import 'exception.dart';
 
 class AudioGenerationResult {
-  AudioGenerationResult(Uint8List bytes, {this.url})
+  AudioGenerationResult(Uint8List bytes, {this.url, this.providerTaskId})
     : bytes = Uint8List.fromList(bytes);
+  AudioGenerationResult.pending(String id)
+    : providerTaskId = id,
+      bytes = Uint8List(0),
+      url = null;
   final Uint8List bytes;
   final Uri? url;
+  final String? providerTaskId;
+  bool get isPending => providerTaskId != null && url == null && bytes.isEmpty;
 }
 
 /// Raw PCM is wrapped in WAV by the response adapter without re-encoding.

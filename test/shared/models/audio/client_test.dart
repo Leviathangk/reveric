@@ -460,6 +460,121 @@ void main() {
       expect(gets, 1);
     },
   );
+  test(
+    'audio download retries transient TLS failures and logs safe stages',
+    () async {
+      final lines = <String>[];
+      final original = debugPrint;
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) {
+          lines.add(message);
+        }
+      };
+      addTearDown(() => debugPrint = original);
+      var gets = 0;
+      final result = await downloadAudioOutput(
+        Uri.parse('https://outputs.example/audio.wav?token=private-signature'),
+        retryDelay: Duration.zero,
+        httpClient: MockClient((r) async {
+          gets++;
+          expect(r.headers.containsKey('Authorization'), false);
+          if (gets < 3) {
+            throw const HandshakeException(
+              'Connection terminated during handshake https://outputs.example/audio.wav?token=private-signature',
+            );
+          }
+          return http.Response.bytes(wav, 200);
+        }),
+      );
+      expect(result, wav);
+      expect(gets, 3);
+      final log = lines.join('\n');
+      expect(log, contains('phase=download'));
+      expect(log, contains('host=outputs.example'));
+      expect(log, contains('attempt=3/3'));
+      expect(log, contains('HandshakeException'));
+      expect(log, contains('bytes=44'));
+      expect(log, isNot(contains('private-signature')));
+    },
+  );
+
+  test('audio download retries 503 but stops after three attempts', () async {
+    var gets = 0;
+    await expectLater(
+      downloadAudioOutput(
+        Uri.parse('https://outputs.example/audio.wav'),
+        retryDelay: Duration.zero,
+        httpClient: MockClient((_) async {
+          gets++;
+          return http.Response('busy', 503);
+        }),
+      ),
+      throwsA(
+        isA<AudioException>().having(
+          (e) => e.code,
+          'code',
+          'audio_output_unavailable',
+        ),
+      ),
+    );
+    expect(gets, 3);
+  });
+
+  test('cancelling download backoff stops further attempts', () async {
+    final abort = Completer<void>();
+    var gets = 0;
+    final received = Completer<void>();
+    final pending = downloadAudioOutput(
+      Uri.parse('https://outputs.example/audio.wav'),
+      abortTrigger: abort.future,
+      retryDelay: const Duration(minutes: 1),
+      httpClient: MockClient((_) async {
+        gets++;
+        received.complete();
+        throw const SocketException('reset');
+      }),
+    );
+    final checked = expectLater(
+      pending,
+      throwsA(isA<AudioException>().having((e) => e.code, 'code', 'cancelled')),
+    );
+    await received.future;
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    abort.complete();
+    await checked.timeout(const Duration(seconds: 1));
+    expect(gets, 1);
+  });
+
+  test('download timeout aborts each transport before retrying', () async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    var requests = 0;
+    server.listen((incoming) async {
+      requests++;
+      await incoming.drain<void>();
+    });
+    final transport = _LocalClient(server.port);
+    addTearDown(() async {
+      transport.close();
+      await server.close(force: true);
+    });
+    await expectLater(
+      downloadAudioOutput(
+        Uri.parse('https://outputs.example/audio.wav'),
+        httpClient: transport,
+        timeout: const Duration(milliseconds: 50),
+        retryDelay: Duration.zero,
+      ),
+      throwsA(
+        isA<AudioException>().having(
+          (e) => e.code,
+          'code',
+          'audio_output_unavailable',
+        ),
+      ),
+    );
+    await transport.aborted.future.timeout(const Duration(seconds: 1));
+    expect(requests, 3);
+  });
 }
 
 /// Keep the production endpoint fixed while exercising the real IO transport.

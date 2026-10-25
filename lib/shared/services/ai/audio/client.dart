@@ -1,4 +1,4 @@
-// 职责: 执行可中止的单次音频 HTTP 请求并统一错误分类和诊断。
+// 职责: 执行可中止的音频提交与查询 HTTP 请求并统一错误分类和诊断。
 // 关联文件:
 //   lib/shared/models/audio/request.dart
 //   lib/shared/models/audio/exception.dart
@@ -20,6 +20,7 @@ import '../../../models/audio/request.dart';
 import '../../../models/audio/channels.dart';
 import '../../../models/audio/result.dart';
 import '../media_diagnostics.dart';
+import 'retry.dart';
 export '../../../models/audio/result.dart';
 
 abstract class AudioClient {
@@ -28,6 +29,7 @@ abstract class AudioClient {
     this.apiKey, {
     required this.providerType,
     this.timeout = const Duration(seconds: 150),
+    this.readRetryDelay = const Duration(seconds: 1),
   });
   final http.Client client;
   final String apiKey;
@@ -35,6 +37,7 @@ abstract class AudioClient {
   /// 用于查找渠道登记的型号能力和请求默认值。
   final String providerType;
   final Duration timeout;
+  final Duration readRetryDelay;
 
   /// 渠道未登记的型号没有型号默认值，按协议能解码的输出格式发送。
   AudioRequestDefaults get unlistedModelDefaults;
@@ -68,6 +71,65 @@ abstract class AudioClient {
         ? request.withDefaults(unlistedModelDefaults)
         : resolveAudioRequest(providerType, request);
     final endpoint = submissionUrl(request);
+    final body = encode(request, references: references);
+    return executeRequest(
+      'POST',
+      endpoint,
+      body: body,
+      audioRequest: request,
+      abortTrigger: abortTrigger,
+    );
+  }
+
+  Future<AudioGenerationResult> executeRequest(
+    String method,
+    Uri endpoint, {
+    Map<String, dynamic>? body,
+    AudioRequest? audioRequest,
+    Future<void>? abortTrigger,
+  }) async {
+    Future<AudioGenerationResult> attempt(int number) => _executeOnce(
+      method,
+      endpoint,
+      body: body,
+      audioRequest: audioRequest,
+      abortTrigger: abortTrigger,
+      attempt: number,
+    );
+    if (method != 'GET') {
+      return attempt(1);
+    }
+    try {
+      return await retryAudioRead(
+        attempt,
+        context:
+            'phase=query provider=$providerType host=${endpoint.host} path=${endpoint.path}',
+        apiKey: apiKey,
+        abortTrigger: abortTrigger,
+        delay: readRetryDelay,
+      );
+    } catch (error) {
+      if (error is AudioException || error is Error) {
+        rethrow;
+      }
+      throw AudioException(
+        'unavailable',
+        detail: safeMediaDiagnostic(error, apiKey),
+      );
+    }
+  }
+
+  Future<AudioGenerationResult> _executeOnce(
+    String method,
+    Uri endpoint, {
+    Map<String, dynamic>? body,
+    AudioRequest? audioRequest,
+    Future<void>? abortTrigger,
+    required int attempt,
+  }) async {
+    if (apiKey.trim().isEmpty) {
+      throw const AudioException('invalid_config');
+    }
     if (!{'http', 'https'}.contains(endpoint.scheme) ||
         endpoint.host.isEmpty ||
         endpoint.userInfo.isNotEmpty ||
@@ -75,7 +137,6 @@ abstract class AudioClient {
         endpoint.hasFragment) {
       throw const AudioException('invalid_config');
     }
-    final body = encode(request, references: references);
     final abort = Completer<void>();
     var cancelled = false;
     void stop() {
@@ -102,12 +163,22 @@ abstract class AudioClient {
       if (cancelled) {
         throw const AudioException('cancelled');
       }
+      AppLogger.debug(
+        '[AudioRequest:$providerType] phase=${method == "POST" ? "submit" : "query"} '
+        'host=${endpoint.host} path=${endpoint.path} attempt=$attempt/${method == "POST" ? 1 : 3} '
+        'model=${audioRequest?.modelId ?? ""}',
+      );
       return await (() async {
         final post =
-            http.AbortableRequest('POST', endpoint, abortTrigger: abort.future)
+            http.AbortableRequest(method, endpoint, abortTrigger: abort.future)
               ..followRedirects = false
-              ..headers.addAll({...headers, 'Content-Type': 'application/json'})
-              ..body = jsonEncode(body);
+              ..headers.addAll({
+                ...headers,
+                'Content-Type': 'application/json',
+              });
+        if (body != null) {
+          post.body = jsonEncode(body);
+        }
         final response = await client.send(post);
         status = response.statusCode;
         if (status != 200) {
@@ -132,12 +203,17 @@ abstract class AudioClient {
           );
           throw httpFailure!;
         }
-        final binary = decodeBinaryResult(
-          Uint8List.fromList(bytes),
-          response.headers,
-          request,
-        );
+        final binary = audioRequest == null
+            ? null
+            : decodeBinaryResult(
+                Uint8List.fromList(bytes),
+                response.headers,
+                audioRequest,
+              );
         if (binary != null) {
+          AppLogger.debug(
+            '[AudioResponse:$providerType] phase=submit status=$status bytes=${binary.bytes.length}',
+          );
           return binary;
         }
         final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
@@ -155,7 +231,7 @@ abstract class AudioClient {
         throw const AudioException('cancelled');
       }
       AppLogger.warning(
-        '[AudioClient:$providerType] POST ${endpoint.origin}${endpoint.path} '
+        '[AudioClient:$providerType] $method ${endpoint.origin}${endpoint.path} '
         'status=${status ?? "unknown"} type=${error.runtimeType} '
         'error=${safeMediaDiagnostic(error, apiKey)} '
         'message=${safeMediaDiagnostic(responseMessage ?? diagnosticBody ?? error, apiKey)}',
@@ -164,11 +240,16 @@ abstract class AudioClient {
       if (error is Error && error is! TypeError) {
         rethrow;
       }
+      if (method == 'GET' && httpFailure == null && retryableAudioRead(error)) {
+        rethrow;
+      }
       // No automatic POST retry: a missing receipt cannot prove non-acceptance.
       throw httpFailure ??
           (error is AudioException
               ? error
-              : const AudioException('audio_submission_unknown'));
+              : AudioException(
+                  method == 'POST' ? 'audio_submission_unknown' : 'unavailable',
+                ));
     } finally {
       stop();
     }
@@ -199,35 +280,117 @@ abstract class AudioClient {
   );
 }
 
-/// Temporary outputs are fetched without any provider authentication or POST retry.
+/// Temporary outputs are fetched without provider credentials; only GETs retry.
 Future<Uint8List> downloadAudioOutput(
   Uri url, {
   http.Client? httpClient,
+  Future<void>? abortTrigger,
+  Duration timeout = const Duration(seconds: 60),
+  Duration retryDelay = const Duration(seconds: 1),
 }) async {
-  if (url.scheme != 'https' || url.host.isEmpty || url.userInfo.isNotEmpty) {
+  if (url.scheme != 'https' ||
+      url.host.isEmpty ||
+      url.userInfo.isNotEmpty ||
+      url.hasFragment) {
     throw const AudioException('audio_output_unavailable');
   }
   final client = httpClient ?? http.Client();
   try {
-    return await (() async {
-      final request = http.Request('GET', url)..followRedirects = false;
-      final response = await client.send(request);
-      if (response.statusCode != 200) {
-        AppLogger.warning(
-          '[SeedAudio] output download failed host=${url.host} status=${response.statusCode}',
-        );
-        await response.stream.drain<void>();
-        throw const AudioException('audio_output_unavailable');
-      }
-      final bytes = <int>[];
-      await for (final chunk in response.stream) {
-        if (bytes.length + chunk.length > 32 * 1024 * 1024) {
-          throw const AudioException('audio_output_unavailable');
+    return await retryAudioRead(
+      (attempt) async {
+        final abort = Completer<void>();
+        void stop() {
+          if (!abort.isCompleted) {
+            abort.complete();
+          }
         }
-        bytes.addAll(chunk);
-      }
-      return Uint8List.fromList(bytes);
-    })().timeout(const Duration(seconds: 60));
+
+        if (abortTrigger != null) {
+          unawaited(abortTrigger.then((_) => stop()));
+        }
+        int? status;
+        final clock = Stopwatch()..start();
+        AppLogger.debug(
+          '[AudioDownload] phase=download host=${url.host} attempt=$attempt/3 started',
+        );
+        try {
+          return await (() async {
+            final request = http.AbortableRequest(
+              'GET',
+              url,
+              abortTrigger: abort.future,
+            )..followRedirects = false;
+            final response = await client.send(request);
+            status = response.statusCode;
+            final bytes = <int>[];
+            final limit = status == 200 ? 32 * 1024 * 1024 : 64 * 1024;
+            await for (final chunk in response.stream) {
+              if (bytes.length + chunk.length > limit) {
+                throw AudioException(
+                  'audio_output_unavailable',
+                  statusCode: status,
+                  detail: 'Audio download exceeded response size limit',
+                );
+              }
+              bytes.addAll(chunk);
+            }
+            if (status != 200) {
+              throw AudioException(
+                'audio_output_unavailable',
+                statusCode: status,
+                detail: safeMediaDiagnostic(
+                  utf8.decode(bytes, allowMalformed: true),
+                  '',
+                ),
+              );
+            }
+            if (bytes.isEmpty) {
+              throw const AudioException(
+                'audio_output_unavailable',
+                detail: 'Empty audio response',
+              );
+            }
+            AppLogger.debug(
+              '[AudioDownload] phase=download host=${url.host} attempt=$attempt/3 '
+              'status=$status bytes=${bytes.length} elapsed_ms=${clock.elapsedMilliseconds} completed',
+            );
+            return Uint8List.fromList(bytes);
+          })().timeout(
+            timeout,
+            onTimeout: () {
+              stop();
+              throw TimeoutException('Audio download timed out', timeout);
+            },
+          );
+        } catch (error) {
+          // A known HTTP failure retains its status even when the error body breaks.
+          if (status != null &&
+              status != 200 &&
+              error is! AudioException &&
+              error is! Error) {
+            throw AudioException(
+              'audio_output_unavailable',
+              statusCode: status,
+              detail: safeMediaDiagnostic(error, ''),
+            );
+          }
+          rethrow;
+        } finally {
+          stop();
+        }
+      },
+      context: 'phase=download host=${url.host}',
+      abortTrigger: abortTrigger,
+      delay: retryDelay,
+    );
+  } catch (error) {
+    if (error is AudioException || error is Error) {
+      rethrow;
+    }
+    throw AudioException(
+      'audio_output_unavailable',
+      detail: safeMediaDiagnostic(error, ''),
+    );
   } finally {
     if (httpClient == null) {
       client.close();
