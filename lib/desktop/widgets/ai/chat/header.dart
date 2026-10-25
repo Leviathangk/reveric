@@ -222,9 +222,7 @@ class ChatHeader extends ConsumerWidget {
                           ? LocaleKeys.aiChatFloatCollapse
                           : LocaleKeys.commonClose,
                     ),
-                    closeIcon: floating
-                        ? RevericIcons.remove
-                        : RevericIcons.close,
+                    closeIcon: RevericIcons.remove,
                   ),
                 ],
               ),
