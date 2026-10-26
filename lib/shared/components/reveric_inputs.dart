@@ -62,6 +62,14 @@ class RevericInlineActionInput extends StatelessWidget {
           height: height,
           child: FilledButton(
             onPressed: enabled ? onActionPressed : null,
+            style: height < RevericSizes.buttonHeight
+                ? FilledButton.styleFrom(
+                    minimumSize: Size(0, height),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: RevericSizes.buttonPaddingHSm,
+                    ),
+                  )
+                : null,
             child: Text(actionLabel),
           ),
         ),

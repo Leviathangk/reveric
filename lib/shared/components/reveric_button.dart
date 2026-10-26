@@ -165,69 +165,48 @@ class _ButtonContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foreground = DefaultTextStyle.of(context).style.color;
-    final indicator = loading
-        ? CircularProgressIndicator(
-            strokeWidth: RevericSizes.buttonProgressStroke,
-            color: foreground,
-          )
-        : icon == null
-        ? null
-        : RevericIcon(
-            icon!,
-            color: foreground,
-            size: RevericSizes.buttonIconSize,
-          );
-    final row = Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox.square(
-          dimension: RevericSizes.buttonIconSize,
-          child: indicator,
-        ),
-        const SizedBox(width: RevericSpacing.sm),
-        Flexible(
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: labelMaxLines,
-            overflow: labelMaxLines == null ? null : TextOverflow.ellipsis,
-          ),
-        ),
-      ],
+    final text = Text(
+      label,
+      textAlign: TextAlign.center,
+      maxLines: labelMaxLines,
+      overflow: labelMaxLines == null ? null : TextOverflow.ellipsis,
     );
-    if (icon != null) {
-      return row;
+    final content = icon == null
+        ? text
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RevericIcon(
+                icon!,
+                color: DefaultTextStyle.of(context).style.color,
+                size: RevericSizes.buttonIconSize,
+              ),
+              const SizedBox(width: RevericSpacing.sm),
+              Flexible(child: text),
+            ],
+          );
+    if (!loading) {
+      return content;
     }
-    // 无图标按钮也预留加载所需宽度；仅移动内边距，不复制或隐藏文案。
-    const leadingWidth = RevericSizes.buttonIconSize + RevericSpacing.sm;
+    // 加载时隐藏内容但保留尺寸与语义，指示器居中覆盖，按钮宽度不随状态变化。
     return Stack(
       alignment: Alignment.center,
       children: [
-        Padding(
-          padding: EdgeInsetsDirectional.only(
-            start: loading ? leadingWidth : leadingWidth / 2,
-            end: loading ? 0 : leadingWidth / 2,
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: labelMaxLines,
-            overflow: labelMaxLines == null ? null : TextOverflow.ellipsis,
+        Visibility(
+          visible: false,
+          maintainSize: true,
+          maintainAnimation: true,
+          maintainState: true,
+          maintainSemantics: true,
+          child: content,
+        ),
+        SizedBox.square(
+          dimension: RevericSizes.buttonIconSize,
+          child: CircularProgressIndicator(
+            strokeWidth: RevericSizes.buttonProgressStroke,
+            color: DefaultTextStyle.of(context).style.color,
           ),
         ),
-        if (loading)
-          PositionedDirectional(
-            start: 0,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: SizedBox.square(
-                dimension: RevericSizes.buttonIconSize,
-                child: indicator,
-              ),
-            ),
-          ),
       ],
     );
   }

@@ -2933,7 +2933,6 @@ abstract final class LocaleKeys {
   static const libraryCreateScreenplay = 'library.create_screenplay';
   static const libraryCreateWork = 'library.create_work';
   static const libraryCreateWorkFailed = 'library.create_work_failed';
-  static const libraryCreateAndWrite = 'library.create_and_write';
   static const libraryMoreInfo = 'library.more_info';
   static const libraryMoreInfoHint = 'library.more_info_hint';
   static const libraryDuplicateName = 'library.duplicate_name';

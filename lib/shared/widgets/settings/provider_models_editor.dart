@@ -44,6 +44,11 @@ class ProviderModelsEditor extends HookWidget {
     final inputController = useTextEditingController();
     final colors = RevericTheme.colorsOf(context);
     final typo = RevericTheme.typographyOf(context);
+    // 桌面端模型卡片内用紧凑行，避免添加按钮压过卡片层级；移动端保留标准触控高度。
+    final inputHeight = switch (Theme.of(context).platform) {
+      TargetPlatform.android || TargetPlatform.iOS => RevericSizes.buttonHeight,
+      _ => RevericSizes.buttonHeightSm,
+    };
 
     void addModel() {
       final next = inputController.text.trim();
@@ -122,6 +127,7 @@ class ProviderModelsEditor extends HookWidget {
                 hintText: hint,
                 actionLabel: context.t(LocaleKeys.commonAdd),
                 onActionPressed: addModel,
+                height: inputHeight,
               ),
             ],
           ),

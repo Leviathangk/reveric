@@ -116,7 +116,6 @@
   "library.content_kind_screenplay": "Screenplay",
   "library.create_work": "Create work",
   "library.create_work_failed": "Could not create this work.",
-  "library.create_and_write": "Create and start writing",
   "library.more_info": "More details",
   "library.more_info_hint": "Summary, category, tags",
   "library.edit_work_info": "Edit work details",

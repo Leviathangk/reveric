@@ -28,6 +28,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../shared/components/reveric_button.dart';
 import '../../shared/components/reveric_segmented_control.dart';
 import '../../shared/widgets/novel/start_banner.dart';
 import '../../shared/components/reveric_input_decoration.dart';
@@ -407,17 +408,11 @@ class MobileNovelCreatePage extends HookConsumerWidget {
           style: typo.uiSemibold.copyWith(color: colors.textPrimary),
         ),
         actions: [
-          TextButton(
-            onPressed: isBusy.value ? null : submit,
-            child: Text(
-              isBusy.value
-                  ? context.t(LocaleKeys.commonCreating)
-                  : (_isEditMode
-                        ? context.t(LocaleKeys.commonSave)
-                        : context.t(LocaleKeys.commonCreate)),
-              style: typo.uiSemibold.copyWith(
-                color: isBusy.value ? colors.textSubtle : colors.accentWarm,
-              ),
+          RevericButton.text(
+            onPressed: submit,
+            loading: isBusy.value,
+            label: context.t(
+              _isEditMode ? LocaleKeys.commonSave : LocaleKeys.commonCreate,
             ),
           ),
         ],

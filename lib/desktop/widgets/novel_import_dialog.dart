@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../shared/components/reveric_button.dart';
 import '../../shared/components/reveric_tags_editor.dart';
 import '../../shared/form/form.dart';
 import '../../shared/localization/app_localization.dart';
@@ -197,21 +198,18 @@ class NovelImportDialog extends HookConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    TextButton(
+                    RevericButton.text(
                       onPressed: isBusy.value
                           ? null
                           : () => Navigator.of(context).pop(),
-                      child: Text(context.t(LocaleKeys.commonCancel)),
+                      label: context.t(LocaleKeys.commonCancel),
                     ),
                     const SizedBox(width: RevericSpacing.sm),
-                    FilledButton.icon(
-                      onPressed: isBusy.value ? null : handleSubmit,
-                      icon: const RevericIcon(RevericIcons.upload, size: 16),
-                      label: Text(
-                        isBusy.value
-                            ? context.t(LocaleKeys.libraryImportingTxt)
-                            : context.t(LocaleKeys.libraryStartImport),
-                      ),
+                    RevericButton.primary(
+                      onPressed: handleSubmit,
+                      loading: isBusy.value,
+                      icon: RevericIcons.upload,
+                      label: context.t(LocaleKeys.libraryStartImport),
                     ),
                   ],
                 ),

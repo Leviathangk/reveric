@@ -41,7 +41,7 @@ Container(color: Color(0xFFF5F0E8));
 
 - 普通操作使用 `lib/shared/components/reveric_button.dart` 的 `RevericButton.primary` / `.secondary` / `.text`；破坏性确认使用 `.danger`。
 - 组件内部复用 Material 按钮，全局 button theme 仍是颜色、文字和圆角的真源；调用方只传文案、图标、回调、`loading` 与尺寸，不另写 `InkWell + Container` 或覆盖默认样式。
-- 标准尺寸用于页面与表单操作，`RevericButtonSize.compact` 用于紧凑工具区。加载状态由调用方维护，按钮负责固定加载槽和禁用点击；不要在调用方重新拼进度图标。
+- 标准尺寸用于页面与表单操作，`RevericButtonSize.compact` 用于紧凑工具区。加载状态由调用方维护，按钮负责在加载时隐藏内容、保留原尺寸并居中显示指示器，同时禁用点击；不要在调用方重新拼进度图标。
 - `IconButton`、整行设置项、卡片、选项卡、虚线添加入口和画布控件按各自语义处理，不批量替换成普通按钮。
 - 复用已有私有按钮前，核对其是否符合当前组件规范；旧实现本身不是设计依据。
 

@@ -82,12 +82,17 @@ void main() {
       final button = find.byType(OutlinedButton);
       final before = tester.getRect(button);
       final labelBefore = tester.getRect(find.text('Check for Updates'));
+      if (icon == null) {
+        // Plain buttons only hug their label; no idle space is reserved.
+        expect(
+          before.width,
+          labelBefore.width + RevericSizes.buttonPaddingH * 2,
+        );
+      }
       await tester.tap(button);
       await tester.pump();
       expect(tester.getRect(button), before);
-      if (icon != null) {
-        expect(tester.getRect(find.text('Check for Updates')), labelBefore);
-      }
+      expect(tester.getRect(find.text('Check for Updates')), labelBefore);
       expect(find.text('Check for Updates'), findsOneWidget);
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
       expect(tester.widget<OutlinedButton>(button).onPressed, isNull);

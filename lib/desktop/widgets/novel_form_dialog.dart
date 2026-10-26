@@ -28,6 +28,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../shared/components/dialog_feedback.dart';
+import '../../shared/components/reveric_button.dart';
 import '../../shared/database/app_database.dart';
 import '../../shared/localization/app_localization.dart';
 import '../../shared/localization/locale_keys.dart';
@@ -488,54 +489,29 @@ class NovelFormDialog extends HookConsumerWidget {
                 ),
                 _DialogFooter(
                   children: [
-                    TextButton(
+                    RevericButton.text(
                       onPressed: isBusy.value
                           ? null
                           : () => Navigator.of(context).pop(),
-                      child: Text(context.t(LocaleKeys.commonCancel)),
+                      label: context.t(LocaleKeys.commonCancel),
                     ),
                     if (onCreateDemoNovel != null) ...[
                       const Spacer(),
-                      OutlinedButton.icon(
+                      RevericButton.secondary(
                         onPressed: isBusy.value ? null : onCreateDemoNovel,
-                        icon: const RevericIcon(
-                          RevericIcons.auto_awesome,
-                          size: 16,
-                        ),
-                        label: Text(
-                          context.t(LocaleKeys.libraryCreateDemoNovel),
-                        ),
+                        icon: RevericIcons.auto_awesome,
+                        label: context.t(LocaleKeys.libraryCreateDemoNovel),
                       ),
                     ],
                     const SizedBox(width: RevericSpacing.sm),
-                    FilledButton(
-                      onPressed: isBusy.value ? null : handleSubmit,
-                      child: _isEditMode
-                          ? Text(
-                              isBusy.value
-                                  ? context.t(LocaleKeys.commonSaving)
-                                  : context.t(LocaleKeys.commonSave),
-                            )
-                          : Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  isBusy.value
-                                      ? context.t(LocaleKeys.commonCreating)
-                                      : context.t(
-                                          LocaleKeys.libraryCreateAndWrite,
-                                        ),
-                                ),
-                                if (!isBusy.value) ...[
-                                  const SizedBox(width: RevericSpacing.xs),
-                                  RevericIcon(
-                                    RevericIcons.arrow_forward,
-                                    size: 14,
-                                    color: colors.onAccent,
-                                  ),
-                                ],
-                              ],
-                            ),
+                    RevericButton.primary(
+                      onPressed: handleSubmit,
+                      loading: isBusy.value,
+                      label: context.t(
+                        _isEditMode
+                            ? LocaleKeys.commonSave
+                            : LocaleKeys.commonCreate,
+                      ),
                     ),
                   ],
                 ),
@@ -840,31 +816,22 @@ class NovelFormDialog extends HookConsumerWidget {
         const SizedBox(height: RevericSpacing.md),
         SizedBox(
           width: double.infinity,
-          child: OutlinedButton.icon(
+          child: RevericButton.secondary(
             onPressed: isBusy ? null : onPickCover,
-            icon: const RevericIcon(RevericIcons.image, size: 16),
-            label: Text(
-              hasCover
-                  ? context.t(LocaleKeys.editorReplaceCover)
-                  : context.t(LocaleKeys.librarySelectCover),
-            ),
+            icon: RevericIcons.image,
+            label: hasCover
+                ? context.t(LocaleKeys.editorReplaceCover)
+                : context.t(LocaleKeys.librarySelectCover),
           ),
         ),
         if (_isEditMode) ...[
           const SizedBox(height: RevericSpacing.sm),
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton.icon(
+            child: RevericButton.secondary(
               onPressed: isBusy || !hasCover ? null : onRemoveCover,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: colors.warningText,
-                // 无封面时按钮不可用，边框跟着退回常规色，避免看起来仍可点。
-                side: BorderSide(
-                  color: hasCover ? colors.warningText : colors.borderSubtle,
-                ),
-              ),
-              icon: const RevericIcon(RevericIcons.close, size: 16),
-              label: Text(context.t(LocaleKeys.editorRemoveCover)),
+              icon: RevericIcons.close,
+              label: context.t(LocaleKeys.editorRemoveCover),
             ),
           ),
         ],
