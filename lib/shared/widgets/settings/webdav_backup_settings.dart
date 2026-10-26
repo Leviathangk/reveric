@@ -196,7 +196,7 @@ class WebDavBackupSettings extends HookConsumerWidget {
         const SizedBox(height: RevericSpacing.xs),
         Text(
           context.t(LocaleKeys.settingsWebDavDescription),
-          style: (compact ? typo.uiSmall : typo.body).copyWith(
+          style: (compact ? typo.uiSmall : typo.ui).copyWith(
             color: colors.textMuted,
           ),
         ),

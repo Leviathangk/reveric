@@ -57,18 +57,21 @@ class RevericTypography {
       fontSize: 16,
       fontWeight: FontWeight.w400,
       fontFamily: 'Georgia',
+      fontFamilyFallback: _manuscriptCjkFallback,
       height: 1.75,
     ),
     bodySmall: TextStyle(
       fontSize: 14,
       fontWeight: FontWeight.w400,
       fontFamily: 'Georgia',
+      fontFamilyFallback: _manuscriptCjkFallback,
       height: 1.5,
     ),
     bodyItalic: TextStyle(
       fontSize: 16,
       fontWeight: FontWeight.w400,
       fontFamily: 'Georgia',
+      fontFamilyFallback: _manuscriptCjkFallback,
       height: 1.75,
       fontStyle: FontStyle.italic,
     ),
@@ -87,6 +90,10 @@ class RevericTypography {
       height: 1.75,
     ),
   );
+
+  /// Georgia 没有中文字形；按设计稿 `--font-serif` 让中文落到宋体，
+  /// 依次覆盖 macOS（Songti SC / STSong）与 Windows（SimSun）。
+  static const _manuscriptCjkFallback = ['Songti SC', 'STSong', 'SimSun'];
 
   static const mobile = RevericTypography(
     display: TextStyle(

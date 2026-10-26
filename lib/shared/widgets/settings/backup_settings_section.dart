@@ -310,7 +310,7 @@ class BackupSettingsSection extends HookConsumerWidget {
     if (compact) {
       return typo.uiSmall.copyWith(color: colors.textMuted, height: 1.5);
     }
-    return typo.body.copyWith(color: colors.textMuted);
+    return typo.ui.copyWith(color: colors.textMuted);
   }
 
   Widget _buildRetentionSection({

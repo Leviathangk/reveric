@@ -122,7 +122,14 @@ class RevericThemeData {
       textTheme: TextTheme(
         displayLarge: typography.display.copyWith(color: colors.textPrimary),
         headlineMedium: typography.heading2.copyWith(color: colors.textPrimary),
-        bodyLarge: typography.body.copyWith(color: colors.textPrimary),
+        // 输入框、ListTile 等 Material 组件默认取 bodyLarge，属于界面元素，
+        // 沿用正文尺寸但不继承正文衬线字体；正文排版直接使用 typography.body。
+        bodyLarge: TextStyle(
+          fontSize: typography.body.fontSize,
+          fontWeight: typography.body.fontWeight,
+          height: typography.body.height,
+          color: colors.textPrimary,
+        ),
         bodyMedium: typography.ui.copyWith(color: colors.textSecondary),
         bodySmall: typography.uiSmall.copyWith(color: colors.textMuted),
         labelLarge: typography.uiSemibold.copyWith(color: colors.textSecondary),

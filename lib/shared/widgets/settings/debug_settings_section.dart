@@ -80,7 +80,7 @@ class DebugSettingsSection extends HookConsumerWidget {
           const SizedBox(height: RevericSpacing.md),
           Text(
             context.t(LocaleKeys.settingsDebugDescription),
-            style: typo.body.copyWith(color: colors.textSecondary),
+            style: typo.ui.copyWith(color: colors.textSecondary),
           ),
           const SizedBox(height: RevericSpacing.x2l),
           _DebugToggleCard(

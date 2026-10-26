@@ -38,11 +38,19 @@ void main() {
   }
 
   test('default theme keeps Georgia only for manuscript prose tokens', () {
-    final theme = RevericThemeData.reveric.toThemeData();
+    final themeData = RevericThemeData.reveric;
+    final theme = themeData.toThemeData();
 
+    expect(themeData.typography.body.fontFamily, 'Georgia');
+    // Georgia 无中文字形，macOS 与 Windows 都要能落到宋体。
+    expect(
+      themeData.typography.body.fontFamilyFallback,
+      containsAll(<String>['Songti SC', 'SimSun']),
+    );
     expect(theme.textTheme.displayLarge?.fontFamily, isNot('Georgia'));
     expect(theme.textTheme.headlineMedium?.fontFamily, isNot('Georgia'));
-    expect(theme.textTheme.bodyLarge?.fontFamily, 'Georgia');
+    // Material 输入框默认取 bodyLarge，属于界面元素。
+    expect(theme.textTheme.bodyLarge?.fontFamily, isNot('Georgia'));
     expect(theme.textTheme.bodyMedium?.fontFamily, isNot('Georgia'));
     expect(theme.textTheme.labelLarge?.fontFamily, isNot('Georgia'));
   });

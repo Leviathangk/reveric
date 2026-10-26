@@ -76,7 +76,7 @@ class UsageView extends HookWidget {
                 const SizedBox(height: RevericSpacing.sm),
                 Text(
                   context.t(LocaleKeys.settingsUsageDescription),
-                  style: typo.body.copyWith(color: colors.textMuted),
+                  style: typo.ui.copyWith(color: colors.textMuted),
                 ),
                 const SizedBox(height: RevericSpacing.x4l),
               ],
