@@ -28,6 +28,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import '../../components/reveric_button.dart';
 import '../../components/reveric_switch.dart';
 import '../../localization/app_localization.dart';
 import '../../localization/locale_keys.dart';
@@ -245,10 +246,7 @@ class _AiAgentAvatarRow extends HookConsumerWidget {
                       ),
                       style: TextButton.styleFrom(
                         foregroundColor: colors.textSecondary,
-                        minimumSize: const Size(
-                          0,
-                          RevericSizes.buttonHeightSm,
-                        ),
+                        minimumSize: const Size(0, RevericSizes.buttonHeightSm),
                         padding: const EdgeInsets.symmetric(
                           horizontal: RevericSpacing.sm,
                         ),
@@ -434,40 +432,18 @@ class _AiAgentPromptTextField extends HookWidget {
                       ),
                     ),
                     const Spacer(),
-                    TextButton.icon(
+                    RevericButton.text(
                       onPressed: onReset,
-                      icon: const RevericIcon(RevericIcons.undo, size: 14),
-                      label: Text(context.t(LocaleKeys.commonReset)),
-                      style: TextButton.styleFrom(
-                        foregroundColor: colors.textSecondary,
-                        minimumSize: const Size(
-                          0,
-                          RevericSizes.buttonHeightSm,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: RevericSpacing.sm,
-                        ),
-                        textStyle: typo.uiSmall,
-                      ),
+                      icon: RevericIcons.undo,
+                      label: context.t(LocaleKeys.commonReset),
+                      size: RevericButtonSize.compact,
                     ),
                     const SizedBox(width: RevericSpacing.xxs),
-                    FilledButton.icon(
+                    RevericButton.primary(
                       onPressed: hasChanged ? () => onSave(text) : null,
-                      icon: const RevericIcon(
-                        RevericIcons.save_outlined,
-                        size: 14,
-                      ),
-                      label: Text(context.t(LocaleKeys.commonSave)),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(
-                          0,
-                          RevericSizes.buttonHeightSm,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: RevericSpacing.md,
-                        ),
-                        textStyle: typo.uiSmall,
-                      ),
+                      icon: RevericIcons.save_outlined,
+                      label: context.t(LocaleKeys.commonSave),
+                      size: RevericButtonSize.compact,
                     ),
                   ],
                 ),

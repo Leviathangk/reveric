@@ -1,4 +1,4 @@
-// 职责: 验证对象存储表单的字段校验，以及仅在连接测试通过后才保存配置并通知调用方。
+// 职责: 验证对象存储表单的字段校验、折叠字段的错误回填，以及仅在连接测试通过后才保存配置并通知调用方。
 // 关联文件:
 //   lib/shared/widgets/settings/object_storage_form.dart
 //   lib/shared/services/object_storage/service.dart
@@ -111,6 +111,40 @@ void main() {
 
     expect(service.saved.single.secretAccessKey, 'sk');
     expect(savedCalls, 1);
+  });
+
+  testWidgets('expands advanced options when a collapsed field fails', (
+    tester,
+  ) async {
+    final service = _FakeService(database);
+    await tester.pumpWidget(
+      _wrap(service, const ObjectStorageForm(config: ObjectStorageConfig())),
+    );
+    await tester.pumpAndSettle();
+
+    final toggle = find.byKey(const ValueKey('object_storage_advanced_toggle'));
+    final publicUrl = find.byKey(
+      const ValueKey('object_storage_publicBaseUrl_field'),
+    );
+    expect(publicUrl.hitTestable(), findsNothing);
+
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    await fill(tester, 'endpoint', 'https://s3.example.com');
+    await fill(tester, 'bucket', 'media');
+    await fill(tester, 'accessKeyId', 'ak');
+    await fill(tester, 'secretAccessKey', 'sk');
+    await fill(tester, 'publicBaseUrl', 'not a url');
+    await tester.ensureVisible(toggle);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(publicUrl.hitTestable(), findsNothing);
+
+    await submit(tester);
+
+    expect(publicUrl.hitTestable(), findsOneWidget);
+    expect(find.text('Enter a valid HTTP or HTTPS URL.'), findsOneWidget);
+    expect(service.tested, isEmpty);
   });
 }
 

@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../components/reveric_button.dart';
 import '../../components/reveric_switch.dart';
 import '../../form/form.dart';
 import '../../localization/app_localization.dart';
@@ -297,22 +298,15 @@ class WebDavBackupSettings extends HookConsumerWidget {
         ],
         if (enabled.value) ...[
           const SizedBox(height: RevericSpacing.md),
-          FilledButton.icon(
+          RevericButton.primary(
             key: const ValueKey('webdav_save_button'),
-            onPressed: isSaving.value ? null : save,
-            icon: isSaving.value
-                ? SizedBox.square(
-                    dimension: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: colors.onAccent,
-                    ),
-                  )
-                : const RevericIcon(RevericIcons.cloud_upload, size: 18),
-            label: Text(
+            onPressed: save,
+            loading: isSaving.value,
+            icon: RevericIcons.cloud_upload,
+            label: context.t(
               isSaving.value
-                  ? context.t(LocaleKeys.settingsWebDavSaving)
-                  : context.t(LocaleKeys.settingsWebDavSaveAndTest),
+                  ? LocaleKeys.settingsWebDavSaving
+                  : LocaleKeys.settingsWebDavSaveAndTest,
             ),
           ),
         ],

@@ -7,6 +7,8 @@
 //   lib/shared/localization/locale_keys.dart
 //   assets/translations/en/settings.json
 //   assets/translations/zh-CN/settings.json
+//   assets/translations/en/common.json
+//   assets/translations/zh-CN/common.json
 // 遵循的 Rules:
 //   .agents/rules/form.md
 //   .agents/rules/hooks.md
@@ -43,6 +45,9 @@ enum ObjectStorageField implements FieldSchema {
   List<Validator<dynamic>>? get validators => null;
 }
 
+/// 宽度足够时短字段两两并排；生成前的配置弹窗较窄，退回单列。
+const double _twoColumnMinWidth = 560;
+
 class ObjectStorageForm extends HookConsumerWidget {
   const ObjectStorageForm({super.key, required this.config, this.onSaved});
 
@@ -58,6 +63,12 @@ class ObjectStorageForm extends HookConsumerWidget {
     final saving = useState(false);
     final feedback = useState<(String, bool)?>(null);
     final obscureSecret = useState(true);
+    // 可选项改过默认值时默认展开，避免用户以为配置丢失。
+    final advancedOpen = useState(
+      config.keyPrefix != ObjectStorageConfig.defaultKeyPrefix ||
+          config.publicBaseUrl.isNotEmpty ||
+          config.pathStyle,
+    );
     final form = useForm<ObjectStorageField>(
       initialValues: <ObjectStorageField, dynamic>{
         ObjectStorageField.provider: config.provider,
@@ -127,6 +138,10 @@ class ObjectStorageForm extends HookConsumerWidget {
             LocaleKeys.settingsObjectStorageInvalidUrl,
           ),
         };
+        if (field == ObjectStorageField.keyPrefix ||
+            field == ObjectStorageField.publicBaseUrl) {
+          advancedOpen.value = true;
+        }
         form.setError(field, context.t(key));
         return;
       }
@@ -200,118 +215,174 @@ class ObjectStorageForm extends HookConsumerWidget {
 
     return HookedForm<ObjectStorageField>(
       form: form,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: RevericSpacing.md),
-            child: HookedFormField<ObjectStorageField, ObjectStorageProvider>(
-              fieldHook: ObjectStorageField.provider,
-              builder: (value, onChanged, _) => RevericSelect(
-                value: value,
-                label: context.t(LocaleKeys.settingsObjectStorageProvider),
-                enabled: !saving.value,
-                items: [
-                  RevericSelectItem(
-                    value: ObjectStorageProvider.s3,
-                    label: context.t(
-                      LocaleKeys.settingsObjectStorageProviderS3,
-                    ),
-                    subtitle: context.t(
-                      LocaleKeys.settingsObjectStorageProviderS3Hint,
-                    ),
-                  ),
-                ],
-                onChanged: (v) => onChanged?.call(v),
-              ),
-            ),
-          ),
-          field(
-            ObjectStorageField.endpoint,
-            LocaleKeys.settingsObjectStorageEndpoint,
-            hintKey: LocaleKeys.settingsObjectStorageEndpointHint,
-            url: true,
-          ),
-          field(
-            ObjectStorageField.region,
-            LocaleKeys.settingsObjectStorageRegion,
-            helperKey: LocaleKeys.settingsObjectStorageRegionHint,
-          ),
-          field(
-            ObjectStorageField.bucket,
-            LocaleKeys.settingsObjectStorageBucket,
-          ),
-          field(
-            ObjectStorageField.accessKeyId,
-            LocaleKeys.settingsObjectStorageAccessKeyId,
-          ),
-          field(
-            ObjectStorageField.secretAccessKey,
-            LocaleKeys.settingsObjectStorageSecretAccessKey,
-            secret: true,
-          ),
-          field(
-            ObjectStorageField.keyPrefix,
-            LocaleKeys.settingsObjectStorageKeyPrefix,
-          ),
-          field(
-            ObjectStorageField.publicBaseUrl,
-            LocaleKeys.settingsObjectStoragePublicBaseUrl,
-            helperKey: LocaleKeys.settingsObjectStoragePublicBaseUrlHint,
-            url: true,
-          ),
-          HookedFormField<ObjectStorageField, bool>(
-            fieldHook: ObjectStorageField.pathStyle,
-            builder: (value, onChanged, _) => Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.t(LocaleKeys.settingsObjectStoragePathStyle),
-                        style: typo.uiSemibold.copyWith(
-                          color: colors.textPrimary,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final wide = constraints.maxWidth >= _twoColumnMinWidth;
+          Widget pair(Widget first, Widget second) => wide
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: first),
+                    const SizedBox(width: RevericSpacing.lg),
+                    Expanded(child: second),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [first, second],
+                );
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (ObjectStorageProvider.values.length > 1)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: RevericSpacing.md),
+                  child:
+                      HookedFormField<
+                        ObjectStorageField,
+                        ObjectStorageProvider
+                      >(
+                        fieldHook: ObjectStorageField.provider,
+                        builder: (value, onChanged, _) => RevericSelect(
+                          value: value,
+                          label: context.t(
+                            LocaleKeys.settingsObjectStorageProvider,
+                          ),
+                          enabled: !saving.value,
+                          items: [
+                            RevericSelectItem(
+                              value: ObjectStorageProvider.s3,
+                              label: context.t(
+                                LocaleKeys.settingsObjectStorageProviderS3,
+                              ),
+                              subtitle: context.t(
+                                LocaleKeys.settingsObjectStorageProviderS3Hint,
+                              ),
+                            ),
+                          ],
+                          onChanged: (v) => onChanged?.call(v),
                         ),
                       ),
-                      const SizedBox(height: RevericSpacing.xxs),
-                      Text(
-                        context.t(
-                          LocaleKeys.settingsObjectStoragePathStyleHint,
+                ),
+              field(
+                ObjectStorageField.endpoint,
+                LocaleKeys.settingsObjectStorageEndpoint,
+                hintKey: LocaleKeys.settingsObjectStorageEndpointHint,
+                url: true,
+              ),
+              pair(
+                field(
+                  ObjectStorageField.region,
+                  LocaleKeys.settingsObjectStorageRegion,
+                  helperKey: LocaleKeys.settingsObjectStorageRegionHint,
+                ),
+                field(
+                  ObjectStorageField.bucket,
+                  LocaleKeys.settingsObjectStorageBucket,
+                ),
+              ),
+              pair(
+                field(
+                  ObjectStorageField.accessKeyId,
+                  LocaleKeys.settingsObjectStorageAccessKeyId,
+                ),
+                field(
+                  ObjectStorageField.secretAccessKey,
+                  LocaleKeys.settingsObjectStorageSecretAccessKey,
+                  secret: true,
+                ),
+              ),
+              _AdvancedToggle(
+                open: advancedOpen.value,
+                onTap: () => advancedOpen.value = !advancedOpen.value,
+              ),
+              // 折叠时保留字段状态，提交时仍能读取和回填错误。
+              Visibility(
+                visible: advancedOpen.value,
+                maintainState: true,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: RevericSpacing.md),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      pair(
+                        field(
+                          ObjectStorageField.keyPrefix,
+                          LocaleKeys.settingsObjectStorageKeyPrefix,
                         ),
-                        style: typo.uiSmall.copyWith(color: colors.textMuted),
+                        field(
+                          ObjectStorageField.publicBaseUrl,
+                          LocaleKeys.settingsObjectStoragePublicBaseUrl,
+                          helperKey:
+                              LocaleKeys.settingsObjectStoragePublicBaseUrlHint,
+                          url: true,
+                        ),
+                      ),
+                      HookedFormField<ObjectStorageField, bool>(
+                        fieldHook: ObjectStorageField.pathStyle,
+                        builder: (value, onChanged, _) => Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    context.t(
+                                      LocaleKeys.settingsObjectStoragePathStyle,
+                                    ),
+                                    style: typo.uiSemibold.copyWith(
+                                      color: colors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: RevericSpacing.xxs),
+                                  Text(
+                                    context.t(
+                                      LocaleKeys
+                                          .settingsObjectStoragePathStyleHint,
+                                    ),
+                                    style: typo.uiSmall.copyWith(
+                                      color: colors.textMuted,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: RevericSpacing.lg),
+                            RevericSwitch(
+                              value: value ?? false,
+                              onChanged: saving.value
+                                  ? null
+                                  : (v) => onChanged?.call(v),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: RevericSpacing.lg),
-                RevericSwitch(
-                  value: value ?? false,
-                  onChanged: saving.value ? null : (v) => onChanged?.call(v),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: RevericSpacing.lg),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: RevericButton.primary(
-              key: const ValueKey('object_storage_save_button'),
-              label: context.t(
-                saving.value
-                    ? LocaleKeys.settingsObjectStorageTesting
-                    : LocaleKeys.settingsObjectStorageSaveAndTest,
               ),
-              icon: RevericIcons.cloud_upload,
-              loading: saving.value,
-              onPressed: save,
-            ),
-          ),
-          if (feedback.value case (final message, final isError)) ...[
-            const SizedBox(height: RevericSpacing.md),
-            _Feedback(message: message, isError: isError),
-          ],
-        ],
+              const SizedBox(height: RevericSpacing.lg),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: RevericButton.primary(
+                  key: const ValueKey('object_storage_save_button'),
+                  label: context.t(
+                    saving.value
+                        ? LocaleKeys.settingsObjectStorageTesting
+                        : LocaleKeys.settingsObjectStorageSaveAndTest,
+                  ),
+                  icon: RevericIcons.cloud_upload,
+                  loading: saving.value,
+                  onPressed: save,
+                ),
+              ),
+              if (feedback.value case (final message, final isError)) ...[
+                const SizedBox(height: RevericSpacing.md),
+                _Feedback(message: message, isError: isError),
+              ],
+            ],
+          );
+        },
       ),
     );
   }
@@ -331,6 +402,48 @@ String _failureKey(ObjectStorageFailure failure) => switch (failure) {
   ObjectStorageFailure.invalid_configuration =>
     LocaleKeys.settingsObjectStorageSaveFailed,
 };
+
+/// 可选配置的折叠开关，与字段左缘对齐。
+class _AdvancedToggle extends StatelessWidget {
+  const _AdvancedToggle({required this.open, required this.onTap});
+
+  final bool open;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = RevericTheme.colorsOf(context);
+    final typo = RevericTheme.typographyOf(context);
+    return Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: InkWell(
+        key: const ValueKey('object_storage_advanced_toggle'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(RevericRadius.small),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: RevericSpacing.xs),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RevericIcon(
+                open
+                    ? RevericIcons.keyboard_arrow_down
+                    : RevericIcons.chevron_right,
+                size: 14,
+                color: colors.textMuted,
+              ),
+              const SizedBox(width: RevericSpacing.xs),
+              Text(
+                context.t(LocaleKeys.commonAdvancedOptions),
+                style: typo.uiSemibold.copyWith(color: colors.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _Feedback extends StatelessWidget {
   const _Feedback({required this.message, required this.isError});

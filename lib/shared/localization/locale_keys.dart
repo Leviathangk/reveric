@@ -2072,6 +2072,7 @@ abstract final class LocaleKeys {
       'production.panoramaCaptureFailed';
   static const productionViewPanoramaFailure = 'production.panoramaFailure';
   static const productionViewOptions = 'production.options';
+  static const commonAdvancedOptions = 'common.advanced_options';
   static const commonReset = 'common.reset';
   static const commonRole = 'common.role';
   static const commonRootDirectory = 'common.root_directory';

@@ -173,33 +173,30 @@ class StorageSettingsSection extends HookConsumerWidget {
                     ),
                   ],
                 ),
+                const SizedBox(height: RevericSpacing.md),
+                Text(
+                  context.t(
+                    failed.value
+                        ? LocaleKeys.settingsFileWorkspaceSaveFailed
+                        : location.hasError
+                        ? LocaleKeys.settingsFileWorkspaceLoadFailed
+                        : LocaleKeys.settingsFileWorkspaceMigrateHint,
+                  ),
+                  style: failed.value || location.hasError
+                      ? labelStyle.copyWith(color: colors.deletionBorder)
+                      : labelStyle,
+                ),
                 const SizedBox(height: RevericSpacing.lg),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        context.t(
-                          failed.value
-                              ? LocaleKeys.settingsFileWorkspaceSaveFailed
-                              : location.hasError
-                              ? LocaleKeys.settingsFileWorkspaceLoadFailed
-                              : LocaleKeys.settingsFileWorkspaceMigrateHint,
-                        ),
-                        style: failed.value || location.hasError
-                            ? labelStyle.copyWith(color: colors.deletionBorder)
-                            : labelStyle,
-                      ),
-                    ),
-                    const SizedBox(width: RevericSpacing.lg),
-                    RevericButton.primary(
-                      key: const ValueKey('file_workspace_migrate'),
-                      label: context.t(LocaleKeys.settingsFileWorkspaceMigrate),
-                      loading: busy.value,
-                      onPressed: ready && current != null && hasTarget
-                          ? migrate
-                          : null,
-                    ),
-                  ],
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: RevericButton.primary(
+                    key: const ValueKey('file_workspace_migrate'),
+                    label: context.t(LocaleKeys.settingsFileWorkspaceMigrate),
+                    loading: busy.value,
+                    onPressed: ready && current != null && hasTarget
+                        ? migrate
+                        : null,
+                  ),
                 ),
                 const SizedBox(height: RevericSpacing.xxs),
               ],

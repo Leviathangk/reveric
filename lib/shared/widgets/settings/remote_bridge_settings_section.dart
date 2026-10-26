@@ -21,6 +21,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../../components/reveric_button.dart';
 import '../../components/reveric_switch.dart';
 import '../../localization/app_localization.dart';
 import '../../localization/locale_keys.dart';
@@ -410,24 +411,10 @@ class RemoteBridgeSettingsSection extends HookConsumerWidget {
             ),
           ],
           const SizedBox(height: RevericSpacing.md),
-          SizedBox(
-            height: RevericSizes.buttonHeight,
-            child: FilledButton.icon(
-              onPressed: onStartLogin,
-              icon: RevericIcon(
-                RevericIcons.arrow_clockwise,
-                size: 16,
-                color: colors.surface,
-              ),
-              label: Text(context.t(LocaleKeys.remoteLoginWechat)),
-              style: FilledButton.styleFrom(
-                backgroundColor: colors.accent,
-                foregroundColor: colors.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(RevericRadius.button),
-                ),
-              ),
-            ),
+          RevericButton.primary(
+            onPressed: onStartLogin,
+            icon: RevericIcons.arrow_clockwise,
+            label: context.t(LocaleKeys.remoteLoginWechat),
           ),
         ],
       ),
@@ -475,9 +462,7 @@ class RemoteBridgeSettingsSection extends HookConsumerWidget {
           const SettingsRowDivider(),
           const SizedBox(height: RevericSpacing.md),
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: RevericSpacing.x2l,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: RevericSpacing.x2l),
             child: Row(
               children: [
                 const Spacer(),
@@ -644,11 +629,7 @@ class _WechatIcon extends StatelessWidget {
         ],
       ),
       child: Center(
-        child: RevericIcon(
-          RevericIcons.qr_code,
-          size: 28,
-          color: Colors.white,
-        ),
+        child: RevericIcon(RevericIcons.qr_code, size: 28, color: Colors.white),
       ),
     );
   }
@@ -709,24 +690,10 @@ class _FeatureCardBody extends StatelessWidget {
             ),
           ],
           const SizedBox(height: RevericSpacing.x2l),
-          SizedBox(
-            height: RevericSizes.buttonHeight,
-            child: FilledButton.icon(
-              onPressed: onStartLogin,
-              icon: RevericIcon(
-                RevericIcons.qr_code,
-                size: 16,
-                color: colors.surface,
-              ),
-              label: Text(context.t(LocaleKeys.remoteLoginWechat)),
-              style: FilledButton.styleFrom(
-                backgroundColor: colors.accent,
-                foregroundColor: colors.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(RevericRadius.button),
-                ),
-              ),
-            ),
+          RevericButton.primary(
+            onPressed: onStartLogin,
+            icon: RevericIcons.qr_code,
+            label: context.t(LocaleKeys.remoteLoginWechat),
           ),
         ],
       ),
