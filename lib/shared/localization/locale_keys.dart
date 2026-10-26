@@ -338,6 +338,15 @@ abstract final class LocaleKeys {
   static const productionVideoTools = 'screenplay.production.videoTools';
   static const productionMute = 'screenplay.production.mute';
   static const productionTrim = 'screenplay.production.trim';
+  static const productionDepthCapture = 'screenplay.production.depth.title';
+  static const productionDepthPrepare = 'screenplay.production.depth.prepare';
+  static const productionDepthStart = 'screenplay.production.depth.start';
+  static const productionDepthBackground =
+      'screenplay.production.depth.background';
+  static const productionDepthLibraryOnly =
+      'screenplay.production.depth.libraryOnly';
+  static const productionDepthNoTask = 'screenplay.production.depth.noTask';
+  static const productionDepthError = 'screenplay.production.depth.error';
   static const productionTrimRange = 'screenplay.production.trimRange';
   static const productionSeparateAudio = 'screenplay.production.separateAudio';
   static const productionCaptureFrame = 'screenplay.production.captureFrame';

@@ -13,7 +13,9 @@
 //   lib/shared/logger/flutter_error_logger.dart
 //   lib/shared/logger/startup_failure_reporter.dart
 import 'dart:async';
+import 'shared/providers/depth.dart';
 import 'dart:io';
+import 'dart:ui' show AppExitResponse;
 
 import 'package:drift/drift.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -449,6 +451,9 @@ class MyApp extends ConsumerWidget {
       ref.watch(providerAssetServiceProvider);
       ref.watch(imageTaskRecoveryProvider);
       ref.watch(audioTaskRecoveryProvider);
+      if (Platform.isMacOS || Platform.isWindows) {
+        ref.watch(depthTaskProvider);
+      }
     }
 
     _log.info(
@@ -692,7 +697,19 @@ class _AppLifecycleWatcherState extends ConsumerState<AppLifecycleWatcher>
   }
 
   @override
+  Future<AppExitResponse> didRequestAppExit() async {
+    if (Platform.isMacOS || Platform.isWindows) {
+      await ref.read(depthTaskProvider).stop();
+    }
+    return AppExitResponse.exit;
+  }
+
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached &&
+        (Platform.isMacOS || Platform.isWindows)) {
+      unawaited(ref.read(depthTaskProvider).stop());
+    }
     if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
       ref
           .read(videoTaskServiceProvider)

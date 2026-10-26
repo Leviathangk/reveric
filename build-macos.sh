@@ -126,6 +126,7 @@ info "fvm flutter pub get..."
 # ----- 构建 Codemode runtime -----
 info "构建 Codemode runtime (fjs.xcframework)..."
 bash "$SCRIPT_DIR/tools/build_codemode_runtime.sh"
+bash "$SCRIPT_DIR/third/depth-native/prepare-product-macos.sh"
 
 # ----- 清理旧产物 -----
 info "清理旧 DMG 产物..."

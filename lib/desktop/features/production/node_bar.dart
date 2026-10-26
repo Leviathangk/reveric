@@ -13,6 +13,7 @@
 //   .agents/rules/design-system.md
 
 import 'package:drift/drift.dart' show BooleanExpressionOperators;
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -42,6 +43,7 @@ import 'view/region.dart';
 import 'view/panorama_actions.dart';
 import 'inline_media.dart';
 import 'trim_dialog.dart';
+import 'depth_dialog.dart';
 import 'image_history.dart';
 import 'audio_history.dart';
 import 'node_card.dart' show ProductionSegmentTag;
@@ -595,6 +597,18 @@ class ProductionNodeBar extends HookConsumerWidget {
                             label: context.t(LocaleKeys.productionTrim),
                             onTap: trim,
                           ),
+                          if (Platform.isMacOS || Platform.isWindows)
+                            RevericMenuItem(
+                              icon: RevericIcons.layers_outlined,
+                              label: context.t(
+                                LocaleKeys.productionDepthCapture,
+                              ),
+                              onTap: () => showDepthDialog(
+                                context,
+                                novelId: service.novelId,
+                                nodeId: node.id,
+                              ),
+                            ),
                         ],
                       ),
                       Tooltip(

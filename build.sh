@@ -55,6 +55,7 @@ check_platform() {
       check_command python3 || return 1
       check_command npm || return 1 ;;
     windows)
+      check_command powershell.exe || return 1
       local program_files vswhere installation
       program_files="$(printenv 'ProgramFiles(x86)' || true)"
       vswhere="${program_files}/Microsoft Visual Studio/Installer/vswhere.exe"
@@ -103,6 +104,12 @@ check_platform() {
   esac
 }
 
+build_windows() {
+  powershell.exe -NoProfile -ExecutionPolicy Bypass \
+    -File "$SCRIPT_DIR/third/depth-native/prepare-product-windows.ps1" || return $?
+  fvm flutter build windows --release
+}
+
 SUCCEEDED=0
 SKIPPED=0
 FAILED=0
@@ -122,6 +129,7 @@ for platform in "${PLATFORMS[@]}"; do
 
   case "$platform" in
     macos) COMMAND=(bash "$SCRIPT_DIR/build-macos.sh") ;;
+    windows) COMMAND=(build_windows) ;;
     android) COMMAND=(bash "$SCRIPT_DIR/build-android.sh") ;;
     *) COMMAND=(fvm flutter build "$platform" --release) ;;
   esac

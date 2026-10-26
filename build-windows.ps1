@@ -192,7 +192,8 @@ print(f'Version set to $Version')
 
   # ----- 构建 EXE 安装包 -----
   Write-Step "构建 Windows EXE 安装包 (fastforge windows-exe)..."
-  fastforge release --name release --jobs windows-exe
+  & "$ProjectRoot/third/depth-native/prepare-product-windows.ps1"
+  fastforge release --name release --jobs windows-exe --skip-clean
   if ($LASTEXITCODE -ne 0) {
     throw "fastforge windows-exe 构建失败"
   }

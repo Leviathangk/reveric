@@ -69,6 +69,7 @@ import '../editing/shell.dart';
 import 'canvas_controls.dart';
 import 'subject_picker.dart';
 import 'node_bar.dart';
+import 'depth_dialog.dart';
 import 'node_card.dart' show productionAspect, productionNodeSize;
 import 'composer.dart';
 import 'edit_session.dart';
@@ -1004,6 +1005,8 @@ class _EpisodeRegion extends HookConsumerWidget {
         onChanged: (next) => run(() => switchView(next)),
       ),
       trailing: [
+        if (Platform.isMacOS || Platform.isWindows)
+          const DepthTaskStatusButton(),
         Flexible(child: ProductionScreenplayStyle(service: service)),
         const _TopSeparator(),
         ProductionSpecChip(path: path, episodeId: episodeId),
