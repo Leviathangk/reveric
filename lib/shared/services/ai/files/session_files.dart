@@ -12,8 +12,9 @@ class SessionFiles {
   SessionFiles({String? root, this.novelId}) : _root = root;
   final String? novelId;
   final String? _root;
-  String get root =>
-      Directory(_root ?? RevericPaths.supportRoot).resolveSymbolicLinksSync();
+  String get root => Directory(
+    _root ?? RevericPaths.fileWorkspaceParent,
+  ).resolveSymbolicLinksSync();
 
   static void validateId(String id) {
     if (!RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(id)) {
@@ -118,15 +119,17 @@ class SessionFiles {
     if (relative && (syntax.split(path).contains('..') || path.isEmpty)) {
       throw const FormatException('Invalid relative file path');
     }
-    final file = File(
-      relative ? p.join(root, p.joinAll(syntax.split(path))) : path,
-    );
+    final parts = syntax.split(syntax.normalize(path));
+    final base = _root == null && relative && parts.first != 'file_workspaces'
+        ? RevericPaths.supportRoot
+        : root;
+    final file = File(relative ? p.join(base, p.joinAll(parts)) : path);
     if (await FileSystemEntity.type(file.path) != FileSystemEntityType.file) {
       throw FileSystemException('File is unavailable', path);
     }
     final resolved = await file.resolveSymbolicLinks();
     if (relative &&
-        !p.isWithin(await Directory(root).resolveSymbolicLinks(), resolved)) {
+        !p.isWithin(await Directory(base).resolveSymbolicLinks(), resolved)) {
       throw const FormatException('File escaped application storage');
     }
     return File(resolved);

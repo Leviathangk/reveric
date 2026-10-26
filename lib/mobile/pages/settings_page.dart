@@ -11,7 +11,7 @@
 //   lib/shared/widgets/settings/ai_providers_section.dart
 //   lib/shared/widgets/settings/usage_settings_section.dart
 //   lib/shared/widgets/settings/usage_view.dart
-//   lib/shared/widgets/settings/storage_settings_section.dart
+//   lib/shared/widgets/settings/backup_settings_section.dart
 //   lib/shared/widgets/settings/about_settings_section.dart
 //   lib/shared/widgets/settings/debug_settings_section.dart
 //   lib/shared/app_config.dart
@@ -52,7 +52,7 @@ import '../../shared/widgets/settings/editor_settings_section.dart';
 import '../../shared/widgets/reading/reading_settings_controls.dart';
 import '../../shared/widgets/settings/reading_settings_section.dart';
 import '../../shared/widgets/settings/general_settings_section.dart';
-import '../../shared/widgets/settings/storage_settings_section.dart';
+import '../../shared/widgets/settings/backup_settings_section.dart';
 import '../../shared/widgets/settings/usage_settings_section.dart';
 import '../../shared/widgets/settings/usage_view.dart';
 import '../../shared/components/reveric_dialog.dart';
@@ -672,7 +672,7 @@ class _SettingsDetailPage extends StatelessWidget {
         'usage' => UsageSettingsSection(
           bodyBuilder: () => const UsageView(showHeader: false),
         ),
-        'backup' => const StorageSettingsSection(compact: true),
+        'backup' => const BackupSettingsSection(compact: true),
         'about' => const AboutSettingsSection(compact: true),
         'debug' => DebugSettingsSection(
           onClose: () => Navigator.of(context).pop(),

@@ -18,6 +18,7 @@ import 'package:archive/archive_io.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reveric/shared/services/backup_service.dart';
+import 'package:reveric/shared/utils/storage_paths.dart';
 import 'package:reveric/shared/services/director/storage.dart';
 import 'package:reveric/shared/database/type_converters.dart';
 import 'package:reveric/shared/models/map_studio_models.dart';
@@ -64,6 +65,7 @@ void main() {
             return null;
           },
         );
+    await RevericPaths.initialize();
   });
 
   tearDown(() async {
@@ -97,6 +99,164 @@ void main() {
       ..writeAsBytesSync(ZipEncoder().encode(archive));
   }
 
+  for (final parentName in [
+    'Media.staging',
+    'work.part',
+    'archive.pending',
+    '.reveric_copy_user',
+    '.reveric_restore_rollback_user',
+  ]) {
+    test('backup filtering ignores parent directory $parentName', () async {
+      final parent = await Directory(
+        p.join(tempRoot.path, parentName),
+      ).create();
+      appSupportDir = await Directory(p.join(parent.path, 'support')).create();
+      tempDir = await Directory(p.join(parent.path, 'tmp')).create();
+      final external = await Directory(p.join(parent.path, 'media')).create();
+      await RevericPaths.initialize(fileWorkspaceParent: external.path);
+      _writeLibrary(appSupportDir, {'work': (title: 'Work', marker: 'backup')});
+      const retained = [
+        'file_workspaces/work/files/nested/中文.txt',
+        'file_workspaces/shared/files/nested/shared.txt',
+      ];
+      const excluded = [
+        'file_workspaces/work/files/incomplete.part',
+        'file_workspaces/work/files/render.staging/frame.png',
+        'file_workspaces/work/files/.reveric_copy_partial/content',
+        'file_workspaces/shared/files/cache.pending/result.txt',
+        'file_workspaces/shared/files/.reveric_restore_rollback_partial/original',
+      ];
+      for (final relative in [...retained, ...excluded]) {
+        final file = File(p.join(external.path, relative));
+        await file.parent.create(recursive: true);
+        await file.writeAsString('backup:$relative');
+      }
+      final backup = await BackupService().backupToZip(
+        outputDirectory: outputDir.path,
+      );
+      expect(backup.success, true);
+      final archive = ZipDecoder().decodeBytes(
+        await File(backup.backupPath!).readAsBytes(),
+      );
+      final names = archive.files.map((entry) => entry.name).toSet();
+      expect(names, containsAll(['novel_workspaces/work.sqlite', ...retained]));
+      for (final relative in retained) {
+        expect(
+          utf8.decode(archive.findFile(relative)!.content as List<int>),
+          'backup:$relative',
+        );
+      }
+      for (final relative in excluded) {
+        expect(names, isNot(contains(relative)));
+      }
+      // Restore staging also lives below a user-named parent. Both restore
+      // modes must read its files, including the recursive shared directory.
+      for (final mode in RestoreMode.values) {
+        for (final relative in retained) {
+          await File(p.join(external.path, relative)).writeAsString('changed');
+        }
+        final restore = await BackupService().restoreFromZip(
+          backup.backupPath!,
+          mode: mode,
+          novelIds: {'work'},
+        );
+        expect(restore.success, true, reason: '${restore.failureReason}');
+        for (final relative in retained) {
+          expect(
+            await File(p.join(external.path, relative)).readAsString(),
+            'backup:$relative',
+          );
+        }
+      }
+    });
+  }
+
+  for (final mode in RestoreMode.values) {
+    test(
+      'external workspace backup and $mode restore keep the directory together',
+      () async {
+        _writeLibrary(appSupportDir, {
+          'work': (title: 'Work', marker: 'backup'),
+        });
+        final external = await Directory(
+          p.join(tempRoot.path, 'external'),
+        ).create();
+        await RevericPaths.initialize(fileWorkspaceParent: external.path);
+        const relative = 'file_workspaces/work/files/中文/readme.txt';
+        final current = File(p.join(external.path, relative));
+        await current.parent.create(recursive: true);
+        await current.writeAsString('external backup');
+        final original = File(p.join(appSupportDir.path, relative));
+        await original.parent.create(recursive: true);
+        await original.writeAsString('original retained');
+        final config = File(p.join(appSupportDir.path, 'settings.local.json'));
+        await config.writeAsString('machine-specific config');
+        final backup = await BackupService().backupToZip(
+          outputDirectory: outputDir.path,
+        );
+        expect(backup.success, true);
+        final archive = ZipDecoder().decodeBytes(
+          await File(backup.backupPath!).readAsBytes(),
+        );
+        expect(
+          utf8.decode(archive.findFile(relative)!.content as List<int>),
+          'external backup',
+        );
+        expect(archive.findFile('settings.local.json'), isNull);
+        await current.writeAsString('changed');
+        final restored = await BackupService().restoreFromZip(
+          backup.backupPath!,
+          mode: mode,
+          novelIds: {'work'},
+        );
+        expect(restored.success, true, reason: '${restored.failureReason}');
+        expect(await current.readAsString(), 'external backup');
+        expect(await original.readAsString(), 'original retained');
+        expect(await config.readAsString(), 'machine-specific config');
+      },
+    );
+  }
+
+  test(
+    'external workspace restore failure rolls back files on the external disk',
+    () async {
+      _writeLibrary(appSupportDir, {'work': (title: 'Work', marker: 'backup')});
+      final external = await Directory(
+        p.join(tempRoot.path, 'external'),
+      ).create();
+      await RevericPaths.initialize(fileWorkspaceParent: external.path);
+      final own = File(
+        p.join(external.path, 'file_workspaces/work/files/own.txt'),
+      );
+      final blocked = Directory(
+        p.join(external.path, 'file_workspaces/shared/files/blocked'),
+      );
+      await own.parent.create(recursive: true);
+      await own.writeAsString('backup own');
+      await blocked.create(recursive: true);
+      await File(
+        p.join(blocked.path, 'child.txt'),
+      ).writeAsString('backup child');
+      final backup = await BackupService().backupToZip(
+        outputDirectory: outputDir.path,
+      );
+      expect(backup.success, true);
+      await own.writeAsString('current own');
+      final restored = await BackupService().restoreFromZip(
+        backup.backupPath!,
+        mode: RestoreMode.selectedNovels,
+        novelIds: {'work'},
+        onBeforeFileRestore: () async {
+          await blocked.delete(recursive: true);
+          await File(blocked.path).writeAsString('blocked');
+        },
+      );
+      expect(restored.success, false);
+      expect(await own.readAsString(), 'current own');
+      expect(await File(blocked.path).readAsString(), 'blocked');
+    },
+  );
+
   test(
     'directory backup includes current media and excludes obsolete roots',
     () async {
@@ -110,6 +270,8 @@ void main() {
         'file_workspaces/work/videos/incomplete.part',
         'file_workspaces/work/files/incomplete.pending',
         'file_workspaces/uncommitted.part',
+        'file_workspaces/work/.reveric_copy_interrupted/content',
+        'file_workspaces/work/.reveric_restore_rollback_interrupted/original',
         'file_workspaces/work/sessions/session/unregistered.mp4',
         'media/work/videos/unpublished.mp4',
         'videos/unpublished.mp4',
@@ -154,6 +316,8 @@ void main() {
         'file_workspaces/work/videos/incomplete.part',
         'file_workspaces/work/files/incomplete.pending',
         'file_workspaces/uncommitted.part',
+        'file_workspaces/work/.reveric_copy_interrupted/content',
+        'file_workspaces/work/.reveric_restore_rollback_interrupted/original',
         'media/work/videos/unpublished.mp4',
         'videos/unpublished.mp4',
         'audio/unpublished.wav',

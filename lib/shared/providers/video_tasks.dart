@@ -18,7 +18,6 @@ import '../database/novel_content_database.dart';
 import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../database/app_database.dart';
 import '../logger/app_logger.dart';
@@ -104,7 +103,7 @@ final productionResultServiceProvider = Provider<ProductionResultService>((
 final videoTaskServiceProvider = FutureProvider<VideoTaskService>((ref) async {
   final database = ref.watch(appDatabaseProvider);
   final references = ref.watch(referenceStorageServiceProvider);
-  final root = await getApplicationSupportDirectory();
+  final root = Directory(RevericPaths.fileWorkspaceParent);
   if (!ref.mounted) {
     throw StateError('Video startup disposed');
   }

@@ -8,6 +8,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:reveric/shared/utils/storage_paths.dart';
 import 'dart:math';
 
 import 'package:flutter/services.dart';
@@ -396,6 +397,7 @@ void main() {
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
       const channel = MethodChannel('plugins.flutter.io/path_provider');
       messenger.setMockMethodCallHandler(channel, (call) async => support.path);
+      await RevericPaths.initialize();
       addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
       final requests = <Map>[];
       final provider = aiProviderBuiltinById('openai')!.copyWith(

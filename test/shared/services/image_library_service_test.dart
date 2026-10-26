@@ -81,6 +81,43 @@ void main() {
     },
   );
 
+  test(
+    'generated image and map files use the selected whole workspace directory',
+    () async {
+      final external = await Directory.systemTemp.createTemp('external-media-');
+      addTearDown(() => external.delete(recursive: true));
+      await RevericPaths.initialize(fileWorkspaceParent: external.path);
+      final bytes = base64Decode(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+      );
+      final part = File(
+        '${external.path}/file_workspaces/reveric_image_result_external.png.part',
+      );
+      await part.parent.create(recursive: true);
+      await part.writeAsBytes(bytes);
+      final library = buildImageLibraryService(database);
+      final image = await library.importGenerated(
+        AiImageGenerationResult(localFilePath: part.path),
+        novelId: 'work',
+        purpose: AssetPurpose.ai_chat_generated,
+      );
+      final map = await library.importMapImage(bytes, novelId: 'work');
+      for (final asset in [image, map]) {
+        expect(asset.path, startsWith('file_workspaces/work/images/'));
+        expect(
+          await File('${external.path}/${asset.path}').readAsBytes(),
+          bytes,
+        );
+        expect(
+          RevericPaths.resolveStored(asset.path),
+          '${external.path}/${asset.path}',
+        );
+        expect(await File('${supportDir.path}/${asset.path}').exists(), false);
+      }
+      expect(await part.exists(), false);
+    },
+  );
+
   test('identical generated maps remain separate map assets', () async {
     final service = buildImageLibraryService(database);
     final bytes = base64Decode(

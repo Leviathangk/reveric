@@ -9,22 +9,44 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
-/// 资源以相对 Application Support 根目录的路径持久化。
+/// 资源以逻辑相对路径持久化；整个 file_workspaces 文件夹可放在指定父目录下。
 /// 写入时用 [toRelative] 归一化，读取时用 [resolveStored] 解析。
 /// 启动时必须先调用 [initialize] 缓存根目录。
 class RevericPaths {
   RevericPaths._();
 
   static String? _supportRoot;
+  static String? _fileWorkspaceParent;
 
   /// 启动期一次性缓存 Application Support 根目录路径。
   /// 必须在调用 [supportRoot] / [resolveStored] / [toRelative] 之前完成。
-  static Future<void> initialize() async {
+  static Future<void> initialize({String? fileWorkspaceParent}) async {
     final dir = await getApplicationSupportDirectory();
     if (!await dir.exists()) {
       await dir.create(recursive: true);
     }
     _supportRoot = dir.path;
+    _fileWorkspaceParent = fileWorkspaceParent;
+  }
+
+  /// 文件工作区的物理父目录；数据库、设置、缓存仍在 supportRoot。
+  static String get fileWorkspaceParent => _fileWorkspaceParent ?? supportRoot;
+
+  static String get fileWorkspaceRoot =>
+      p.join(fileWorkspaceParent, 'file_workspaces');
+
+  /// 文件工作区路径从所选父目录解析，其余资源仍从应用目录解析。
+  static String resolveRelative(String relative, {required String support}) {
+    final syntax = contextForStoredPath(relative);
+    if (syntax.split(relative).contains('..') || syntax.isAbsolute(relative)) {
+      throw const FormatException('Invalid application relative path');
+    }
+    // Reject traversal before normalization, then classify paths such as ./file_workspaces.
+    final parts = syntax.split(syntax.normalize(relative));
+    final root = parts.isNotEmpty && parts.first == 'file_workspaces'
+        ? _fileWorkspaceParent ?? support
+        : support;
+    return p.join(root, p.joinAll(parts));
   }
 
   /// 同步读取已缓存的 Application Support 根目录。
@@ -153,7 +175,7 @@ class RevericPaths {
         'Stored path escapes the application directory.',
       );
     }
-    return p.join(supportRoot, p.joinAll(syntax.split(stored)));
+    return resolveRelative(stored, support: supportRoot);
   }
 
   /// 把绝对路径归一化为相对当前根的路径，便于持久化。
@@ -170,6 +192,13 @@ class RevericPaths {
     final root = supportRoot;
     final normalizedPath = p.normalize(path);
     final normalizedRoot = p.normalize(root);
+    final workspace = p.normalize(fileWorkspaceRoot);
+    if (p.isWithin(workspace, normalizedPath)) {
+      return p.posix.join(
+        'file_workspaces',
+        p.posix.joinAll(p.split(p.relative(normalizedPath, from: workspace))),
+      );
+    }
     if (p.isWithin(normalizedRoot, normalizedPath)) {
       return p.posix.joinAll(
         p.split(p.relative(normalizedPath, from: normalizedRoot)),

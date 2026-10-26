@@ -29,6 +29,7 @@ import 'package:window_manager/window_manager.dart';
 
 import 'desktop/pages/home.dart';
 import 'shared/widgets/app_startup_gate.dart';
+import 'shared/widgets/file_workspace_startup_gate.dart';
 import 'desktop/widgets/activation_failure_app.dart';
 import 'shared/widgets/brand_loader.dart';
 import 'desktop/widgets/settings/settings_dialog.dart';
@@ -218,20 +219,23 @@ Future<void> _startApplication() async {
       child: Builder(
         builder: (context) {
           final localization = EasyLocalization.of(context)!;
-          return AppStartupGate(
-            initialize: () async {
-              // 初始化任务需要当前语言的名称；启动占位尚未挂载本地化 delegate。
-              await localization.delegate.load(localization.locale);
-              await _initializeAppData();
-            },
+          return FileWorkspaceStartupGate(
             loading: const _StartupLoadingApp(),
-            child: ProviderScope(
-              overrides: [
-                if (_isDesktopPlatform)
-                  mediaOperationsSupportedProvider.overrideWithValue(true),
-              ],
-              observers: [if (kDebugMode) _AsyncProviderTransitionObserver()],
-              child: const _EagerInitialization(child: MyApp()),
+            child: AppStartupGate(
+              initialize: () async {
+                // 初始化任务需要当前语言的名称；启动占位尚未挂载本地化 delegate。
+                await localization.delegate.load(localization.locale);
+                await _initializeAppData();
+              },
+              loading: const _StartupLoadingApp(),
+              child: ProviderScope(
+                overrides: [
+                  if (_isDesktopPlatform)
+                    mediaOperationsSupportedProvider.overrideWithValue(true),
+                ],
+                observers: [if (kDebugMode) _AsyncProviderTransitionObserver()],
+                child: const _EagerInitialization(child: MyApp()),
+              ),
             ),
           );
         },

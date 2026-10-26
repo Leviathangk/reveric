@@ -7,6 +7,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:reveric/shared/utils/storage_paths.dart';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -109,6 +110,7 @@ void main() {
               : null,
         );
 
+    await RevericPaths.initialize();
     requestedResponseFormat = null;
     requestedBody = null;
     imageStatus = 200;

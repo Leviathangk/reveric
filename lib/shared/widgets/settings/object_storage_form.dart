@@ -3,7 +3,7 @@
 //   lib/shared/models/object_storage_config.dart
 //   lib/shared/services/object_storage/service.dart
 //   lib/shared/providers/object_storage.dart
-//   lib/shared/widgets/settings/object_storage_settings_section.dart
+//   lib/desktop/widgets/settings/settings_storage_section.dart
 //   lib/shared/localization/locale_keys.dart
 //   assets/translations/en/settings.json
 //   assets/translations/zh-CN/settings.json

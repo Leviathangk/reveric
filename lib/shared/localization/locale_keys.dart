@@ -1929,6 +1929,7 @@ abstract final class LocaleKeys {
   static const commonExport = 'common.export';
   static const commonPlay = 'common.play';
   static const commonCancel = 'common.cancel';
+  static const commonChoose = 'common.choose';
   static const commonChangeCreate = 'common.change_create';
   static const commonChangeRewrite = 'common.change_rewrite';
   static const commonChangeExpand = 'common.change_expand';
@@ -4388,6 +4389,36 @@ abstract final class LocaleKeys {
   static const settingsStatusActive = 'settings.status_active';
   static const settingsStatusInactive = 'settings.status_inactive';
   static const settingsStorage = 'settings.storage';
+  static const settingsFileWorkspaceDirectory =
+      'settings.file_workspace_directory';
+  static const settingsFileWorkspaceHint = 'settings.file_workspace_hint';
+  static const settingsFileWorkspaceCurrent = 'settings.file_workspace_current';
+  static const settingsFileWorkspaceTarget = 'settings.file_workspace_target';
+  static const settingsFileWorkspaceTargetHint =
+      'settings.file_workspace_target_hint';
+  static const settingsFileWorkspaceMigrateHint =
+      'settings.file_workspace_migrate_hint';
+  static const settingsFileWorkspaceMigrate = 'settings.file_workspace_migrate';
+  static const settingsFileWorkspaceMigrating =
+      'settings.file_workspace_migrating';
+  static const settingsFileWorkspaceLoadFailed =
+      'settings.file_workspace_load_failed';
+  static const settingsFileWorkspaceSaveFailed =
+      'settings.file_workspace_save_failed';
+  static const settingsFileWorkspaceStartupFailed =
+      'settings.file_workspace_startup_failed';
+  static const settingsFileWorkspaceStartupFailedHint =
+      'settings.file_workspace_startup_failed_hint';
+  static const settingsFileWorkspaceMigrationFailed =
+      'settings.file_workspace_migration_failed';
+  static const settingsFileWorkspaceMigrationFailedHint =
+      'settings.file_workspace_migration_failed_hint';
+  static const settingsFileWorkspaceUseDefault =
+      'settings.file_workspace_use_default';
+  static const settingsFileWorkspaceRecoveryHint =
+      'settings.file_workspace_recovery_hint';
+  static const settingsObjectStorageTitle = 'settings.object_storage_title';
+
   static const settingsStorageDescription = 'settings.storage_description';
   static const settingsBackupPageDescription =
       'settings.backup_page_description';

@@ -1,6 +1,6 @@
-// 职责: 验证存储设置区的自动备份计划与 WebDAV 配置交互。
+// 职责: 验证备份设置区的自动备份计划与 WebDAV 配置交互。
 // 关联文件:
-//   lib/shared/widgets/settings/storage_settings_section.dart
+//   lib/shared/widgets/settings/backup_settings_section.dart
 //   lib/shared/providers/settings_providers.dart
 //   lib/shared/models/app_settings_aggregate_data.dart
 // 遵循的 Rules:
@@ -25,7 +25,7 @@ import 'package:reveric/shared/providers/webdav_backup_providers.dart';
 import 'package:reveric/shared/services/webdav_backup_service.dart';
 import 'package:reveric/shared/services/webdav_transport.dart';
 import 'package:reveric/shared/theme/theme.dart';
-import 'package:reveric/shared/widgets/settings/storage_settings_section.dart';
+import 'package:reveric/shared/widgets/settings/backup_settings_section.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -209,9 +209,7 @@ void main() {
       ).encode(),
     );
     final container = ProviderContainer(
-      overrides: [
-        appSettingsDatabaseProvider.overrideWithValue(database),
-      ],
+      overrides: [appSettingsDatabaseProvider.overrideWithValue(database)],
     );
     addTearDown(() async {
       container.dispose();
@@ -378,7 +376,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     final localization = EasyLocalization.of(
-      tester.element(find.byType(StorageSettingsSection)),
+      tester.element(find.byType(BackupSettingsSection)),
     )!;
     await tester.runAsync(
       () => localization.setLocale(const Locale('zh', 'CN')),
@@ -427,7 +425,7 @@ Widget _wrap(
             home: RevericTheme(
               data: RevericThemeData.reveric,
               child: Scaffold(
-                body: StorageSettingsSection(key: sectionKey, compact: compact),
+                body: BackupSettingsSection(key: sectionKey, compact: compact),
               ),
             ),
           );

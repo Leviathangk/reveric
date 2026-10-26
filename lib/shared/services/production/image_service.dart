@@ -313,7 +313,7 @@ class ImageTaskService {
       return;
     }
     final task = await requireRun(id);
-    final root = Directory(RevericPaths.supportRoot);
+    final root = Directory(RevericPaths.fileWorkspaceParent);
     final imagePart = RevericPaths.isImageResultPart(root, path);
     final extension = p.extension(imagePart ? p.withoutExtension(path) : path);
     final relative = RevericPaths.mediaPath(
@@ -321,7 +321,7 @@ class ImageTaskService {
       'image',
       '$id$extension',
     );
-    final target = File(p.join(RevericPaths.supportRoot, relative));
+    final target = File(p.join(RevericPaths.fileWorkspaceParent, relative));
     await target.parent.create(recursive: true);
     if (await target.exists()) {
       if ((await sha256.bind(target.openRead()).first).toString() != hash) {

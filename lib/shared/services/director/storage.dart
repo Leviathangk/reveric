@@ -20,7 +20,7 @@ class DirectorStorage {
   final Directory temporary;
   DirectorStorage(this.root, this.temporary);
   static Future<DirectorStorage> open(String novelId) async {
-    final support = await getApplicationSupportDirectory();
+    final support = Directory(RevericPaths.fileWorkspaceParent);
     final root = Directory(
           p.join(
             support.path,

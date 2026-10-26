@@ -6,7 +6,6 @@
 //   lib/shared/services/ai/codex/image_client.dart
 import 'dart:async';
 import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 
@@ -149,7 +148,7 @@ class AiImageGenerationResult {
     if (path == null) {
       return;
     }
-    final root = await getApplicationSupportDirectory();
+    final root = Directory(RevericPaths.fileWorkspaceParent);
     if (!RevericPaths.isImageResultPart(root, path)) {
       return;
     }

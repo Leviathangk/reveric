@@ -149,7 +149,7 @@ class ImageLibraryService {
     }
     final directory = Directory(
       p.join(
-        RevericPaths.supportRoot,
+        RevericPaths.fileWorkspaceParent,
         RevericPaths.mediaDirectory(novelId, 'image'),
       ),
     );
@@ -231,8 +231,7 @@ class ImageLibraryService {
     });
   }
 
-  String? resolve(String? storedPath) =>
-      RevericPaths.resolveStored(storedPath);
+  String? resolve(String? storedPath) => RevericPaths.resolveStored(storedPath);
 
   static String _mimeType(String extension) {
     switch (extension) {
@@ -263,6 +262,6 @@ ImageLibraryService buildImageLibraryService(AppDatabase database) =>
       () => MediaLibraryService(
         database,
         MediaService(FfmpegRunner()),
-        Directory(RevericPaths.supportRoot),
+        Directory(RevericPaths.fileWorkspaceParent),
       ),
     );

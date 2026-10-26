@@ -11,8 +11,8 @@
 //   lib/shared/widgets/settings/debug_settings_section.dart
 //   lib/shared/providers/settings_providers.dart
 //   lib/desktop/pages/settings/usage_page.dart
-//   lib/desktop/widgets/settings/storage_panel.dart
-//   lib/shared/widgets/settings/object_storage_settings_section.dart
+//   lib/desktop/widgets/settings/settings_storage_section.dart
+//   lib/shared/widgets/settings/backup_settings_section.dart
 //   lib/shared/localization/locale_keys.dart
 //   assets/translations/en/settings.json
 //   assets/translations/zh-CN/settings.json
@@ -37,11 +37,11 @@ import '../../../shared/widgets/settings/editor_settings_section.dart';
 import '../../../shared/widgets/reading/reading_settings_controls.dart';
 import '../../../shared/widgets/settings/reading_settings_section.dart';
 import '../../../shared/widgets/settings/general_settings_section.dart';
-import '../../../shared/widgets/settings/object_storage_settings_section.dart';
+import '../../../shared/widgets/settings/backup_settings_section.dart';
 import '../../../shared/widgets/settings/remote_bridge_settings_section.dart';
 import '../../../shared/widgets/settings/usage_settings_section.dart';
 import '../../pages/settings/usage_page.dart';
-import 'storage_panel.dart';
+import 'settings_storage_section.dart';
 
 part 'settings_general_section.dart';
 part 'settings_appearance_section.dart';
@@ -51,8 +51,7 @@ part 'settings_remote_section.dart';
 part 'settings_usage_section.dart';
 part 'settings_editor_section.dart';
 part 'settings_reading_section.dart';
-part 'settings_storage_section.dart';
-part 'settings_object_storage_section.dart';
+part 'settings_backup_section.dart';
 part 'settings_about_section.dart';
 part 'settings_debug_section.dart';
 
@@ -358,8 +357,8 @@ class SettingsDialog extends HookConsumerWidget {
       'usage' => _UsageSettingsSection(initialSessionId: initialUsageSessionId),
       'editor' => const _EditorSettingsSection(),
       'reading' => const _ReadingSettingsSection(),
-      'storage' => const _ObjectStorageSettingsSection(),
-      'backup' => const _StorageSettingsSection(),
+      'storage' => const StorageSettingsSection(),
+      'backup' => const _BackupSettingsSection(),
       'about' => const _AboutSettingsSection(),
       'debug' => _DebugSettingsSection(onClose: onCloseDebugSection),
       _ => const SizedBox.shrink(),

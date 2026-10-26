@@ -36,7 +36,7 @@ final mediaLibraryServiceProvider = Provider<MediaLibraryService>(
   (ref) => MediaLibraryService(
     ref.watch(appDatabaseProvider),
     ref.watch(mediaServiceProvider),
-    Directory(RevericPaths.supportRoot),
+    Directory(RevericPaths.fileWorkspaceParent),
   ),
 );
 final mediaAssetsProvider = StreamProvider.autoDispose<List<AssetRow>>(

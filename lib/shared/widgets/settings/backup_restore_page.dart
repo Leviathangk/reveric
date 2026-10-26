@@ -1,6 +1,6 @@
 // 职责: 备份恢复子页面 — 展示备份摘要并收集完整覆盖或小说级覆盖范围。
 // 关联文件:
-//   lib/shared/widgets/settings/storage_settings_section.dart
+//   lib/shared/widgets/settings/backup_settings_section.dart
 //   lib/shared/services/backup_service.dart
 //   lib/shared/localization/locale_keys.dart
 //   assets/translations/en/settings.json
@@ -431,9 +431,7 @@ class _RestoreActionFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = RevericTheme.colorsOf(context);
-    final horizontalPadding = compact
-        ? RevericSpacing.x3l
-        : RevericSpacing.x4l;
+    final horizontalPadding = compact ? RevericSpacing.x3l : RevericSpacing.x4l;
     final typo = RevericTheme.typographyOf(context);
     final notice = Row(
       key: const ValueKey('restore_confirmation_notice'),

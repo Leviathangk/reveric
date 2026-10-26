@@ -1,6 +1,6 @@
 // 职责: WebDAV 恢复子页面，枚举远端备份并下载所选文件。
 // 关联文件:
-//   lib/shared/widgets/settings/storage_settings_section.dart
+//   lib/shared/widgets/settings/backup_settings_section.dart
 //   lib/shared/services/webdav_backup_service.dart
 //   lib/shared/localization/locale_keys.dart
 //   assets/translations/en/settings.json

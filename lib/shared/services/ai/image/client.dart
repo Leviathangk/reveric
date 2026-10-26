@@ -18,9 +18,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show compute, protected;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import '../../../localization/locale_keys.dart';
+import '../../../utils/storage_paths.dart';
 import '../../../localization/ai_run_failure_localization.dart';
 import '../../../localization/ark_error_localization.dart';
 import '../../../models/ai_run_failure.dart';
@@ -266,7 +266,7 @@ abstract class ImageClient {
 
   Future<String> _saveBytesLocally(List<int> bytes) async {
     writeImageLog('[IMGDBG] local_save_start bytes=${bytes.length}');
-    final root = await getApplicationSupportDirectory();
+    final root = Directory(RevericPaths.fileWorkspaceParent);
     final directory = Directory(p.join(root.path, 'file_workspaces'));
 
     await directory.create(recursive: true);

@@ -1,6 +1,6 @@
 // 职责: 流式备份与恢复数据库和媒体文件，并保持作品选择恢复的资产及任务关联。
 // 关联文件:
-//   lib/shared/widgets/settings/storage_settings_section.dart
+//   lib/shared/widgets/settings/backup_settings_section.dart
 //   lib/shared/providers/settings_providers.dart
 //   lib/shared/utils/windows_safe_path.dart
 //   lib/shared/services/production/backup_media.dart
@@ -210,7 +210,10 @@ class BackupService {
           (entry) => entry != 'reveric.sqlite' && entry != 'novel_workspaces',
         )) {
           await _copyDirIfExists(
-            p.join(appSupportDir.path, directory),
+            RevericPaths.resolveRelative(
+              directory,
+              support: appSupportDir.path,
+            ),
             p.join(tempDir.path, directory),
             warnings: warnings,
           );
@@ -671,10 +674,13 @@ Future<void> _replaceAllBackupEntries({
   required Directory sourceDir,
   required Directory appSupportDir,
 }) async {
-  final ledger = await _RollbackLedger.create(appSupportDir);
+  final ledger = _RollbackLedger();
   try {
     for (final entryName in _backupEntries) {
-      final targetPath = p.join(appSupportDir.path, entryName);
+      final targetPath = RevericPaths.resolveRelative(
+        entryName,
+        support: appSupportDir.path,
+      );
       await ledger.moveAside(targetPath);
       if (entryName == 'reveric.sqlite') {
         await ledger.moveAside('$targetPath-wal');
@@ -685,7 +691,10 @@ Future<void> _replaceAllBackupEntries({
     for (final entryName in _backupEntries) {
       final source = _entityForPath(p.join(sourceDir.path, entryName));
       if (await source.exists()) {
-        await _copyBackupEntry(source, p.join(appSupportDir.path, entryName));
+        await _copyBackupEntry(
+          source,
+          RevericPaths.resolveRelative(entryName, support: appSupportDir.path),
+        );
       }
     }
     await ledger.discard();
@@ -727,7 +736,7 @@ Future<void> _replaceSelectedNovels({
     novelRows: novelRows,
     selectedIds: selectedIds,
   );
-  final ledger = await _RollbackLedger.create(appSupportDir);
+  final ledger = _RollbackLedger();
   try {
     for (final plan in plans) {
       final sourceContentPath = plan.sourceContentPath;
@@ -1034,21 +1043,7 @@ class _RestoreApplyFailure implements Exception {
 }
 
 class _RollbackLedger {
-  _RollbackLedger._(this.directory);
-
-  final Directory directory;
   final Map<String, _RollbackEntry> _entries = <String, _RollbackEntry>{};
-
-  static Future<_RollbackLedger> create(Directory appSupportDir) async {
-    final directory = Directory(
-      p.join(
-        appSupportDir.path,
-        '.reveric_restore_rollback_${DateTime.now().microsecondsSinceEpoch}',
-      ),
-    );
-    await directory.create(recursive: true);
-    return _RollbackLedger._(directory);
-  }
 
   Future<void> moveAside(String? targetPath) async {
     if (targetPath == null || targetPath.isEmpty) {
@@ -1063,10 +1058,10 @@ class _RollbackLedger {
       _entries[normalizedTarget] = const _RollbackEntry();
       return;
     }
-    final rollbackPath = p.join(
-      directory.path,
-      _entries.length.toString().padLeft(4, '0'),
-    );
+    final rollbackDirectory = await Directory(
+      p.dirname(normalizedTarget),
+    ).createTemp('.reveric_restore_rollback_');
+    final rollbackPath = p.join(rollbackDirectory.path, 'original');
     await _renameEntity(normalizedTarget, rollbackPath, type);
     _entries[normalizedTarget] = _RollbackEntry(
       rollbackPath: rollbackPath,
@@ -1081,17 +1076,21 @@ class _RollbackLedger {
       if (rollbackPath != null) {
         await Directory(p.dirname(entry.key)).create(recursive: true);
         await _renameEntity(rollbackPath, entry.key, entry.value.type!);
+        await Directory(p.dirname(rollbackPath)).delete();
       }
     }
-    await _deleteDirectoryIfExists(directory);
   }
 
   Future<void> discard() async {
     try {
-      await _deleteDirectoryIfExists(directory);
+      for (final entry in _entries.values) {
+        if (entry.rollbackPath case final path?) {
+          await _deleteDirectoryIfExists(Directory(p.dirname(path)));
+        }
+      }
     } catch (error, stackTrace) {
       AppLogger.error(
-        '[Backup] Could not remove restore rollback directory path=${directory.path}',
+        '[Backup] Could not remove restore rollback files',
         error: error,
         stackTrace: stackTrace,
       );
@@ -1182,7 +1181,7 @@ Future<void> _preflightSqliteSnapshots(Directory appSupportDir) async {
     if (entity is Link) {
       throw const FormatException('Symbolic links are not allowed in backups');
     }
-    if (_uncommittedBackupPath(entity.path)) {
+    if (_uncommittedBackupPath(entity.path, root: novelsDir)) {
       continue;
     }
     if (entity is File && p.extension(entity.path) == '.sqlite') {
@@ -1301,7 +1300,7 @@ Future<void> _copyNovelWorkspaceDatabasesIfExists(
     if (entity is Link) {
       throw const FormatException('Symbolic links are not allowed in backups');
     }
-    if (_uncommittedBackupPath(entity.path)) {
+    if (_uncommittedBackupPath(entity.path, root: sourceDir)) {
       continue;
     }
     if (entity is File && p.extension(entity.path) == '.sqlite') {
@@ -1351,7 +1350,7 @@ Future<void> _copyDirContents(
     if (entity is Link) {
       throw const FormatException('Symbolic links are not allowed in backups');
     }
-    if (_uncommittedBackupPath(entity.path)) {
+    if (_uncommittedBackupPath(entity.path, root: source)) {
       continue;
     }
     if (entity is File) {
@@ -1461,13 +1460,17 @@ void _extractZipSafely({
   }
 }
 
-bool _uncommittedBackupPath(String path) => p
-    .split(path)
+// Only entries inside the enumerated root identify temporary output. User
+// storage paths and the system temporary directory can contain these names too.
+bool _uncommittedBackupPath(String path, {required Directory root}) => p
+    .split(p.relative(path, from: root.path))
     .any(
       (part) =>
           part.endsWith('.part') ||
           part.endsWith('.pending') ||
-          part.endsWith('.staging'),
+          part.endsWith('.staging') ||
+          part.startsWith('.reveric_copy_') ||
+          part.startsWith('.reveric_restore_rollback_'),
     );
 
 Future<void> _restoreSelectedMediaDirectories(
@@ -1486,9 +1489,16 @@ Future<void> _restoreSelectedMediaDirectories(
     if (!await input.exists()) {
       continue;
     }
-    final output = Directory(p.join(target.path, relative));
+    final output = Directory(
+      RevericPaths.resolveRelative(relative, support: target.path),
+    );
     await RevericPaths.requireNoLinks(source, input.path);
-    await RevericPaths.requireNoLinks(target, output.path);
+    await RevericPaths.requireNoLinks(
+      Directory(
+        RevericPaths.resolveRelative('file_workspaces', support: target.path),
+      ),
+      output.path,
+    );
     await ledger.moveAside(output.path);
     await _copyDirContents(input, output);
   }
@@ -1505,13 +1515,21 @@ Future<void> _restoreSelectedMediaDirectories(
       if (entity is Link) {
         throw const FormatException('Symbolic link in shared media');
       }
-      if (entity is! File || _uncommittedBackupPath(entity.path)) {
+      if (entity is! File || _uncommittedBackupPath(entity.path, root: input)) {
         continue;
       }
       final output = File(
-        p.join(target.path, p.relative(entity.path, from: source.path)),
+        RevericPaths.resolveRelative(
+          p.relative(entity.path, from: source.path),
+          support: target.path,
+        ),
       );
-      await RevericPaths.requireNoLinks(target, output.path);
+      await RevericPaths.requireNoLinks(
+        Directory(
+          RevericPaths.resolveRelative('file_workspaces', support: target.path),
+        ),
+        output.path,
+      );
       await ledger.moveAside(output.path);
       await output.parent.create(recursive: true);
       await entity.copy(output.path);

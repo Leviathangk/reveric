@@ -2,7 +2,7 @@
 // 关联文件:
 //   lib/shared/components/reveric_dialog.dart
 //   lib/shared/components/reveric_button.dart
-//   lib/desktop/widgets/settings/storage_panel.dart
+//   lib/desktop/widgets/settings/settings_backup_section.dart
 //   lib/mobile/pages/settings_page.dart
 //   lib/shared/providers/settings_providers.dart
 //   lib/shared/services/backup_service.dart
@@ -51,9 +51,9 @@ import 'webdav_backup_settings.dart';
 import 'webdav_restore_page.dart';
 import '../../components/reveric_dialog.dart';
 
-/// Storage 配置区（变更记录保留 + 备份）。
-class StorageSettingsSection extends HookConsumerWidget {
-  const StorageSettingsSection({super.key, this.compact = false});
+/// 备份配置区（变更记录保留 + 备份）。
+class BackupSettingsSection extends HookConsumerWidget {
+  const BackupSettingsSection({super.key, this.compact = false});
 
   final bool compact;
 

@@ -50,4 +50,4 @@
 
 - `lib/mobile/services/android_saf_directory_import.dart` 是文档目录导入的 Android SAF 适配入口；新的移动端目录导入优先复用它，除非文件布局或写入语义不同。
 - `lib/mobile/features/agent_skills/novel_agent_skill_manage_page.dart` 的 Agent Skill 目录导入/导出必须复用 Android SAF 适配入口；导出不得把选择器返回值当作普通目录路径写入。
-- `lib/shared/widgets/settings/storage_settings_section.dart` 的移动端自定义备份目录必须保持禁用；备份通过临时文件和系统导出面板完成。
+- `lib/shared/widgets/settings/backup_settings_section.dart` 的移动端自定义备份目录必须保持禁用；备份通过临时文件和系统导出面板完成。
