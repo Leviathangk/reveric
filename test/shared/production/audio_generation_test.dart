@@ -1166,14 +1166,14 @@ void main() {
           provider.copyWith(
             id: providerId,
             type: providerType,
-            audioModels: ['qwen3-tts-flash'],
+            audioModels: ['qwen-audio-3.1-tts-plus'],
           ),
         );
         var posts = 0;
         final service = jobs((_, request, references, _) async {
           posts++;
           expect(request.parameters.responseFormat, 'wav');
-          expect(request.parameters.voice, 'Cherry');
+          expect(request.parameters.voice, 'longanhuan_v3.1');
           expect(references, isEmpty);
           return AudioGenerationResult(
             Uint8List(0),
@@ -1187,11 +1187,11 @@ void main() {
           sourceId: node.clipId!,
           request: AudioRequest(
             providerId: providerId,
-            modelId: 'qwen3-tts-flash',
+            modelId: 'qwen-audio-3.1-tts-plus',
             prompt: 'Hello',
             originalPrompt: 'Hello',
             parameters: const AudioRequestDefaults(
-              voice: ConfigValue('Cherry'),
+              voice: ConfigValue('longanhuan_v3.1'),
             ),
           ),
         );

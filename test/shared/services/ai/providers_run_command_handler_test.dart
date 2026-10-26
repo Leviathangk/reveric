@@ -98,7 +98,7 @@ void main() {
     'third-party audio discovery exposes channel output formats and defaults',
     () {
       for (final (type, model, format) in [
-        ('qwen', 'qwen3-tts-flash', 'wav'),
+        ('qwen', 'qwen-audio-3.1-tts-plus', 'wav'),
         ('qwen', 'qwen-audio-3.1-tts-next', 'wav'),
         ('atlascloud', 'google/gemini-3.1-flash-tts', 'wav'),
         ('atlascloud', 'minimax/speech-2.6-turbo', 'mp3'),

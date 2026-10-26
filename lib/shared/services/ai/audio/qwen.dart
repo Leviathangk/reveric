@@ -3,11 +3,14 @@
 //   lib/shared/services/ai/audio/client.dart
 //   lib/shared/models/audio/request.dart
 //   lib/shared/models/audio/channels.dart
+//   lib/shared/services/ai/media_diagnostics.dart
 import 'dart:convert';
 import 'dart:typed_data';
+import '../../../logger/app_logger.dart';
 import '../../../models/audio/channels.dart';
 import '../../../models/audio/exception.dart';
 import '../../../models/audio/request.dart';
+import '../media_diagnostics.dart';
 import 'client.dart';
 
 /// 沿用渠道的主机和代理前缀，将兼容模式地址转换为原生语音接口。
@@ -123,6 +126,10 @@ class QwenAudioClient extends AudioClient {
 
   @override
   AudioGenerationResult decodeResult(Map<String, dynamic> json) {
+    AppLogger.debug(
+      '[QwenAudio] response usage=${safeMediaDiagnostic(jsonEncode(json['usage']), apiKey)} '
+      'body=${safeMediaDiagnostic(jsonEncode(json), apiKey)}',
+    );
     final output = json['output'] as Map<String, dynamic>;
     final audio = output['audio'] as Map<String, dynamic>;
     final url = Uri.parse(audio['url'] as String);

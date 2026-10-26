@@ -61,15 +61,15 @@ void main() {
   for (final (baseUrl, endpoint) in [
     (
       'https://dashscope.aliyuncs.com/compatible-mode/v1',
-      'https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation',
+      'https://dashscope.aliyuncs.com/api/v1/services/audio/tts/SpeechSynthesizer',
     ),
     (
       'https://proxy.example/qwen/compatible-mode/v1/',
-      'https://proxy.example/qwen/api/v1/services/aigc/multimodal-generation/generation',
+      'https://proxy.example/qwen/api/v1/services/audio/tts/SpeechSynthesizer',
     ),
     (
       'https://proxy.example/qwen/',
-      'https://proxy.example/qwen/api/v1/services/aigc/multimodal-generation/generation',
+      'https://proxy.example/qwen/api/v1/services/audio/tts/SpeechSynthesizer',
     ),
   ]) {
     test(
@@ -86,11 +86,11 @@ void main() {
             provider,
             AudioRequest(
               providerId: provider.id,
-              modelId: 'qwen3-tts-flash',
+              modelId: 'qwen-audio-3.1-tts-plus',
               prompt: 'Hello',
               originalPrompt: 'Hello',
               parameters: const AudioRequestDefaults(
-                voice: ConfigValue('Cherry'),
+                voice: ConfigValue('longanhuan_v3.1'),
               ),
             ),
             [],
@@ -103,8 +103,13 @@ void main() {
             expect(r.headers['Authorization'], 'Bearer qwen-key');
             expect(r.headers['X-Product-Code'], isNull);
             expect(jsonDecode(r.body), {
-              'model': 'qwen3-tts-flash',
-              'input': {'text': 'Hello', 'voice': 'Cherry'},
+              'model': 'qwen-audio-3.1-tts-plus',
+              'input': {
+                'text': 'Hello',
+                'voice': 'longanhuan_v3.1',
+                'format': 'wav',
+                'sample_rate': 24000,
+              },
             });
             return http.Response(
               '{"output":{"audio":{"url":"https://output.test/result.wav"}}}',

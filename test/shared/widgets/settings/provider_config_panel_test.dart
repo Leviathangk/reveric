@@ -131,7 +131,6 @@ void main() {
         (
           'qwen',
           [
-            'qwen3-tts-flash',
             'qwen-audio-3.1-tts-plus',
             'qwen-audio-3.0-tts-flash',
             'qwen-audio-3.1-tts-next',

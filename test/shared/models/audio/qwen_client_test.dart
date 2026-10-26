@@ -52,18 +52,13 @@ AudioReference _reference({
 );
 
 void main() {
-  test('Qwen exposes three speech models and one reference audio model', () {
-    expect(audioModelsForProvider('qwen'), [
-      'qwen3-tts-flash',
-      _plus,
-      _flash,
-      _next,
-    ]);
+  test('Qwen exposes two speech models and one reference audio model', () {
+    expect(audioModelsForProvider('qwen'), [_plus, _flash, _next]);
     expect(
       audioModelsForProvider(
         'qwen',
       ).where((id) => lookupAudioChannelModel('qwen', id)!.capabilities.speech),
-      ['qwen3-tts-flash', _plus, _flash],
+      [_plus, _flash],
     );
     final next = lookupAudioChannelModel('qwen', _next)!;
     expect(next.capabilities.voices, isEmpty);
@@ -73,75 +68,76 @@ void main() {
   });
 
   for (final (model, voice, rate) in [
-    ('qwen3-tts-flash', 'Cherry', null),
     (_plus, 'longanhuan_v3.1', 24000),
     (_flash, 'longanhuan_v3.6', 24000),
     (_next, null, 48000),
     ('proxy/qwen-audio-3.1-tts-plus', 'longanhuan_v3.1', 24000),
   ]) {
-    test('$model sends non-streaming input and downloads WAV separately', () async {
-      final speechSynthesizer = model != 'qwen3-tts-flash';
-      final endpoint = qwenAudioEndpoint(
-        'https://proxy.example/qwen/compatible-mode/v1/',
-        modelId: model,
-      );
-      expect(
-        endpoint.path,
-        '/qwen/api/v1/services/${speechSynthesizer ? 'audio/tts/SpeechSynthesizer' : 'aigc/multimodal-generation/generation'}',
-      );
-      var calls = 0;
-      final transport = MockClient((r) async {
-        calls++;
-        expect(r.headers['Authorization'], 'Bearer qwen-key');
-        expect(r.headers['Content-Type'], 'application/json');
-        expect(r.headers['X-DashScope-SSE'], isNull);
-        expect(r.url, endpoint);
-        expect(jsonDecode(r.body), {
-          'model': model,
-          'input': {
-            model == _next ? 'text_prompt' : 'text': '你好。',
-            'voice': ?voice,
-            if (speechSynthesizer) 'format': 'wav',
-            'sample_rate': ?rate,
-            if (model == _plus || model == _flash) 'instruction': '温暖、平静',
-          },
-        });
-        return http.Response(
-          '{"output":{"audio":{"url":"http://output.example/audio.wav?signature=test"}}}',
-          200,
+    test(
+      '$model sends non-streaming input and downloads WAV separately',
+      () async {
+        final endpoint = qwenAudioEndpoint(
+          'https://proxy.example/qwen/compatible-mode/v1/',
+          modelId: model,
         );
-      });
-      addTearDown(transport.close);
-      final api = QwenAudioClient(transport, 'qwen-key', endpoint: endpoint);
-      final result = await api.generate(
-        _request(
-          model,
-          parameters: AudioRequestDefaults(
-            instructions: ConfigValue(
-              model == _plus || model == _flash ? '温暖、平静' : null,
+        expect(
+          endpoint.path,
+          '/qwen/api/v1/services/audio/tts/SpeechSynthesizer',
+        );
+        var calls = 0;
+        final transport = MockClient((r) async {
+          calls++;
+          expect(r.headers['Authorization'], 'Bearer qwen-key');
+          expect(r.headers['Content-Type'], 'application/json');
+          expect(r.headers['X-DashScope-SSE'], isNull);
+          expect(r.url, endpoint);
+          expect(jsonDecode(r.body), {
+            'model': model,
+            'input': {
+              model == _next ? 'text_prompt' : 'text': '你好。',
+              'voice': ?voice,
+              'format': 'wav',
+              'sample_rate': ?rate,
+              if (model == _plus || model == _flash) 'instruction': '温暖、平静',
+            },
+          });
+          return http.Response(
+            '{"output":{"audio":{"url":"http://output.example/audio.wav?signature=test"}}}',
+            200,
+          );
+        });
+        addTearDown(transport.close);
+        final api = QwenAudioClient(transport, 'qwen-key', endpoint: endpoint);
+        final result = await api.generate(
+          _request(
+            model,
+            parameters: AudioRequestDefaults(
+              instructions: ConfigValue(
+                model == _plus || model == _flash ? '温暖、平静' : null,
+              ),
             ),
           ),
-        ),
-      );
-      expect(calls, 1);
-      expect(result.bytes, isEmpty);
-      final output = Uint8List(44)
-        ..setRange(0, 4, ascii.encode('RIFF'))
-        ..setRange(8, 12, ascii.encode('WAVE'));
-      final downloader = MockClient((r) async {
-        expect(
-          r.url.toString(),
-          'https://output.example/audio.wav?signature=test',
         );
-        expect(r.headers['Authorization'], isNull);
-        return http.Response.bytes(output, 200);
-      });
-      addTearDown(downloader.close);
-      expect(
-        await downloadAudioOutput(result.url!, httpClient: downloader),
-        output,
-      );
-    });
+        expect(calls, 1);
+        expect(result.bytes, isEmpty);
+        final output = Uint8List(44)
+          ..setRange(0, 4, ascii.encode('RIFF'))
+          ..setRange(8, 12, ascii.encode('WAVE'));
+        final downloader = MockClient((r) async {
+          expect(
+            r.url.toString(),
+            'https://output.example/audio.wav?signature=test',
+          );
+          expect(r.headers['Authorization'], isNull);
+          return http.Response.bytes(output, 200);
+        });
+        addTearDown(downloader.close);
+        expect(
+          await downloadAudioOutput(result.url!, httpClient: downloader),
+          output,
+        );
+      },
+    );
   }
 
   final encoder = QwenAudioClient(
@@ -200,7 +196,6 @@ void main() {
   );
 
   for (final (model, limit) in [
-    ('qwen3-tts-flash', 600),
     (_plus, 20000),
     (_flash, 20000),
     (_next, 3000),
@@ -268,7 +263,9 @@ void main() {
       for (final request in [
         _request(
           _next,
-          parameters: const AudioRequestDefaults(voice: ConfigValue('Cherry')),
+          parameters: const AudioRequestDefaults(
+            voice: ConfigValue('longanhuan_v3.1'),
+          ),
         ),
         _request(
           _next,
@@ -299,12 +296,6 @@ void main() {
           parameters: const AudioRequestDefaults(bitrate: ConfigValue(128000)),
         ),
         _request(_flash, references: [_reference()]),
-        _request(
-          'qwen3-tts-flash',
-          parameters: const AudioRequestDefaults(
-            instructions: ConfigValue('calm'),
-          ),
-        ),
       ]) {
         await expectLater(
           api.generate(request),

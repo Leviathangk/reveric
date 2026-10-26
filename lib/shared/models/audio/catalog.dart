@@ -32,18 +32,6 @@ const _minimaxMusicModel = AudioModelCatalogEntry(
 // https://docs.byteplus.com/en/docs/byteplusvoice/seedaudio-01
 // https://platform.minimax.io/docs/api-reference/music-generation
 final audioModelsCatalog = <String, AudioModelCatalogEntry>{
-  // https://www.alibabacloud.com/help/en/model-studio/qwen-tts-api
-  'qwen3-tts-flash': AudioModelCatalogEntry(
-    capabilities: AudioModelCapabilities(
-      speech: true,
-      maxPromptCharacters: 600,
-      voices: ['Cherry'],
-    ),
-    requestDefaults: AudioRequestDefaults(
-      voice: ConfigValue('Cherry'),
-      responseFormat: ConfigValue('wav'),
-    ),
-  ),
   // https://platform.qianwenai.com/docs/api-reference/speech-synthesis/qwen-audio-tts/python-sdk
   // https://platform.qianwenai.com/docs/developer-guides/speech/voice-list/qwen-audio-tts
   'qwen-audio-3.1-tts-plus': AudioModelCatalogEntry(

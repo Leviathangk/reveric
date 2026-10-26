@@ -55,7 +55,6 @@ final audioChannelModels = <AudioProtocol, Map<String, AudioChannelModel>>{
       id: AudioChannelModel(catalogId: id),
   },
   AudioProtocol.qwen_tts: {
-    'qwen3-tts-flash': AudioChannelModel(catalogId: 'qwen3-tts-flash'),
     for (final id in [
       'qwen-audio-3.1-tts-plus',
       'qwen-audio-3.0-tts-flash',

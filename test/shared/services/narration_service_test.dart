@@ -66,7 +66,6 @@ void main() {
   tearDown(() => db.close());
 
   for (final (model, voice, instructions) in [
-    ('qwen3-tts-flash', 'Cherry', ''),
     ('qwen-audio-3.1-tts-plus', 'longanhuan_v3.1', '轻声'),
     ('qwen-audio-3.0-tts-flash', 'longanhuan_v3.6', '轻声'),
     ('qwen-audio-3.1-tts-next', '', ''),
@@ -164,8 +163,8 @@ void main() {
         final provider = (await db.aiProviderDao.getById('speech'))!;
         final model = asynchronous
             ? 'google/gemini-3.1-flash-tts'
-            : 'qwen3-tts-flash';
-        final voice = asynchronous ? 'Kore' : 'Cherry';
+            : 'qwen-audio-3.1-tts-plus';
+        final voice = asynchronous ? 'Kore' : 'longanhuan_v3.1';
         await db.aiProviderDao.upsert(
           provider.copyWith(
             type: asynchronous ? 'atlascloud' : 'qwen',
