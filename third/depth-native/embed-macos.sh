@@ -8,9 +8,12 @@ if [ ! -f "$depth_sdk/lib/libonnxruntime.dylib" ]; then
 fi
 depth_build="$depth_root/build/depth-native/native-macos"
 depth_destination="${1:-${TARGET_BUILD_DIR:?}/${UNLOCALIZED_RESOURCES_FOLDER_PATH:?}/depth}"
+# This standalone process must match its ONNX SDK, which can have fewer slices
+# than the host app. CMake expects a semicolon-separated architecture list.
+depth_archs=$(lipo -archs "$depth_sdk/lib/libonnxruntime.dylib")
 cmake -S "$depth_root/third/depth-native" -B "$depth_build" \
   -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DORT_ROOT="$depth_sdk" \
-  -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_OSX_ARCHITECTURES="${ARCHS:-arm64}"
+  -DCMAKE_OSX_DEPLOYMENT_TARGET=12.0 -DCMAKE_OSX_ARCHITECTURES="${depth_archs// /;}"
 cmake --build "$depth_build" --parallel 4
 cmake --install "$depth_build" --prefix "$depth_destination"
 depth_identity="${EXPANDED_CODE_SIGN_IDENTITY:--}"

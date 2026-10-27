@@ -132,9 +132,9 @@ pin when no explicit build override is present; Windows, Android and Linux no
 longer silently select the host stable toolchain. Cargo builds use --locked.
 The focused builder regression checks the emitted compiler and Cargo toolchain.
 
-`tools/build_codemode_runtime.sh` uses the root FVM SDK (or the active Flutter)
+`third/fjs/tool/build_runtime.sh` uses the root FVM SDK (or the active Flutter)
 and builds/verifies the Apple archive before Makefile/CI app builds, reusing a
-machine-level cache keyed by the identity below. `tools/codemode_artifact.py` records
+machine-level cache keyed by the identity below. `third/fjs/tool/artifact.py` records
 source hashes (including patch, Cargo.lock, version and builder),
 Rust/compiler identity, host architecture, five Apple targets and Xcode/SDKs.
 A cache entry is accepted only when identity and SHA-256 match. Its local CargoKit

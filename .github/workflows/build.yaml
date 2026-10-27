@@ -111,21 +111,20 @@ jobs:
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '26.2'
-      - name: Install CocoaPods
-        shell: bash
-        run: brew install cocoapods
       - run: flutter pub get
       - name: Identify patched Codemode runtime
         id: codemode
         shell: bash
-        run: echo "key=$(bash tools/build_codemode_runtime.sh --key)" >> "$GITHUB_OUTPUT"
+        run: echo "key=$(bash third/fjs/tool/build_runtime.sh --key)" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
         with:
           path: third/fjs/darwin/fjs/Binaries
           key: ${{ steps.codemode.outputs.key }}
       - name: Build and verify patched Codemode runtime
         shell: bash
-        run: bash tools/build_codemode_runtime.sh
+        run: bash third/fjs/tool/build_runtime.sh
+      - name: Prepare trimmed MDK for SwiftPM
+        run: bash third/fvp/macos/setup.sh
       - name: Build CPU depth runtime
         shell: bash
         run: bash third/depth-native/prepare-product-macos.sh

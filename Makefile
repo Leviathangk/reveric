@@ -141,13 +141,15 @@ wt-clean: ## 清理已删除分支的 worktree 引用
 
 build-macos: ## 构建 macOS 客户端 (debug)
 	@echo "🍎 构建 macOS 客户端 (debug)..."
-	@bash tools/build_codemode_runtime.sh
+	@bash third/fjs/tool/build_runtime.sh
+	@bash third/fvp/macos/setup.sh
 	@fvm flutter build macos --debug
 	@echo "✅ macOS 构建完成: $(BUILD_DIR)/macos/Build/Products/Debug/Reveric.app"
 
 build-macos-release: ## 构建 macOS 客户端 (release)
 	@echo "🍎 构建 macOS 客户端 (release)..."
-	@bash tools/build_codemode_runtime.sh
+	@bash third/fjs/tool/build_runtime.sh
+	@bash third/fvp/macos/setup.sh
 	@fvm flutter build macos --release
 	@echo "✅ macOS 构建完成: $(BUILD_DIR)/macos/Build/Products/Release/Reveric.app"
 
@@ -188,7 +190,8 @@ build-all-release: ## 构建所有桌面端客户端 (release)
 run-macos: ## 运行 macOS 客户端 (debug)
 	@echo "🍎 运行 macOS 客户端..."
 	@[ -e .fvm/flutter_sdk ] || fvm use --skip-pub-get
-	@bash tools/build_codemode_runtime.sh
+	@bash third/fjs/tool/build_runtime.sh
+	@bash third/fvp/macos/setup.sh
 	@fvm flutter run -d macos
 
 run-windows: ## 运行 Windows 客户端 (debug)
@@ -205,19 +208,22 @@ run-linux: ## 运行 Linux 客户端 (debug)
 
 package-release: ## 使用 fastforge 打包 release (所有桌面端)
 	@echo "📦 打包 release 版本 (所有桌面端)..."
-	@bash tools/build_codemode_runtime.sh
+	@bash third/fjs/tool/build_runtime.sh
+	@if [ "$$(uname -s)" = Darwin ]; then bash third/fvp/macos/setup.sh; fi
 	@fvm exec fastforge release --name release
 	@echo "✅ 打包完成，输出目录: dist/"
 
 package-dev: ## 使用 fastforge 打包 dev 版本 (profile)
 	@echo "📦 打包 dev 版本 (profile)..."
-	@bash tools/build_codemode_runtime.sh
+	@bash third/fjs/tool/build_runtime.sh
+	@if [ "$$(uname -s)" = Darwin ]; then bash third/fvp/macos/setup.sh; fi
 	@fvm exec fastforge release --name dev
 	@echo "✅ 打包完成，输出目录: dist/"
 
 package-macos-release: ## 使用 fastforge 打包 macOS release (DMG)
 	@echo "🍎 打包 macOS release (DMG)..."
-	@bash tools/build_codemode_runtime.sh
+	@bash third/fjs/tool/build_runtime.sh
+	@bash third/fvp/macos/setup.sh
 	@fvm exec fastforge release --name release --jobs macos-dmg
 	@echo "✅ macOS DMG 打包完成"
 

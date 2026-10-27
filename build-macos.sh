@@ -6,7 +6,7 @@
 #   1. 安装 appdmg (npm)
 #   2. 禁用 pubspec.yaml sqlite3 hooks
 #   3. fvm flutter pub get
-#   4. 构建 Codemode runtime (fjs.xcframework)
+#   4. 构建 FJS runtime (fjs.xcframework)
 #   5. fastforge 构建 dmg 安装包 + zip 归档
 #   6. 还原 pubspec.yaml
 #
@@ -123,9 +123,10 @@ fi
 info "fvm flutter pub get..."
 "${FLUTTER[@]}" pub get
 
-# ----- 构建 Codemode runtime -----
-info "构建 Codemode runtime (fjs.xcframework)..."
-bash "$SCRIPT_DIR/tools/build_codemode_runtime.sh"
+# ----- 构建 FJS runtime -----
+info "构建 FJS runtime (fjs.xcframework)..."
+bash "$SCRIPT_DIR/third/fjs/tool/build_runtime.sh"
+bash "$SCRIPT_DIR/third/fvp/macos/setup.sh"
 bash "$SCRIPT_DIR/third/depth-native/prepare-product-macos.sh"
 
 # ----- 清理旧产物 -----

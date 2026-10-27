@@ -9,7 +9,7 @@ import sys
 import tempfile
 import zipfile
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[3]
 BINARIES = ROOT / 'third/fjs/darwin/fjs/Binaries'
 ARCHIVE = BINARIES / 'fjs.xcframework.zip'
 RECORD = BINARIES / 'reveric-build.json'
@@ -30,8 +30,7 @@ def identity():
     paths = {name for name in run('git', 'ls-files', '--cached', '--others',
                                  '--exclude-standard', 'third/fjs').splitlines()
              if (ROOT / name).is_file()}
-    paths.update(['cargokit_options.yaml', 'tools/build_codemode_runtime.sh',
-                  'tools/codemode_artifact.py'])
+    paths.add('cargokit_options.yaml')
     inputs = {name: digest(ROOT / name) for name in sorted(paths)}
     # Flutter only hosts the CargoKit build tool; dart-sys ships its own Dart API
     # headers, so the SDK revision does not reach the native archive.
@@ -98,7 +97,7 @@ def main():
                 raise SystemExit('Packaged FJS UUIDs differ from patched source archive')
         print('Packaged FJS UUIDs match patched archive: ' + str(binary))
     else:
-        raise SystemExit('usage: codemode_artifact.py key|verify|record|verify-app APP')
+        raise SystemExit('usage: artifact.py key|verify|record|verify-app APP')
 
 
 if __name__ == '__main__':
