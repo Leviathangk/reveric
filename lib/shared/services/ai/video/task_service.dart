@@ -1038,6 +1038,7 @@ class VideoTaskService {
       return;
     }
     var refreshAfter = false;
+    var submitAfter = false;
     try {
       final task = await _task(id);
       if (task.status != GenerationTaskStatus.action_required) {
@@ -1046,14 +1047,16 @@ class VideoTaskService {
       await _provider(task);
       if (task.providerTaskId == null) {
         // A configuration edit during POST must never turn uncertainty into a retry.
-        await _status(
-          task,
-          task.submittedAt != null ||
-                  task.errorCode == 'provider_configuration_changed'
-              ? GenerationTaskStatus.submission_unknown
-              : GenerationTaskStatus.prepared,
-          error: 'confirm_original_submission',
-        );
+        if (task.submittedAt != null ||
+            task.errorCode == 'provider_configuration_changed') {
+          await _status(
+            task,
+            GenerationTaskStatus.submission_unknown,
+            error: 'confirm_original_submission',
+          );
+        } else {
+          submitAfter = await _status(task, GenerationTaskStatus.prepared);
+        }
       } else {
         refreshAfter = await _status(
           task,
@@ -1064,7 +1067,10 @@ class VideoTaskService {
     } finally {
       _releaseTask(id);
     }
-    if (refreshAfter) {
+    if (submitAfter) {
+      // Explicit retry also confirms reference upload; reuse submission guards.
+      await submit(id, acknowledgeReferenceUpload: true);
+    } else if (refreshAfter) {
       await refresh(id);
     }
   }

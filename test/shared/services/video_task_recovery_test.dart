@@ -1357,14 +1357,90 @@ void main() {
         GenerationTaskStatus.action_required,
       );
       await service.resumeAfterConfigurationFixed(id);
-      expect(
-        (await service.getTask(id))!.status,
-        GenerationTaskStatus.prepared,
-      );
-      await service.submit(id);
+      expect((await service.getTask(id))!.status, GenerationTaskStatus.running);
       expect(posts, 1);
     },
   );
+
+  for (final status in [400, 401, 409, 429]) {
+    test(
+      'retry after HTTP $status rejection submits without confirmation',
+      () async {
+        var reject = true;
+        final service = make(
+          respond: (_) async => reject
+              ? http.Response(
+                  '{"error":{"message":"request rejected"}}',
+                  status,
+                )
+              : http.Response('{"id":"retried"}', 200),
+        );
+        final id = await service.create(
+          novelId: 'test-novel',
+          sourceType: 'storyboard_shot',
+          sourceId: 'test-shot',
+          providerId: provider.id,
+          request: request,
+        );
+        await expectLater(service.submit(id), throwsA(isA<VideoException>()));
+        expect(
+          (await service.getTask(id))!.status,
+          GenerationTaskStatus.action_required,
+        );
+        expect(posts, 1);
+
+        reject = false;
+        await Future.wait([
+          service.resumeAfterConfigurationFixed(id),
+          service.resumeAfterConfigurationFixed(id),
+        ]);
+        final task = (await service.getTask(id))!;
+        expect(task.status, GenerationTaskStatus.running);
+        expect(task.providerTaskId, 'retried');
+        expect(task.errorCode, isNull);
+        expect(
+          posts,
+          2,
+          reason: 'one explicit retry must create only one new request',
+        );
+      },
+    );
+  }
+
+  for (final hasSubmissionTime in [false, true]) {
+    test(
+      'retry preserves unknown submission with timestamp=$hasSubmissionTime',
+      () async {
+        final service = make();
+        final id = await service.create(
+          novelId: 'test-novel',
+          sourceType: 'storyboard_shot',
+          sourceId: 'test-shot',
+          providerId: provider.id,
+          request: request,
+        );
+        await db.generationTaskDao.transition(
+          id,
+          {GenerationTaskStatus.prepared},
+          GenerationTasksCompanion(
+            status: const Value(GenerationTaskStatus.action_required),
+            submittedAt: Value(hasSubmissionTime ? DateTime.now() : null),
+            errorCode: Value(
+              hasSubmissionTime
+                  ? 'unavailable'
+                  : 'provider_configuration_changed',
+            ),
+          ),
+        );
+        await service.resumeAfterConfigurationFixed(id);
+        expect(
+          (await service.getTask(id))!.status,
+          GenerationTaskStatus.submission_unknown,
+        );
+        expect(posts, 0);
+      },
+    );
+  }
 
   for (final anomaly in ['{"status":"succeeded"}', '{"status":"UNKNOWN"}']) {
     test('explicit refresh reconciles original ID after $anomaly', () async {
