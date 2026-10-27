@@ -1,4 +1,4 @@
-// 职责: 验证移动端人物编辑器的七分组连续滚动、窄屏布局、CJK 组合输入保存边界与名称别名冲突校验。
+// 职责: 验证移动端人物编辑器的分组布局、输入保存边界、名称校验及外部图像刷新。
 // 关联文件:
 //   lib/mobile/pages/character_editor_page.dart
 //   lib/shared/widgets/character/character_profile_section.dart
@@ -26,6 +26,9 @@ import 'package:reveric/shared/providers/settings_providers.dart';
 import 'package:reveric/shared/services/novel_content.dart';
 import 'package:reveric/shared/theme/theme.dart';
 import 'package:reveric/shared/widgets/character/character_profile_section.dart';
+import 'package:reveric/shared/widgets/character_avatar.dart';
+import 'package:reveric/shared/widgets/media_asset_image.dart';
+import 'package:reveric/shared/widgets/subject_photo_name.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _databasePath = 'mobile_character_editor_test';
@@ -88,6 +91,9 @@ void main() {
             editorFontSizeProvider.overrideWithValue(16),
             editorLetterSpacingProvider.overrideWithValue(0),
             editorLineHeightProvider.overrideWithValue(1.8),
+            mediaAssetFileProvider.overrideWith(
+              (ref, assetId) => Stream.value(null),
+            ),
           ],
           child: MobileCharacterEditorPage(
             databasePath: _databasePath,
@@ -98,6 +104,54 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('generated media refreshes while unsaved text remains intact', (
+    tester,
+  ) async {
+    await pumpEditor(tester);
+    final nameField = find.byType(TextField).first;
+    await tester.enterText(nameField, '尚未保存的名字');
+    await service.updateCharacterAvatarAndPhotos(
+      entryId: characterId,
+      avatarAssetId: 'generated-avatar',
+      photos: const [SubjectPhoto(assetId: 'generated-photo', name: '雨夜')],
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<CharacterAvatar>(find.byType(CharacterAvatar).first)
+          .avatarAssetId,
+      'generated-avatar',
+    );
+    expect(tester.widget<TextField>(nameField).controller!.text, '尚未保存的名字');
+    await tester.scrollUntilVisible(
+      find.byType(SubjectPhotoName),
+      150,
+      scrollable: find
+          .descendant(
+            of: find.byType(CustomScrollView).first,
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<SubjectPhotoName>(find.byType(SubjectPhotoName))
+          .photo
+          .assetId,
+      'generated-photo',
+    );
+    await tester.pump(_pastAutoSaveDebounce);
+    await tester.pumpAndSettle();
+    final saved = (await service.getCharacterProfileById(characterId))!;
+    expect(saved.name, '尚未保存的名字');
+    expect(saved.avatarAssetId, 'generated-avatar');
+    expect(saved.photos!.single.assetId, 'generated-photo');
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
 
   testWidgets('avatar picker prevents overlap and recovers after failure', (
     tester,

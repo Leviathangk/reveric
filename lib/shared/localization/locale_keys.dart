@@ -1519,6 +1519,8 @@ abstract final class LocaleKeys {
   static const aiToolRunImageItemPhoto = 'ai.tool_run_image_item_photo';
   static const aiToolRunViewHelp = 'ai.tool_run_view_help';
   static const aiToolRunImage = 'ai.tool_run_image';
+  static const aiToolRunHelpCharacterImage = 'ai.tool_run_help_character_image';
+  static const aiToolRunHelpItemImage = 'ai.tool_run_help_item_image';
   static const aiToolRunNotify = 'ai.tool_run_notify';
   static const aiToolRunAgentSkills = 'ai.tool_run_agent_skills';
   static const aiToolRunAgentRules = 'ai.tool_run_agent_rules';

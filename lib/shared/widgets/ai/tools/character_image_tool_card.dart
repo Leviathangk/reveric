@@ -32,9 +32,9 @@ class AiCharacterImageToolCard extends StatefulWidget {
 
   final AiImageBlock block;
 
-  /// Receives the same resolved absolute file path used by the preview.
-  final Future<void> Function(String path)? onSetAsAvatar;
-  final Future<void> Function(String path)? onAddPhoto;
+  /// Receives the registered image asset ID.
+  final Future<void> Function(String assetId)? onSetAsAvatar;
+  final Future<void> Function(String assetId)? onAddPhoto;
   final VoidCallback? onConfigureImageModel;
 
   @override
@@ -65,7 +65,8 @@ class _AiCharacterImageToolCardState extends State<AiCharacterImageToolCard> {
 
   bool get _canApplyAction =>
       block.status == AiImageStatus.success &&
-      _localImageFile != null &&
+      block.assetId != null &&
+      block.assetId!.isNotEmpty &&
       (_isAvatarTool
           ? widget.onSetAsAvatar != null
           : widget.onAddPhoto != null);
@@ -331,7 +332,7 @@ class _AiCharacterImageToolCardState extends State<AiCharacterImageToolCard> {
                     }
                     setState(() => _applying = true);
                     try {
-                      await callback(_localImageFile!.path);
+                      await callback(block.assetId!);
                     } finally {
                       if (mounted) {
                         setState(() => _applying = false);

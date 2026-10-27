@@ -302,18 +302,11 @@ await fjs.bridge_call(JSON.stringify({kind:'tool',tool:'$name',input:JSON.string
   );
 
   testWidgets(
-    'remote avatar branch is refused before Create and output failure retains writes',
+    'output failure retains writes',
     (tester) async {
       await tester.runAsync(() async {
         final scheduler = CodemodeScheduler(maxActive: 1);
         final tools = _Tools(scheduler);
-        final denied = _Run(
-          'await tools.Create({path:"characters",fields:{name:"test",avatar_path:"https://invalid.example/image"}});',
-          tools,
-        );
-        await denied.done;
-        expect(tools.calls, isEmpty);
-        expect(denied.result['error_code'], 'codemode_tool_forbidden');
         tools.limits = const CodemodeRuntimeLimits(outputBytes: 8);
         final overflow = _Run(
           'await tools.Write({path:"profile"}); text("too much output");',

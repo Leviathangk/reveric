@@ -55,6 +55,7 @@ import '../../shared/widgets/character_avatar.dart';
 import '../../shared/widgets/subject_photo_name.dart';
 import '../../shared/widgets/md/reveric_markdown_editor.dart';
 import '../widgets/chapter_picker_sheet.dart';
+import '../widgets/character_image_actions.dart';
 import '../widgets/detail_scaffold.dart';
 import '../widgets/editor_app_bar.dart';
 import '../../shared/widgets/media_asset_image.dart';
@@ -175,8 +176,9 @@ class _CharacterEditorBody extends HookConsumerWidget {
       spy.attach();
       return spy.dispose;
     }, [spy]);
-    final avatarAssetId = useState<String?>(character.avatarAssetId);
-    final photos = useState<List<SubjectPhoto>>(character.photos ?? const []);
+    // 图像由人物流持有，聊天应用生成结果后无需重新打开编辑页。
+    final avatarAssetId = character.avatarAssetId;
+    final photos = character.photos ?? const <SubjectPhoto>[];
     final firstAppearChapterId = useState<String?>(
       character.firstAppearChapterId,
     );
@@ -346,11 +348,9 @@ class _CharacterEditorBody extends HookConsumerWidget {
         if (!context.mounted) {
           return;
         }
-        avatarAssetId.value = saved;
         await service.updateCharacterAvatarAndPhotos(
           entryId: character.id,
           avatarAssetId: saved,
-          photos: photos.value,
         );
       } catch (error, stackTrace) {
         reportImageFailure(error, stackTrace);
@@ -384,11 +384,10 @@ class _CharacterEditorBody extends HookConsumerWidget {
           added.add(SubjectPhoto(assetId: saved));
         }
         if (added.isNotEmpty) {
-          final next = [...photos.value, ...added];
-          photos.value = next;
+          final current = await service.getCharacterProfileById(character.id);
+          final next = [...?current?.photos, ...added];
           await service.updateCharacterAvatarAndPhotos(
             entryId: character.id,
-            avatarAssetId: avatarAssetId.value,
             photos: next,
           );
         }
@@ -402,21 +401,17 @@ class _CharacterEditorBody extends HookConsumerWidget {
     }
 
     Future<void> removePhoto(String assetId) async {
-      final next = photos.value.where((p) => p.assetId != assetId).toList();
-      photos.value = next;
+      final next = photos.where((p) => p.assetId != assetId).toList();
       await service.updateCharacterAvatarAndPhotos(
         entryId: character.id,
-        avatarAssetId: avatarAssetId.value,
         photos: next,
       );
     }
 
     Future<void> setAsAvatar(String assetId) async {
-      avatarAssetId.value = assetId;
       await service.updateCharacterAvatarAndPhotos(
         entryId: character.id,
         avatarAssetId: assetId,
-        photos: photos.value,
       );
     }
 
@@ -486,7 +481,7 @@ class _CharacterEditorBody extends HookConsumerWidget {
                     ),
                     sliver: SliverToBoxAdapter(
                       child: _MobileCharacterHero(
-                        avatarAssetId: avatarAssetId.value,
+                        avatarAssetId: avatarAssetId,
                         nameController: nameController,
                         undoController: undoController,
                         picking: picking.value,
@@ -513,9 +508,8 @@ class _CharacterEditorBody extends HookConsumerWidget {
                       child: CharacterProfileAnchorBar(
                         spy: spy,
                         counts: {
-                          if (photos.value.isNotEmpty)
-                            CharacterProfileSectionId.figure:
-                                photos.value.length,
+                          if (photos.isNotEmpty)
+                            CharacterProfileSectionId.figure: photos.length,
                           if (behaviorTags.value.isNotEmpty)
                             CharacterProfileSectionId.psyche:
                                 behaviorTags.value.length,
@@ -640,6 +634,15 @@ class _CharacterEditorBody extends HookConsumerWidget {
                                       .workspaceCharacterAppearanceHint,
                                 ),
                                 const SizedBox(height: RevericSpacing.x3l),
+                                MobileCharacterImageActions(
+                                  databasePath: databasePath,
+                                  characterId: character.id,
+                                  prepareCharacter: () async {
+                                    await persist();
+                                    return !dirty.value;
+                                  },
+                                ),
+                                const SizedBox(height: RevericSpacing.lg),
                                 CharacterProfileSubLabel(
                                   text: context.t(
                                     LocaleKeys.workspaceCharacterPhotosLabel,
@@ -647,19 +650,15 @@ class _CharacterEditorBody extends HookConsumerWidget {
                                 ),
                                 const SizedBox(height: RevericSpacing.md),
                                 _PhotosRow(
-                                  photos: photos.value,
+                                  photos: photos,
                                   onAdd: addPhoto,
                                   onRemove: removePhoto,
                                   onRename: (assetId, name) async {
-                                    final next = await service
-                                        .renameCharacterPhoto(
-                                          id: character.id,
-                                          assetId: assetId,
-                                          name: name,
-                                        );
-                                    if (context.mounted) {
-                                      photos.value = next;
-                                    }
+                                    await service.renameCharacterPhoto(
+                                      id: character.id,
+                                      assetId: assetId,
+                                      name: name,
+                                    );
                                   },
                                   onSetAvatar: setAsAvatar,
                                 ),

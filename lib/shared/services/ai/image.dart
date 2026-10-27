@@ -130,6 +130,9 @@ class AiImageGenerationResult {
   final String? revisedPrompt;
   final String? localFilePath;
 
+  /// 图片入库后取得的资产 ID；尚未入库的客户端结果为空。
+  final String? assetId;
+
   /// MIME subtype detected from the actual image bytes (e.g. 'png', 'jpeg').
   /// Used to build correct data-URI prefixes instead of hardcoding 'png'.
   final String mimeSubtype;
@@ -139,6 +142,7 @@ class AiImageGenerationResult {
     this.imageBase64,
     this.revisedPrompt,
     this.localFilePath,
+    this.assetId,
     this.mimeSubtype = 'png',
   });
 

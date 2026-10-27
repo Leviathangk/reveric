@@ -76,10 +76,10 @@ extension _NovelEditorAiArea on NovelEditorPage {
     required String? Function(BuildContext context) currentAiWorkspaceMetaTitle,
     required String? Function() currentAiWorkspaceMetaContent,
     required Future<void> Function(String content) applyAiWorkspaceContent,
-    required Future<void> Function(String localFilePath, String characterId)
+    required Future<void> Function(String assetId, String characterId)
     onSetAsAvatar,
     required Future<void> Function(
-      String localFilePath, {
+      String assetId, {
       String? characterId,
       String? itemId,
     })

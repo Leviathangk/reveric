@@ -40,6 +40,7 @@ import '../../../shared/models/content_kind.dart';
 import '../../../shared/models/cover_style.dart';
 import '../../../shared/models/character_profile.dart';
 import '../../../shared/services/name_generator_service.dart';
+import '../../../shared/services/character_image_prompt_builder.dart';
 import '../../../shared/theme/theme.dart';
 import '../../../shared/widgets/character/character_profile_section.dart';
 import '../../../shared/widgets/character/character_relations_overview.dart';
@@ -708,8 +709,10 @@ class CharacterProfileEditor extends HookConsumerWidget {
           session.selectedItemId == null) {
         return;
       }
-      final prompt =
-          '请为角色「${session.nameController.text}」生成头像。\n\n$stylePrompt';
+      final prompt = buildCharacterAvatarPrompt(
+        name: session.nameController.text,
+        stylePrompt: stylePrompt,
+      );
       session.onGenerateAvatar(prompt, session.selectedItemId!);
     });
   }
@@ -729,8 +732,11 @@ class CharacterProfileEditor extends HookConsumerWidget {
           session.selectedItemId == null) {
         return;
       }
-      final prompt =
-          '请为角色「${session.nameController.text}」生成照片或插画。角色已有预设头像（已提供），请严格参考头像中的人物外貌特征（脸型、发型、发色、眼睛等），保持角色形象一致性，确保生成的照片与头像中的是同一人物。\n\n$stylePrompt';
+      final prompt = buildCharacterPhotoPrompt(
+        name: session.nameController.text,
+        stylePrompt: stylePrompt,
+        avatarAssetId: session.avatarAssetId,
+      );
       session.onGeneratePhoto(prompt, session.selectedItemId!);
     });
   }

@@ -551,6 +551,8 @@
   "ai.tool_run_image_item_photo": "生成物品图片",
   "ai.tool_run_view_help": "查看命令帮助",
   "ai.tool_run_image": "图像生成",
+  "ai.tool_run_help_character_image": "人物图像生成",
+  "ai.tool_run_help_item_image": "物品图像生成",
   "ai.tool_run_notify": "发送通知",
   "ai.tool_run_agent_skills": "智能体技能",
   "ai.tool_run_agent_rules": "智能体规则",

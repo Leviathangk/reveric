@@ -125,21 +125,21 @@ class MobileChatSessionPage extends HookConsumerWidget {
                   openMobileAgentModelSettingsPage(context),
               onSetAsAvatar: path == null
                   ? null
-                  : (localPath, characterId) => setGeneratedImageAsAvatar(
+                  : (assetId, characterId) => setGeneratedImageAsAvatar(
                       context,
                       ref,
                       databasePath: path,
-                      localPath: localPath,
+                      assetId: assetId,
                       characterId: characterId,
                     ),
               onAddPhoto: path == null
                   ? null
-                  : (localPath, {characterId, itemId}) =>
+                  : (assetId, {characterId, itemId}) =>
                         addGeneratedImageAsPhoto(
                           context,
                           ref,
                           databasePath: path,
-                          localPath: localPath,
+                          assetId: assetId,
                           characterId: characterId,
                           itemId: itemId,
                         ),

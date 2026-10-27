@@ -124,12 +124,12 @@ class AiChatPanel extends HookConsumerWidget {
 
   /// 应用到指定角色头像。`characterId` 来自生成该图片的 image 命令，
   /// 而非当前选中项，确保 apply 到对应对象。
-  final Future<void> Function(String localFilePath, String characterId)?
+  final Future<void> Function(String assetId, String characterId)?
   onSetAsAvatar;
 
   /// 添加照片到指定角色或物品。二者至少其一非空（由 image 命令决定）。
   final Future<void> Function(
-    String localFilePath, {
+    String assetId, {
     String? characterId,
     String? itemId,
   })?

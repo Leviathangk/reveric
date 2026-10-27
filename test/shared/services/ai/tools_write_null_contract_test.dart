@@ -203,7 +203,7 @@ void main() {
           'biography',
           'aliases',
           'first_appear_chapter_id',
-          'avatar_path',
+          'avatar_asset_id',
         ]) {
           final result = await write(path, field, null);
           expect(result['error'], isNull, reason: '$result');

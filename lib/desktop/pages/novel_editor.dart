@@ -2749,31 +2749,6 @@ class NovelEditorPage extends HookConsumerWidget {
       }
     }
 
-    Future<void> saveCharacterPhotos(
-      String characterId,
-      List<SubjectPhoto> photos,
-    ) async {
-      final dbPath =
-          contentDatabasePath.value ??
-          novelAsync.asData?.value?.contentDatabasePath;
-      _log.debug(
-        'saveCharacterPhotos: '
-        'characterId=$characterId photosCount=${photos.length}',
-      );
-      if (dbPath == null) return;
-      try {
-        await ref
-            .read(novelContentServiceProvider(dbPath))
-            .updateCharacterAvatarAndPhotos(
-              entryId: characterId,
-              photos: photos.isNotEmpty ? photos : null,
-            );
-        _log.debug('photos saved successfully');
-      } catch (e, s) {
-        _log.error('saveCharacterPhotos FAILED: $e', error: e, stackTrace: s);
-      }
-    }
-
     Future<void> saveItemPhotos(String itemId, List<String> photos) async {
       final dbPath =
           contentDatabasePath.value ??
@@ -2833,38 +2808,20 @@ class NovelEditorPage extends HookConsumerWidget {
       }
     }
 
-    Future<void> addItemPhotoFromPath(
-      String localFilePath,
-      String itemId,
-    ) async {
-      final savedPath = await saveImageToNovelDir(
-        localFilePath,
-        kind: 'item_photo',
-      );
-      if (savedPath == null) return;
-      // apply 到 image 命令指定的物品；仅当其为当前选中项时复用本地列表，
-      // 否则从库中读取该物品现有照片再追加，避免覆盖其它物品的照片。
-      final isCurrent =
-          selection.value.section == NovelWorkspaceSection.items &&
-          selection.value.itemId == itemId;
+    Future<void> addItemPhotoFromAsset(String assetId, String itemId) async {
       final dbPath =
           contentDatabasePath.value ??
           novelAsync.asData?.value?.contentDatabasePath;
-      final existing = isCurrent
-          ? itemPhotos.value
-          : (dbPath == null
-                ? const <String>[]
-                : (await ref
-                              .read(novelContentServiceProvider(dbPath))
-                              .getItemById(itemId))
-                          ?.photos
-                          ?.map((photo) => photo.assetId)
-                          .toList() ??
-                      const <String>[]);
-      final next = [...existing, savedPath];
-      await saveItemPhotos(itemId, next);
-      if (isCurrent) {
-        itemPhotos.value = next;
+      if (dbPath == null) {
+        throw StateError('Novel content database is unavailable');
+      }
+      final service = ref.read(novelContentServiceProvider(dbPath));
+      await service.addItemPhotos(itemId, [assetId]);
+      if (selection.value.section == NovelWorkspaceSection.items &&
+          selection.value.itemId == itemId) {
+        itemPhotos.value = (await service.getItemById(
+          itemId,
+        ))!.photos!.map((photo) => photo.assetId).toList();
       }
     }
 
@@ -2991,53 +2948,41 @@ class NovelEditorPage extends HookConsumerWidget {
       );
     }
 
-    Future<void> setCharacterAvatar(
-      String localFilePath,
-      String characterId,
-    ) async {
-      final savedPath = await saveImageToNovelDir(
-        localFilePath,
-        kind: 'avatar',
-      );
-      if (savedPath == null) return;
-      await saveCharacterAvatar(characterId, savedPath);
-    }
+    Future<void> setCharacterAvatar(String assetId, String characterId) =>
+        saveCharacterAvatar(characterId, assetId);
 
-    Future<void> addCharacterPhotoFromPath(
-      String localFilePath,
-      String characterId,
-    ) async {
-      final savedPath = await saveImageToNovelDir(localFilePath, kind: 'photo');
-      if (savedPath == null) return;
-      final dbPath =
-          contentDatabasePath.value ??
-          novelAsync.asData?.value?.contentDatabasePath;
-      final existing = dbPath == null
-          ? const <SubjectPhoto>[]
-          : (await ref
-                        .read(novelContentServiceProvider(dbPath))
-                        .getCharacterProfileById(characterId))
-                    ?.photos ??
-                const <SubjectPhoto>[];
-      final next = [...existing, SubjectPhoto(assetId: savedPath)];
-      await saveCharacterPhotos(characterId, next);
-    }
-
-    Future<void> handleAddPhotoFromPath(
-      String localFilePath, {
+    Future<void> handleAddPhotoFromAsset(
+      String assetId, {
       String? characterId,
       String? itemId,
     }) async {
-      if (characterId != null && characterId.isNotEmpty) {
-        await addCharacterPhotoFromPath(localFilePath, characterId);
-      } else if (itemId != null && itemId.isNotEmpty) {
-        await addItemPhotoFromPath(localFilePath, itemId);
+      try {
+        if (characterId != null && characterId.isNotEmpty) {
+          final dbPath =
+              contentDatabasePath.value ??
+              novelAsync.asData?.value?.contentDatabasePath;
+          if (dbPath == null) {
+            throw StateError('Novel content database is unavailable');
+          }
+          await ref
+              .read(novelContentServiceProvider(dbPath))
+              .addCharacterPhotos(characterId, [assetId]);
+        } else if (itemId != null && itemId.isNotEmpty) {
+          await addItemPhotoFromAsset(assetId, itemId);
+        }
+      } catch (error, stackTrace) {
+        _log.error(
+          'Apply generated photo failed',
+          error: error,
+          stackTrace: stackTrace,
+        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.t(LocaleKeys.commonSaveFailed))),
+          );
+        }
       }
     }
-
-    String avatarPrompt(String prompt) => 'Avatar portrait: $prompt';
-
-    String photoPrompt(String prompt) => 'Character photo: $prompt';
 
     String characterLabel(String characterId) {
       return charactersAsync.asData?.value
@@ -3051,12 +2996,11 @@ class NovelEditorPage extends HookConsumerWidget {
       String prompt,
       String characterId,
     ) async {
-      final text = avatarPrompt(prompt);
       aiPanelCollapsed.value = false;
       pendingHandoffDraft.value = AiChatHandoffDraft(
         id: 'char_avatar_${DateTime.now().microsecondsSinceEpoch}',
         label: context.t(LocaleKeys.aiToolNameGenerateAvatar),
-        content: text,
+        content: prompt,
         title: context.t(LocaleKeys.aiToolNameGenerateAvatar),
         autoSend: true,
         references: [
@@ -3066,7 +3010,7 @@ class NovelEditorPage extends HookConsumerWidget {
             label: characterLabel(characterId),
           ),
         ],
-        initialText: text,
+        initialText: prompt,
       );
     }
 
@@ -3074,12 +3018,11 @@ class NovelEditorPage extends HookConsumerWidget {
       String prompt,
       String characterId,
     ) async {
-      final text = photoPrompt(prompt);
       aiPanelCollapsed.value = false;
       pendingHandoffDraft.value = AiChatHandoffDraft(
         id: 'char_photo_${DateTime.now().microsecondsSinceEpoch}',
         label: context.t(LocaleKeys.aiToolNameGeneratePhoto),
-        content: text,
+        content: prompt,
         title: context.t(LocaleKeys.aiToolNameGeneratePhoto),
         autoSend: true,
         references: [
@@ -3089,7 +3032,7 @@ class NovelEditorPage extends HookConsumerWidget {
             label: characterLabel(characterId),
           ),
         ],
-        initialText: text,
+        initialText: prompt,
       );
     }
 
@@ -4496,7 +4439,7 @@ class NovelEditorPage extends HookConsumerWidget {
                   currentAiWorkspaceMetaContent: currentAiWorkspaceMetaContent,
                   applyAiWorkspaceContent: applyAiWorkspaceContent,
                   onSetAsAvatar: setCharacterAvatar,
-                  onAddPhoto: handleAddPhotoFromPath,
+                  onAddPhoto: handleAddPhotoFromAsset,
                   onOpenSessionReference: openSessionReference,
 
                   onOpenFeature: openFeatureFromChat,
@@ -4851,7 +4794,7 @@ class NovelEditorPage extends HookConsumerWidget {
                             ? null
                             : applyAiWorkspaceContent,
                         onSetAsAvatar: setCharacterAvatar,
-                        onAddPhoto: handleAddPhotoFromPath,
+                        onAddPhoto: handleAddPhotoFromAsset,
                         activeSessionId: chatPanelSessionId,
                         draftMessage: pendingCoverDraft.value,
                         handoffDraft: pendingHandoffDraft.value,

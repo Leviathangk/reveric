@@ -71,10 +71,10 @@ class ExpandedChatArea extends StatelessWidget {
   final String? workspaceMetaTitle;
   final String? workspaceMetaContent;
   final Future<void> Function(String content)? onApplyGeneratedContent;
-  final Future<void> Function(String localFilePath, String characterId)?
+  final Future<void> Function(String assetId, String characterId)?
   onSetAsAvatar;
   final Future<void> Function(
-    String localFilePath, {
+    String assetId, {
     String? characterId,
     String? itemId,
   })?

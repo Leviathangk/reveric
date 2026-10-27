@@ -107,6 +107,7 @@ import '../../heuristic/chat_next_action.dart';
 import '../../models/todo.dart';
 import 'image.dart';
 import 'tool_error_normalize.dart';
+import 'media_diagnostics.dart' show safeMediaDiagnostic;
 import 'tool_result_payloads.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -1629,16 +1630,12 @@ const _resourceDefinitions = <String, _ResourceDefinition>{
         write: _FieldInputUse(field: true),
         description: '首次出场章节 ID',
       ),
-      'avatar_path': _ResourceField(
-        value: _ValueSchema(
-          _ValueType.string,
-          nullable: true,
-          referenceTarget: 'files',
-        ),
+      'avatar_asset_id': _ResourceField(
+        value: _ValueSchema(_ValueType.string, nullable: true),
         read: _FieldRead(path: true),
         create: _FieldInputUse(),
         write: _FieldInputUse(field: true),
-        description: '头像的本地图片路径；清空可移除头像',
+        description: '头像图片资产 ID；清空可移除头像',
       ),
       'skills': _ResourceField(
         value: _ValueSchema(

@@ -217,7 +217,7 @@ final class AiChatSessionProvider
   }
 }
 
-String _$aiChatSessionHash() => r'b31b6e29b0cc68008ce47f57efc0734ee2edd934';
+String _$aiChatSessionHash() => r'3aca3182536f39a3788a751238a28e50065b1ac6';
 
 /// AI 聊天会话 Notifier
 
@@ -515,7 +515,7 @@ final class AiServiceProvider
   }
 }
 
-String _$aiServiceHash() => r'647917de302beb53ca796d368919b40e661b3dad';
+String _$aiServiceHash() => r'c91fdeb7d35566210f12bda2e18203188ab596de';
 
 /// AI 服务 Provider
 
@@ -598,7 +598,7 @@ final class AiServiceAsyncProvider
   }
 }
 
-String _$aiServiceAsyncHash() => r'b0d765928986b90627a4abaafb8c22736f21cf89';
+String _$aiServiceAsyncHash() => r'66dc9f3b08d2ce1e70658bdfbde6eb1fb54a2908';
 
 /// AI 服务异步 Provider（用于执行 AI 操作）
 
@@ -713,10 +713,10 @@ final class ImageGenerationConfigProvider
 }
 
 String _$imageGenerationConfigHash() =>
-    r'f84f13df16408cfd0ca9bf5469249d83e72b587a';
+    r'e9ae274707ddc63c70f8fc18976149182f4c12b7';
 
 @ProviderFor(imageGenerationCallback)
-final imageGenerationCallbackProvider = ImageGenerationCallbackProvider._();
+final imageGenerationCallbackProvider = ImageGenerationCallbackFamily._();
 
 final class ImageGenerationCallbackProvider
     extends
@@ -726,19 +726,26 @@ final class ImageGenerationCallbackProvider
           AiImageGenerationCallback?
         >
     with $Provider<AiImageGenerationCallback?> {
-  ImageGenerationCallbackProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'imageGenerationCallbackProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+  ImageGenerationCallbackProvider._({
+    required ImageGenerationCallbackFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'imageGenerationCallbackProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$imageGenerationCallbackHash();
+
+  @override
+  String toString() {
+    return r'imageGenerationCallbackProvider'
+        ''
+        '($argument)';
+  }
 
   @$internal
   @override
@@ -748,7 +755,8 @@ final class ImageGenerationCallbackProvider
 
   @override
   AiImageGenerationCallback? create(Ref ref) {
-    return imageGenerationCallback(ref);
+    final argument = this.argument as String;
+    return imageGenerationCallback(ref, argument);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -758,10 +766,39 @@ final class ImageGenerationCallbackProvider
       providerOverride: $SyncValueProvider<AiImageGenerationCallback?>(value),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ImageGenerationCallbackProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
 String _$imageGenerationCallbackHash() =>
-    r'b5b5593f70837f47b15694638eae0032e5a82d51';
+    r'a977a07dc097f96bc2555a1107e067735a249f2f';
+
+final class ImageGenerationCallbackFamily extends $Family
+    with $FunctionalFamilyOverride<AiImageGenerationCallback?, String> {
+  ImageGenerationCallbackFamily._()
+    : super(
+        retry: null,
+        name: r'imageGenerationCallbackProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  ImageGenerationCallbackProvider call(String workId) =>
+      ImageGenerationCallbackProvider._(argument: workId, from: this);
+
+  @override
+  String toString() => r'imageGenerationCallbackProvider';
+}
 
 @ProviderFor(coverImageGenerationCallback)
 final coverImageGenerationCallbackProvider =
@@ -862,7 +899,7 @@ String _$coverImageMultiEditCallbackHash() =>
     r'd7fa0460de559ff6bfb7c2e306820b57358cf391';
 
 @ProviderFor(imageEditCallback)
-final imageEditCallbackProvider = ImageEditCallbackProvider._();
+final imageEditCallbackProvider = ImageEditCallbackFamily._();
 
 final class ImageEditCallbackProvider
     extends
@@ -872,19 +909,26 @@ final class ImageEditCallbackProvider
           AiImageEditCallback?
         >
     with $Provider<AiImageEditCallback?> {
-  ImageEditCallbackProvider._()
-    : super(
-        from: null,
-        argument: null,
-        retry: null,
-        name: r'imageEditCallbackProvider',
-        isAutoDispose: true,
-        dependencies: null,
-        $allTransitiveDependencies: null,
-      );
+  ImageEditCallbackProvider._({
+    required ImageEditCallbackFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'imageEditCallbackProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$imageEditCallbackHash();
+
+  @override
+  String toString() {
+    return r'imageEditCallbackProvider'
+        ''
+        '($argument)';
+  }
 
   @$internal
   @override
@@ -894,7 +938,8 @@ final class ImageEditCallbackProvider
 
   @override
   AiImageEditCallback? create(Ref ref) {
-    return imageEditCallback(ref);
+    final argument = this.argument as String;
+    return imageEditCallback(ref, argument);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -904,9 +949,37 @@ final class ImageEditCallbackProvider
       providerOverride: $SyncValueProvider<AiImageEditCallback?>(value),
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ImageEditCallbackProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
 }
 
-String _$imageEditCallbackHash() => r'ad1eeecbec73c81c991241ddce8e981a83ce12b0';
+String _$imageEditCallbackHash() => r'9c21ee708dfe8a402c0eab7a1e497fa598885f58';
+
+final class ImageEditCallbackFamily extends $Family
+    with $FunctionalFamilyOverride<AiImageEditCallback?, String> {
+  ImageEditCallbackFamily._()
+    : super(
+        retry: null,
+        name: r'imageEditCallbackProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  ImageEditCallbackProvider call(String workId) =>
+      ImageEditCallbackProvider._(argument: workId, from: this);
+
+  @override
+  String toString() => r'imageEditCallbackProvider';
+}
 
 @ProviderFor(imageMultiEditCallback)
 final imageMultiEditCallbackProvider = ImageMultiEditCallbackProvider._();

@@ -41,9 +41,13 @@ class ImageLibraryService {
   /// 导入时才取媒体库：只读路径、识别快照的调用方不必先初始化资料目录。
   final MediaLibraryService Function() _library;
 
+  /// 有效图片资产；不存在、已软删除或不是图片时为 null。
+  Future<AssetRow?> getAsset(String assetId) =>
+      _database.imageAssetDao.getAsset(assetId);
+
   /// 图片资产的相对路径；不存在、已软删除或不是图片时为 null。
   Future<String?> assetPath(String assetId) async =>
-      (await _database.imageAssetDao.getAsset(assetId))?.path;
+      (await getAsset(assetId))?.path;
 
   /// 文件入库统一走媒体导入；同一作品内按内容去重。
   /// [name] 为空时用文件名作资产名。

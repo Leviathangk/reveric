@@ -115,8 +115,8 @@ void main() {
           providerId: _fakeProvider.id,
           model: _fakeModelOption.model,
         ).overrideWithValue(_fakeProvider),
-        imageGenerationCallbackProvider.overrideWithValue(null),
-        imageEditCallbackProvider.overrideWithValue(null),
+        imageGenerationCallbackProvider.overrideWith((ref, workId) => null),
+        imageEditCallbackProvider.overrideWith((ref, workId) => null),
         availableAiModelOptionsByKindProvider(
           AiModelKind.chat,
         ).overrideWithValue(const [_fakeModelOption]),

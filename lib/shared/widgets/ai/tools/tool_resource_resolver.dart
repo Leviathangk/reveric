@@ -959,7 +959,7 @@ String aiToolFieldLabel(BuildContext context, String field) {
     'appearance' => LocaleKeys.workspaceCharacterAppearanceLabel,
     'personality' => LocaleKeys.workspaceCharacterPersonalityLabel,
     'behavior_tags' => LocaleKeys.workspaceCharacterBehaviorTagsLabel,
-    'avatar_path' => LocaleKeys.workspaceCharacterAvatar,
+    'avatar_asset_id' => LocaleKeys.workspaceCharacterAvatar,
     'skills' => 'history.field_skills',
     'setup_chapter_id' ||
     'setup_scene_id' => LocaleKeys.workspaceForeshadowSetupPosition,

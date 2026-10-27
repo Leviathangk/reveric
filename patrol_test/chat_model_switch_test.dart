@@ -119,8 +119,8 @@ void main() {
         availableAiModelOptionsByKindProvider(
           AiModelKind.chat,
         ).overrideWithValue(const [_sourceOption, _targetOption]),
-        imageGenerationCallbackProvider.overrideWithValue(null),
-        imageEditCallbackProvider.overrideWithValue(null),
+        imageGenerationCallbackProvider.overrideWith((ref, workId) => null),
+        imageEditCallbackProvider.overrideWith((ref, workId) => null),
         aiSettingsProvider.overrideWithValue(AiSettings.defaults()),
       ],
     );

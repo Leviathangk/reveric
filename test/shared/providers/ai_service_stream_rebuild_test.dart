@@ -61,7 +61,7 @@ void main() {
           providerId: fakeProvider.id,
           model: fakeModel,
         ).overrideWithValue(fakeProvider),
-        imageGenerationCallbackProvider.overrideWithValue(null),
+        imageGenerationCallbackProvider.overrideWith((ref, workId) => null),
         aiSettingsProvider.overrideWithValue(AiSettings.defaults()),
 
         // fakeProvider 是自定义供应商，会撞上专业版门禁：AiProviderInitializer

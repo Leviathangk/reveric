@@ -411,7 +411,7 @@ void main() {
       );
       expect(notes, contains('- tension（integer，1～10，nullable）：本章叙事张力'));
       expect(notes, contains('- status（readonly）：发布状态'));
-      expect(notes, contains('- avatar_path（nullable）：'));
+      expect(notes, contains('- avatar_asset_id（nullable）：'));
       expect(notes, contains('- word_count（readonly，integer）：字数'));
       expect(notes, contains('- skills（readonly，array<object>）：技能列表'));
       expect(notes, isNot(contains('- proof*')));

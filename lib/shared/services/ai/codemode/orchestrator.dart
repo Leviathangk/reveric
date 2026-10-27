@@ -61,12 +61,11 @@ class CodemodeOrchestrator {
     CodemodeRuntimeResult? runtimeResult;
     String? admissionError;
 
-    bool permitted(String name, Map<String, dynamic> args) =>
+    bool permitted(String name) =>
         isAllowed() &&
         codemodeToolNames.contains(name) &&
         allowedToolNames().contains(name) &&
-        tools.allToolNames().contains(name) &&
-        !codemodeHasExternalInput(name, args);
+        tools.allToolNames().contains(name);
 
     void publish(_Operation operation) {
       if (sealed) {
@@ -119,7 +118,7 @@ class CodemodeOrchestrator {
               );
               return;
             }
-            if (!permitted(name, args)) {
+            if (!permitted(name)) {
               response.complete(reject(operation, 'codemode_tool_forbidden'));
               scope.cancel(code: 'codemode_tool_forbidden');
               runtime?.cancel(errorCode: 'codemode_tool_forbidden');

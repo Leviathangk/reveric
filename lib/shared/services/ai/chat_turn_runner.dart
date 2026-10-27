@@ -92,6 +92,7 @@ import 'agent_skills_run_command_handler.dart';
 import 'subagents_run_command_handler.dart';
 import 'ai_service_config.dart';
 import 'chat.dart';
+import 'image.dart';
 import 'chat_agent_tool_dispatcher.dart';
 import 'codemode/orchestrator.dart';
 import 'codemode/tool.dart';
@@ -511,6 +512,33 @@ class ChatTurnRunner {
       loadRuntimeChatSubAgents(container);
   final AiRunNotifyCallback? notifyCallback;
   final String? sourceSessionId;
+
+  Future<AiImageGenerationResult> _generateImage(
+    String prompt, {
+    String? model,
+    String? size,
+    String? quality,
+  }) => container.withProvider(imageGenerationCallbackProvider(novel.id), (
+    callback,
+  ) async {
+    if (callback == null) {
+      throw AiImageGenerationException(tr(LocaleKeys.aiNoImageModelConfigured));
+    }
+    return callback(prompt, model: model, size: size, quality: quality);
+  });
+
+  Future<AiImageGenerationResult> _editImage(
+    String prompt, {
+    required String imageData,
+    String? model,
+  }) => container.withProvider(imageEditCallbackProvider(novel.id), (
+    callback,
+  ) async {
+    if (callback == null) {
+      throw AiImageGenerationException(tr(LocaleKeys.aiNoImageModelConfigured));
+    }
+    return callback(prompt, imageData: imageData, model: model);
+  });
 
   Future<AskUserResult> _askUser(
     String? sessionId,
@@ -1134,6 +1162,7 @@ class ChatTurnRunner {
               blockId,
               status: AiImageStatus.success,
               localFilePath: _storedImageResultPath(result, novel.id),
+              assetId: result?['asset_id'] as String?,
               characterId: target.characterId,
               itemId: target.itemId,
             );
@@ -1156,8 +1185,14 @@ class ChatTurnRunner {
               (result == null ? null : toolResultErrorMessage(result)),
         );
       },
-      imageGenerationCallback: container.read(imageGenerationCallbackProvider),
-      imageEditCallback: container.read(imageEditCallbackProvider),
+      imageGenerationCallback:
+          container.read(imageGenerationCallbackProvider(novel.id)) == null
+          ? null
+          : _generateImage,
+      imageEditCallback:
+          container.read(imageEditCallbackProvider(novel.id)) == null
+          ? null
+          : _editImage,
       subAgentListProvider: () => availableSubAgents,
       skillLoader: (slug) async => null,
       agentSkillsCommandCallback: (command) =>
@@ -1378,6 +1413,7 @@ class ChatTurnRunner {
               blockId,
               status: AiImageStatus.success,
               localFilePath: _storedImageResultPath(result, novel.id),
+              assetId: result?['asset_id'] as String?,
               characterId: target.characterId,
               itemId: target.itemId,
             );
@@ -1418,8 +1454,14 @@ class ChatTurnRunner {
           SubagentsRunCommandHandler(container: container).run(command),
 
       notifyCallback: notifyCallback,
-      imageGenerationCallback: container.read(imageGenerationCallbackProvider),
-      imageEditCallback: container.read(imageEditCallbackProvider),
+      imageGenerationCallback:
+          container.read(imageGenerationCallbackProvider(novel.id)) == null
+          ? null
+          : _generateImage,
+      imageEditCallback:
+          container.read(imageEditCallbackProvider(novel.id)) == null
+          ? null
+          : _editImage,
       canvasActivityReporter: (activity) =>
           container.read(canvasAiActivityProvider.notifier).report(activity),
       subAgentListProvider: () => availableSubAgents,

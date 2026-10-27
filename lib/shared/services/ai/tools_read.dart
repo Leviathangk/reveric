@@ -802,9 +802,6 @@ mixin _AiToolManagerReadMixin
     }
 
     final values = _characterProfileValues(entry);
-    values['avatar_path'] = await _contentService.imagePath(
-      entry.avatarAssetId,
-    );
     if (field == null || field == 'skills') {
       values['skills'] = await _readCharacterSkills(id);
     }
@@ -832,6 +829,7 @@ mixin _AiToolManagerReadMixin
       'behavior_tags': entry.behaviorTags.map((tag) => tag.toJson()).toList(),
       'current_state': entry.currentState,
       'first_appear_chapter_id': entry.firstAppearChapterId,
+      'avatar_asset_id': entry.avatarAssetId,
       'photos': entry.photos?.map((photo) => photo.toJson()).toList() ?? [],
     };
   }

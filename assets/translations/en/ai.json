@@ -551,6 +551,8 @@
   "ai.tool_run_image_item_photo": "Generating item image",
   "ai.tool_run_view_help": "Reading command help",
   "ai.tool_run_image": "Image generation",
+  "ai.tool_run_help_character_image": "Character image generation",
+  "ai.tool_run_help_item_image": "Item image generation",
   "ai.tool_run_notify": "Sending notification",
   "ai.tool_run_agent_skills": "Agent Skills",
   "ai.tool_run_agent_rules": "Agent Rules",

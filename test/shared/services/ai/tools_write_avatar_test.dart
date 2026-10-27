@@ -1,4 +1,4 @@
-// 职责: 测试 Write 工具写入 characters.avatar_path（设为头像 / 清除）。
+// 职责: 验证人物头像资产读写、失败原子性及照片关联去重。
 // 关联文件:
 //   lib/shared/services/ai/tools_write.dart
 //   lib/shared/utils/storage_paths.dart
@@ -26,7 +26,7 @@ final _png = base64Decode(
 );
 
 void main() {
-  group('Write character avatar_path', () {
+  group('Write character avatar_asset_id', () {
     late Directory tempSupport;
     late _AvatarTestDatabase db;
     late AppDatabase appDb;
@@ -60,6 +60,7 @@ void main() {
 
       toolManager = AiToolManager(
         contentService,
+        workId: 'novel_test',
         workingOverlayService: overlay = _AvatarTestOverlay(
           db,
           contentService,
@@ -134,7 +135,7 @@ void main() {
     );
 
     test(
-      'invalid chapter rejects all fields before importing an avatar',
+      'invalid chapter rejects all fields before linking an avatar',
       () async {
         final id = await contentService.createCharacterProfile(
           name: '原名',
@@ -143,6 +144,11 @@ void main() {
         final before = (await contentService.getCharacterProfileById(id))!;
         final source = File(p.join(tempSupport.path, 'source.png'));
         await source.writeAsBytes(_png);
+        final assetId = (await buildImageLibraryService(appDb).importFile(
+          source.path,
+          novelId: 'novel_test',
+          purpose: AssetPurpose.ai_chat_generated,
+        )).id;
         for (final chapter in [
           'ch_missing',
           await contentService.createVolume(title: '卷'),
@@ -152,7 +158,7 @@ void main() {
             input: {
               'path': 'characters/$id',
               'fields': {
-                'avatar_path': source.path,
+                'avatar_asset_id': assetId,
                 'tags': ['新标签'],
                 'biography': '新传记',
                 'first_appear_chapter_id': chapter,
@@ -180,9 +186,14 @@ void main() {
         );
         final source = File(p.join(tempSupport.path, 'source.png'));
         await source.writeAsBytes(_png);
+        final assetId = (await buildImageLibraryService(appDb).importFile(
+          source.path,
+          novelId: 'novel_test',
+          purpose: AssetPurpose.ai_chat_generated,
+        )).id;
         await toolManager.executeTool(
           name: 'Write',
-          input: {'path': 'characters/$id/avatar_path', 'value': source.path},
+          input: {'path': 'characters/$id/avatar_asset_id', 'value': assetId},
         );
         final before = (await contentService.getCharacterProfileById(id))!;
         final original = RevericPaths.resolveStored(
@@ -200,7 +211,7 @@ void main() {
             input: {
               'path': 'characters/$id',
               'fields': {
-                'avatar_path': source.path,
+                'avatar_asset_id': assetId,
                 'tags': ['新标签'],
                 'biography': '新传记',
                 'personality': '新性格',
@@ -226,7 +237,7 @@ void main() {
               .toSet(),
           filesBefore,
         );
-        expect(contentService.imageSaveCount, 2);
+        expect(contentService.imageSaveCount, 0);
         expect(contentService.savedInsideTransaction, isFalse);
         overlay.failOnSecondChange = false;
         final success = await toolManager.executeTool(
@@ -234,7 +245,7 @@ void main() {
           input: {
             'path': 'characters/$id',
             'fields': {
-              'avatar_path': source.path,
+              'avatar_asset_id': assetId,
               'tags': ['新标签'],
               'biography': '新传记',
               'personality': '新性格',
@@ -263,6 +274,7 @@ void main() {
           novelId: 'novel_test',
           purpose: AssetPurpose.avatar,
         );
+        final assetId = asset.id;
         final service = _AvatarTestContentService(
           db,
           imageLibraryService: library,
@@ -279,7 +291,7 @@ void main() {
             input: {
               'path': 'characters/$id',
               'fields': {
-                'avatar_path': source.path,
+                'avatar_asset_id': assetId,
                 'tags': ['新标签'],
                 'biography': '传记',
                 'personality': '性格',
@@ -307,123 +319,144 @@ void main() {
       },
     );
 
-    // 模型生成头像后显式 Write avatar_path，应拷贝到小说 images/ 并写入角色。
-    test('sets avatar from a local image path', () async {
-      final characterId = await contentService.createCharacterProfile(
-        defaultName: '测试角色',
-      );
-      final source = File(p.join(tempSupport.path, 'gen_avatar.png'));
-      await source.writeAsBytes(_png);
+    Future<String> generatedAsset() async {
+      final file = File(p.join(tempSupport.path, 'generated.png'));
+      await file.writeAsBytes(_png);
+      return (await buildImageLibraryService(appDb).importFile(
+        file.path,
+        novelId: 'novel_test',
+        purpose: AssetPurpose.ai_chat_generated,
+      )).id;
+    }
 
-      final result = await toolManager.executeTool(
-        name: 'Write',
+    test('Create Read and Write reuse the registered avatar asset', () async {
+      final assetId = await generatedAsset();
+      final created = await toolManager.executeTool(
+        name: 'Create',
         input: {
-          'path': 'characters/$characterId/avatar_path',
-          'value': source.path,
-        },
-        callId: 'call_write_avatar_set',
-      );
-
-      expect(result['error'], isNull);
-      expect(result['updated'], isTrue);
-      expect(result['fields'], contains('avatar_path'));
-      final stored = result['avatar_path'] as String;
-      expect(stored, isNotEmpty);
-      expect(RevericPaths.resolveStored(stored), isNotNull);
-
-      final profile = await contentService.getCharacterProfileById(characterId);
-      expect(await contentService.imagePath(profile?.avatarAssetId), stored);
-    });
-
-    test('clears avatar with empty string', () async {
-      final characterId = await contentService.createCharacterProfile(
-        defaultName: '清空头像',
-      );
-      final source = File(p.join(tempSupport.path, 'to_clear.png'));
-      await source.writeAsBytes(_png);
-      await toolManager.executeTool(
-        name: 'Write',
-        input: {
-          'path': 'characters/$characterId/avatar_path',
-          'value': source.path,
-        },
-        callId: 'call_write_avatar_before_clear',
-      );
-
-      final result = await toolManager.executeTool(
-        name: 'Write',
-        input: {'path': 'characters/$characterId/avatar_path', 'value': ''},
-        callId: 'call_write_avatar_clear',
-      );
-
-      expect(result['error'], isNull);
-      expect(result['updated'], isTrue);
-      expect(result['avatar_path'], isNull);
-      final profile = await contentService.getCharacterProfileById(characterId);
-      expect(profile?.avatarAssetId, isNull);
-    });
-
-    test('returns file_not_found for missing image', () async {
-      final characterId = await contentService.createCharacterProfile(
-        defaultName: '缺失文件',
-      );
-
-      final result = await toolManager.executeTool(
-        name: 'Write',
-        input: {
-          'path': 'characters/$characterId/avatar_path',
-          'value': p.join(tempSupport.path, 'missing.png'),
-        },
-        callId: 'call_write_avatar_missing',
-      );
-
-      expect(result['updated'], isNot(isTrue));
-      expect(result['error_code'], 'invalid_argument');
-    });
-
-    test('save_failed preserves the avatar without a working change', () async {
-      final characterId = await contentService.createCharacterProfile(
-        name: '保留旧头像',
-      );
-      final previous = File(p.join(tempSupport.path, 'previous.png'));
-      await previous.writeAsBytes(_png);
-      final stored = RevericPaths.toRelative(previous.path)!;
-      await contentService.updateCharacterAvatarAndPhotos(
-        entryId: characterId,
-        avatarAssetId: stored,
-        photos: [SubjectPhoto(assetId: stored, name: 'Original')],
-      );
-      final source = File(p.join(tempSupport.path, 'replacement.png'));
-      await source.writeAsBytes(_png);
-      contentService.failImageSave = true;
-
-      final result = await toolManager.executeTool(
-        name: 'Write',
-        input: {
-          'path': 'characters/$characterId/avatar_path',
-          'value': source.path,
+          'path': 'characters',
+          'fields': {'name': '人物', 'avatar_asset_id': assetId},
         },
       );
-
-      expect(result['error_code'], 'internal');
-      expect(result['updated'], isNot(isTrue));
-      final character = await contentService.getCharacterProfileById(
-        characterId,
+      expect(created['error'], isNull, reason: '$created');
+      final path = created['path'] as String;
+      final read = await toolManager.executeTool(
+        name: 'Read',
+        input: {'path': '$path/avatar_asset_id'},
       );
-      expect(character!.avatarAssetId, stored);
-      expect(character.photos, [
-        SubjectPhoto(assetId: stored, name: 'Original'),
-      ]);
-      expect(await previous.exists(), isTrue);
-      expect(await db.select(db.workingChanges).get(), isEmpty);
+      expect(read['value'], assetId);
+      final result = await toolManager.executeTool(
+        name: 'Write',
+        input: {'path': '$path/avatar_asset_id', 'value': read['value']},
+      );
+      expect(result['updated'], isTrue, reason: '$result');
+      expect(result['avatar_asset_id'], assetId);
+      expect(
+        (await contentService.getCharacterProfileById(
+          created['id'] as String,
+        ))!.avatarAssetId,
+        assetId,
+      );
+      expect(await appDb.select(appDb.assets).get(), hasLength(1));
+      expect(contentService.imageSaveCount, 0);
     });
+
+    for (final clear in <String?>['', null]) {
+      test('clears avatar with $clear without deleting the asset', () async {
+        final assetId = await generatedAsset();
+        final id = await contentService.createCharacterProfile(name: '人物');
+        await contentService.updateCharacterAvatarAndPhotos(
+          entryId: id,
+          avatarAssetId: assetId,
+        );
+        final result = await toolManager.executeTool(
+          name: 'Write',
+          input: {'path': 'characters/$id/avatar_asset_id', 'value': clear},
+        );
+        expect(result['updated'], isTrue, reason: '$result');
+        expect(result['avatar_asset_id'], isNull);
+        expect(
+          (await contentService.getCharacterProfileById(id))!.avatarAssetId,
+          isNull,
+        );
+        expect(await contentService.imagePath(assetId), isNotNull);
+      });
+    }
+
+    test(
+      'invalid asset rejects Create and all Write fields without partial writes',
+      () async {
+        final assetId = await generatedAsset();
+        final id = await contentService.createCharacterProfile(name: '原名');
+        await contentService.updateCharacterAvatarAndPhotos(
+          entryId: id,
+          avatarAssetId: assetId,
+        );
+        final before = (await contentService.getCharacterProfileById(
+          id,
+        ))!.toJson();
+        for (final invalid in [
+          'missing_asset',
+          p.join(tempSupport.path, 'generated.png'),
+        ]) {
+          final create = await toolManager.executeTool(
+            name: 'Create',
+            input: {
+              'path': 'characters',
+              'fields': {'name': '不可创建', 'avatar_asset_id': invalid},
+            },
+          );
+          expect(create['error_code'], 'invalid_argument', reason: '$create');
+          expect(await db.select(db.characterProfiles).get(), hasLength(1));
+          final write = await toolManager.executeTool(
+            name: 'Write',
+            input: {
+              'path': 'characters/$id',
+              'fields': {'biography': '不可保存', 'avatar_asset_id': invalid},
+            },
+          );
+          expect(write['error_code'], 'invalid_argument', reason: '$write');
+          expect(
+            (await contentService.getCharacterProfileById(id))!.toJson(),
+            before,
+          );
+          expect(await db.select(db.workingChanges).get(), isEmpty);
+        }
+      },
+    );
+
+    test(
+      'repeated and concurrent photo applications keep one reference and preserve its name',
+      () async {
+        final assetId = await generatedAsset();
+        final id = await contentService.createCharacterProfile(name: '人物');
+        await Future.wait([
+          contentService.addCharacterPhotos(id, [assetId, assetId]),
+          contentService.addCharacterPhotos(id, [assetId]),
+        ]);
+        expect((await contentService.getCharacterProfileById(id))!.photos, [
+          SubjectPhoto(assetId: assetId),
+        ]);
+        await contentService.updateCharacterAvatarAndPhotos(
+          entryId: id,
+          photos: [SubjectPhoto(assetId: assetId, name: '保留名称')],
+        );
+        await Future.wait([
+          contentService.addCharacterPhotos(id, [assetId, assetId]),
+          contentService.addCharacterPhotos(id, [assetId]),
+        ]);
+        expect((await contentService.getCharacterProfileById(id))!.photos, [
+          SubjectPhoto(assetId: assetId, name: '保留名称'),
+        ]);
+        expect(await appDb.select(appDb.assets).get(), hasLength(1));
+      },
+    );
   });
 }
 
 class _AvatarTestContentService extends NovelContentService {
   _AvatarTestContentService(super.database, {super.imageLibraryService});
 
-  bool failImageSave = false;
   int imageSaveCount = 0;
   bool savedInsideTransaction = false;
 
@@ -438,9 +471,6 @@ class _AvatarTestContentService extends NovelContentService {
     imageSaveCount++;
     savedInsideTransaction |=
         (database as _AvatarTestDatabase).transactionDepth > 0;
-    if (failImageSave) {
-      throw StateError('image_save_failed');
-    }
     return super.saveCharacterImage(sourcePath: sourcePath, kind: kind);
   }
 }

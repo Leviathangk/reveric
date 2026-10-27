@@ -1688,20 +1688,19 @@ class _MobileChatMessageList extends HookConsumerWidget {
             activeSessionId: sessionId,
             onConfigureImageModel: () =>
                 openMobileAgentModelSettingsPage(context),
-            onSetAsAvatar: (localPath, characterId) =>
-                setGeneratedImageAsAvatar(
-                  context,
-                  ref,
-                  databasePath: databasePath,
-                  localPath: localPath,
-                  characterId: characterId,
-                ),
-            onAddPhoto: (localPath, {characterId, itemId}) =>
+            onSetAsAvatar: (assetId, characterId) => setGeneratedImageAsAvatar(
+              context,
+              ref,
+              databasePath: databasePath,
+              assetId: assetId,
+              characterId: characterId,
+            ),
+            onAddPhoto: (assetId, {characterId, itemId}) =>
                 addGeneratedImageAsPhoto(
                   context,
                   ref,
                   databasePath: databasePath,
-                  localPath: localPath,
+                  assetId: assetId,
                   characterId: characterId,
                   itemId: itemId,
                 ),

@@ -1716,14 +1716,14 @@ mixin _AiToolManagerRunMixin
     final prompt = _requiredOption(options, 'prompt', usage: usage);
     final subjectKey = spec.command == 'item' ? 'item' : 'character';
     if (options.keys.any(
-      (key) => !{subjectKey, 'prompt', 'path'}.contains(key),
+      (key) => !{subjectKey, 'prompt', 'asset_id'}.contains(key),
     )) {
       throw const FormatException('Unsupported image generation option');
     }
-    final path = _optionalOption(options, 'path');
-    if (options.containsKey('path') &&
-        (options['path'] is! String || path.trim().isEmpty)) {
-      throw const FormatException('path must be a nonempty local file path');
+    final assetId = _optionalOption(options, 'asset_id');
+    if (options.containsKey('asset_id') &&
+        (options['asset_id'] is! String || assetId.isEmpty)) {
+      throw const FormatException('asset_id must be a nonempty image asset ID');
     }
     final subjectId = _requiredOption(options, subjectKey, usage: usage);
     final manager = operationHost?.operations;
@@ -1741,14 +1741,14 @@ mixin _AiToolManagerRunMixin
       throw ToolOperationException('not_found', '$subjectKey not found.');
     }
     final files = SessionFiles(novelId: workId);
-    final source = path.isEmpty
+    final source = assetId.isEmpty
         ? null
-        : await CommandPaths(files).resolve(path.trim());
+        : await _resolveSubjectImageAsset(assetId);
     final avatar = spec.subcommand == 'generate-avatar';
     final request = {
       'prompt': prompt,
       '${subjectKey}_id': subjectId,
-      if (source != null) 'path': source.path,
+      if (source != null) 'asset_id': assetId,
     };
     final target = '/${subjectKey}s/$subjectId';
     final receipt = await manager.start(
@@ -1771,7 +1771,7 @@ mixin _AiToolManagerRunMixin
         summary: {
           'size': avatar ? _avatarImageSize : _photoImageSize,
           'prompt': prompt,
-          if (source != null) 'path': path.trim(),
+          if (source != null) 'asset_id': assetId,
         },
       ),
       verifyTarget: () async {
@@ -1782,13 +1782,25 @@ mixin _AiToolManagerRunMixin
           throw ToolOperationException('conflict', '$subjectKey was removed.');
         }
         if (source != null) {
-          await files.resolve(source.path);
+          final currentSource = await _resolveSubjectImageAsset(assetId);
+          if (currentSource.path != source.path) {
+            throw const ToolOperationException(
+              'conflict',
+              'Reference image changed.',
+            );
+          }
         }
       },
       execute: (operation) async {
         final result = avatar
-            ? await _handleGenerateAvatar(operation.input)
-            : await _handleGeneratePhoto(operation.input);
+            ? await _handleGenerateAvatar(
+                operation.input,
+                referenceImagePath: source?.path,
+              )
+            : await _handleGeneratePhoto(
+                operation.input,
+                referenceImagePath: source?.path,
+              );
         return {
           ...result,
           if (result['local_path'] is String)
@@ -1813,6 +1825,31 @@ mixin _AiToolManagerRunMixin
       // `_metadata` 不会发送给模型（由 agent 在构造模型消息时剥离）。
       '_metadata': {'scene': spec.operation, '${subjectKey}_id': subjectId},
     };
+  }
+
+  Future<File> _resolveSubjectImageAsset(String assetId) async {
+    final library = _contentService.imageLibraryService;
+    if (library == null) {
+      throw const ToolOperationException(
+        'unavailable',
+        'Image library is unavailable.',
+      );
+    }
+    final asset = await library.getAsset(assetId);
+    if (asset == null || workId == null || asset.novelId != workId) {
+      throw ToolOperationException(
+        'not_found',
+        'Image asset not found in this work: $assetId',
+      );
+    }
+    final path = asset.path;
+    if (path == null || path.isEmpty) {
+      throw ToolOperationException(
+        'not_found',
+        'Image asset has no local file: $assetId',
+      );
+    }
+    return SessionFiles(novelId: workId).resolve(path);
   }
 
   Future<String?> _subjectItemName(String id) async {
@@ -2062,22 +2099,23 @@ const _mapDraftOptions = {
 
 String _characterHelpText() {
   return '''Character commands:
-  command=character subcommand=generate-avatar options={character, prompt, path?}
-  command=character subcommand=generate-photo options={character, prompt, path?}
+  command=character subcommand=generate-avatar options={character, prompt, asset_id?}
+  command=character subcommand=generate-photo options={character, prompt, asset_id?}
 
 generate-avatar creates a 1:1 avatar; generate-photo creates a 9:16 portrait photo or illustration.
 character is the character id copied from Read; never invent ids.
 Read the character profile before writing prompt, and keep its appearance anchors (hair, outfit, signature accessories) across images.
-path is an optional local reference image: an accessible absolute path or a work-relative path. URLs, data URIs and base64 are not accepted.''';
+To reference the character avatar, pass its avatar_asset_id as asset_id.
+asset_id is an optional reference image asset ID belonging to this work.''';
 }
 
 String _itemHelpText() {
   return '''Item commands:
-  command=item subcommand=generate-photo options={item, prompt, path?}
+  command=item subcommand=generate-photo options={item, prompt, asset_id?}
 
 generate-photo creates a 9:16 portrait photo or illustration of the item.
 item is the item id copied from Read; never invent ids. Read the item before writing prompt.
-path is an optional local reference image: an accessible absolute path or a work-relative path. URLs, data URIs and base64 are not accepted.''';
+asset_id is an optional reference image asset ID belonging to this work.''';
 }
 
 String _usageForMapDraft() {
@@ -2133,11 +2171,11 @@ question when you need input, complete when finished, error on failure.''';
 String _usageForSubjectImage(String operation) {
   return switch (operation) {
     'character.generate-avatar' =>
-      'Usage: command=character subcommand=generate-avatar options={character, prompt, path?}',
+      'Usage: command=character subcommand=generate-avatar options={character, prompt, asset_id?}',
     'character.generate-photo' =>
-      'Usage: command=character subcommand=generate-photo options={character, prompt, path?}',
+      'Usage: command=character subcommand=generate-photo options={character, prompt, asset_id?}',
     _ =>
-      'Usage: command=item subcommand=generate-photo options={item, prompt, path?}',
+      'Usage: command=item subcommand=generate-photo options={item, prompt, asset_id?}',
   };
 }
 

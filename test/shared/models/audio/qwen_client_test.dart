@@ -97,7 +97,7 @@ void main() {
               model == _next ? 'text_prompt' : 'text': '你好。',
               'voice': ?voice,
               'format': 'wav',
-              'sample_rate': ?rate,
+              'sample_rate': rate,
               if (model == _plus || model == _flash) 'instruction': '温暖、平静',
             },
           });

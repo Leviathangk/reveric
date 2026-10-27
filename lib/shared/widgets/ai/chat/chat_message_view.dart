@@ -94,10 +94,10 @@ class ChatMessageView extends ConsumerWidget {
   /// 打开图片模型设置（移动端可为 null）。
   final VoidCallback? onConfigureImageModel;
 
-  final Future<void> Function(String localPath, String characterId)?
+  final Future<void> Function(String assetId, String characterId)?
   onSetAsAvatar;
   final Future<void> Function(
-    String localPath, {
+    String assetId, {
     String? characterId,
     String? itemId,
   })?
@@ -520,7 +520,7 @@ class ChatMessageView extends ConsumerWidget {
         }
       } else if (block is AiImageBlock) {
         flushActivities();
-        final localPath = block.localFilePath;
+        final assetId = block.assetId;
         final isCharImage =
             block.toolName == 'GenerateAvatar' ||
             block.toolName == 'GeneratePhoto';
@@ -541,21 +541,21 @@ class ChatMessageView extends ConsumerWidget {
                   (setAsAvatar != null &&
                       block.toolName == 'GenerateAvatar' &&
                       block.status == AiImageStatus.success &&
-                      localPath != null &&
-                      localPath.isNotEmpty &&
+                      assetId != null &&
+                      assetId.isNotEmpty &&
                       characterId != null &&
                       characterId.isNotEmpty)
-                  ? (path) => setAsAvatar(path, characterId)
+                  ? (id) => setAsAvatar(id, characterId)
                   : null,
               onAddPhoto:
                   (addPhoto != null &&
                       block.toolName == 'GeneratePhoto' &&
                       block.status == AiImageStatus.success &&
-                      localPath != null &&
-                      localPath.isNotEmpty &&
+                      assetId != null &&
+                      assetId.isNotEmpty &&
                       hasPhotoTarget)
-                  ? (path) =>
-                        addPhoto(path, characterId: characterId, itemId: itemId)
+                  ? (id) =>
+                        addPhoto(id, characterId: characterId, itemId: itemId)
                   : null,
               onConfigureImageModel: hasErrorNoModel
                   ? onConfigureImageModel

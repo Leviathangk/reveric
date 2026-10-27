@@ -110,8 +110,8 @@ void main() {
                 '${_materializationProvider.id}::$_materializationModel',
           ),
         ),
-        imageGenerationCallbackProvider.overrideWithValue(null),
-        imageEditCallbackProvider.overrideWithValue(null),
+        imageGenerationCallbackProvider.overrideWith((ref, workId) => null),
+        imageEditCallbackProvider.overrideWith((ref, workId) => null),
         globalSubAgentsProvider.overrideWith(_EmptyGlobalSubAgents.new),
         traceReporterServiceProvider.overrideWithValue(
           TraceReporterService(

@@ -690,20 +690,19 @@ mixin _AiToolManagerWriteMixin
       }
     }
 
-    ({String assetId, String? path})? avatar;
-    try {
-      // 文件导入前完成业务校验；事务中再次校验，避免文件 IO 期间引用失效。
-      await validateFirstAppearance();
-      if (fields.containsKey('avatar_path')) {
-        final prepared = await _prepareCharacterAvatar(
-          characterId: id,
-          sourcePath: fields['avatar_path'] as String? ?? '',
-        );
-        if (prepared.error != null) {
-          return prepared.error!;
-        }
-        avatar = prepared.avatar!;
+    final avatarAssetId = fields['avatar_asset_id'] as String?;
+    if (fields.containsKey('avatar_asset_id')) {
+      final error = await _avatarAssetError(
+        'characters/$id/avatar_asset_id',
+        avatarAssetId,
+      );
+      if (error != null) {
+        return error;
       }
+    }
+    try {
+      // 写入前及事务内检查引用，避免使用失效的章节。
+      await validateFirstAppearance();
       await _withWorkingChangeTransaction(() async {
         final current = await _contentService.getCharacterProfileById(id);
         if (current == null) {
@@ -716,10 +715,10 @@ mixin _AiToolManagerWriteMixin
           );
         }
         await validateFirstAppearance();
-        if (avatar != null) {
+        if (fields.containsKey('avatar_asset_id')) {
           await _contentService.updateCharacterAvatarAndPhotos(
             entryId: id,
-            avatarAssetId: avatar.assetId,
+            avatarAssetId: avatarAssetId ?? '',
           );
         }
         if (fields.containsKey('tags')) {
@@ -732,7 +731,7 @@ mixin _AiToolManagerWriteMixin
         await _stageTextChangesAtomically(
           changes: [
             for (final name in parsed._resource!.schema.writeFields)
-              if (name != 'avatar_path' &&
+              if (name != 'avatar_asset_id' &&
                   name != 'tags' &&
                   fields.containsKey(name))
                 WorkingTextChangeRequest(
@@ -763,91 +762,30 @@ mixin _AiToolManagerWriteMixin
       'id': id,
       if (field != null) 'path': parsed.displayPath,
       'updated': field != null || fields.isNotEmpty,
-      if (field == null || field == 'avatar_path')
+      if (field == null || field == 'avatar_asset_id')
         'fields': fields.keys.toList(),
-      if (field == 'avatar_path') 'avatar_path': avatar!.path,
+      if (field == 'avatar_asset_id')
+        'avatar_asset_id': avatarAssetId?.isEmpty == true
+            ? null
+            : avatarAssetId,
     };
   }
 
-  /// Create 落库后补写头像：只有这一次写入，无需事务与回滚。
-  Future<Map<String, dynamic>> _writeCharacterAvatarPath({
-    required String characterId,
-    required String sourcePath,
-  }) async {
-    final prepared = await _prepareCharacterAvatar(
-      characterId: characterId,
-      sourcePath: sourcePath,
+  Future<Map<String, dynamic>?> _avatarAssetError(
+    String path,
+    String? assetId,
+  ) async {
+    if (assetId == null || assetId.isEmpty) {
+      return null;
+    }
+    if (await _contentService.imagePath(assetId) != null) {
+      return null;
+    }
+    return AiToolManager._structuredWriteError(
+      path: path,
+      errorCode: ToolErrorCode.invalid_argument,
+      message: 'Avatar image asset not found: $assetId',
     );
-    if (prepared.error != null) {
-      return prepared.error!;
-    }
-    final avatar = prepared.avatar!;
-    await _contentService.updateCharacterAvatarAndPhotos(
-      entryId: characterId,
-      avatarAssetId: avatar.assetId,
-    );
-    return {
-      'id': characterId,
-      'path': 'characters/$characterId/avatar_path',
-      'updated': true,
-      'fields': ['avatar_path'],
-      'avatar_path': avatar.path,
-    };
-  }
-
-  /// 事务外把头像文件导入图片库；清空返回空资产 id，数据库更新由角色写入统一提交。
-  Future<
-    ({({String assetId, String? path})? avatar, Map<String, dynamic>? error})
-  >
-  _prepareCharacterAvatar({
-    required String characterId,
-    required String sourcePath,
-  }) async {
-    final path = 'characters/$characterId/avatar_path';
-    if (sourcePath.isEmpty) {
-      return (avatar: (assetId: '', path: null), error: null);
-    }
-    final resolved = RevericPaths.resolveStored(sourcePath);
-    final absoluteSource =
-        resolved ?? (File(sourcePath).existsSync() ? sourcePath : null);
-    if (absoluteSource == null) {
-      return (
-        avatar: null,
-        error: AiToolManager._structuredWriteError(
-          path: path,
-          errorCode: ToolErrorCode.invalid_argument,
-          message: 'Avatar image not found: $sourcePath',
-          hint: 'Pass a local image path, or clear with an empty string.',
-        ),
-      );
-    }
-    try {
-      final assetId = await _contentService.saveCharacterImage(
-        sourcePath: absoluteSource,
-        kind: 'avatar',
-      );
-      return (
-        avatar: (
-          assetId: assetId,
-          path: await _contentService.imagePath(assetId),
-        ),
-        error: null,
-      );
-    } catch (error, stackTrace) {
-      _log.error(
-        'Character avatar import failed characterId=$characterId',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      return (
-        avatar: null,
-        error: AiToolManager._structuredWriteError(
-          path: path,
-          errorCode: ToolErrorCode.internal,
-          message: 'Failed to save avatar image for character $characterId',
-        ),
-      );
-    }
   }
 
   Future<Map<String, dynamic>> _writeForeshadowing(

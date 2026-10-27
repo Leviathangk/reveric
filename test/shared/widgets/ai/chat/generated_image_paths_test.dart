@@ -1,4 +1,4 @@
-// 职责: 验证生成图片的存储路径能够显示，并以真实文件路径应用为头像或照片。
+// 职责: 验证生成图片的存储路径能够显示，并以已有资产 ID 应用为头像或照片。
 // 关联文件:
 //   lib/shared/widgets/ai/chat/chat_message_view.dart
 //   lib/shared/widgets/ai/tools/character_image_tool_card.dart
@@ -72,9 +72,10 @@ void main() {
     TargetPlatform.windows,
     TargetPlatform.macOS,
     TargetPlatform.android,
+    TargetPlatform.iOS,
   ]) {
     testWidgets(
-      '$platform renders stored image paths and imports applied files',
+      '$platform renders stored image paths and applies registered assets',
       (tester) async {
         debugDefaultTargetPlatformOverride = platform;
         expect(File(relative).existsSync(), isFalse);
@@ -105,17 +106,23 @@ void main() {
               ),
               (relative, 'GeneratePhoto', null, 'item', AssetPurpose.photo),
             ]) {
+          final registered = (await tester.runAsync(
+            () => library.importFile(
+              source.path,
+              novelId: 'work',
+              purpose: purpose,
+            ),
+          ))!;
+          final assetCount = (await tester.runAsync(
+            () => database.select(database.assets).get(),
+          ))!.length;
           late Completer<AssetRow> applied;
-          String? callbackPath;
-          Future<void> apply(String path) async {
-            callbackPath = path;
+          String? callbackAssetId;
+          Future<void> apply(String assetId) async {
+            callbackAssetId = assetId;
             try {
               applied.complete(
-                await library.importFile(
-                  path,
-                  novelId: 'work',
-                  purpose: purpose,
-                ),
+                (await database.imageAssetDao.getAsset(assetId))!,
               );
             } catch (error, stack) {
               applied.completeError(error, stack);
@@ -127,6 +134,7 @@ void main() {
             prompt: 'portrait',
             toolName: tool,
             localFilePath: stored,
+            assetId: registered.id,
             characterId: expectedCharacterId,
             itemId: expectedItemId,
             status: AiImageStatus.success,
@@ -187,8 +195,14 @@ void main() {
             return applied.future.timeout(const Duration(seconds: 10));
           });
           await tester.pumpAndSettle();
-          expect(callbackPath, source.path);
-          expect(asset!.purpose, purpose.value);
+          expect(callbackAssetId, registered.id);
+          expect(asset!.id, registered.id);
+          expect(
+            (await tester.runAsync(
+              () => database.select(database.assets).get(),
+            ))!.length,
+            assetCount,
+          );
           expect(asset.novelId, 'work');
           expect(block.localFilePath, stored);
           expect(tester.takeException(), isNull);

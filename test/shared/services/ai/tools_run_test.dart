@@ -12,6 +12,7 @@ import 'package:reveric/shared/models/ai_provider.dart';
 import 'package:reveric/shared/models/ai_chat_models.dart';
 import 'package:reveric/shared/models/asset_purpose.dart';
 import 'package:reveric/shared/providers/ai_providers.dart';
+import 'package:reveric/shared/providers/async_read.dart';
 import 'package:reveric/shared/providers/novel_providers.dart';
 import 'package:reveric/shared/providers/settings_providers.dart';
 import 'package:reveric/shared/services/image_library_service.dart';
@@ -27,6 +28,7 @@ import 'package:reveric/shared/services/ai/tool_operations.dart';
 import 'package:reveric/shared/services/tool_permission_gate.dart';
 import 'package:reveric/shared/services/tool_permissions.dart';
 import 'package:drift/native.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reveric/shared/database/app_database.dart';
 import 'package:reveric/shared/database/novel_content_database.dart';
@@ -939,6 +941,7 @@ void main() {
               );
               return AiImageGenerationResult(
                 localFilePath: library.resolve(asset.path),
+                assetId: asset.id,
               );
             },
       )..registerAllTools();
@@ -1011,9 +1014,6 @@ void main() {
         final container = ProviderContainer(
           overrides: [
             imageGenerationConfigProvider.overrideWithValue(config),
-            aiSessionContextNotifierProvider.overrideWith(
-              _ImageWorkContext.new,
-            ),
             resolvedAiModelOptionForKindProvider(
               kind: AiModelKind.image,
             ).overrideWithValue(
@@ -1028,31 +1028,92 @@ void main() {
           ],
         );
         addTearDown(container.dispose);
-        final generated = container.listen(
-          imageGenerationCallbackProvider,
-          (_, _) {},
-        );
-        final edited = container.listen(imageEditCallbackProvider, (_, _) {});
-        addTearDown(generated.close);
-        addTearDown(edited.close);
+        // 没有页面订阅或全局作品上下文，调用期间才持有生图依赖。
         await useSubjectImageHost(
           approval: false,
-          generate: generated.read(),
-          edit: edited.read(),
+          generate: (prompt, {model, size, quality}) => container.withProvider(
+            imageGenerationCallbackProvider('work'),
+            (callback) =>
+                callback!(prompt, model: model, size: size, quality: quality),
+          ),
+          edit: (prompt, {required imageData, model}) => container.withProvider(
+            imageEditCallbackProvider('work'),
+            (callback) => callback!(prompt, imageData: imageData, model: model),
+          ),
         );
         final first = await runSubjectImage('character', 'generate-avatar', {
           'character': 'c_1',
           'prompt': 'first prompt',
         });
         expect(first['ok'], true, reason: '$first');
+        await container.pump();
+        expect(
+          container.exists(imageGenerationCallbackProvider('work')),
+          isFalse,
+        );
+        // 模拟桌面切到另一作品，已有会话的照片仍归属发起作品。
+        final contextSubscription = container.listen(
+          aiSessionContextNotifierProvider,
+          (_, _) {},
+        );
+        addTearDown(contextSubscription.close);
+        container
+            .read(aiSessionContextNotifierProvider.notifier)
+            .updateContext(const AiSessionContext(workId: 'other-work'));
+        final setAvatar = await toolManager.executeTool(
+          name: 'Write',
+          input: {
+            'path': 'characters/c_1/avatar_asset_id',
+            'value': first['asset_id'],
+          },
+        );
+        expect(setAvatar['updated'], isTrue, reason: '$setAvatar');
+        final avatar = await toolManager.executeTool(
+          name: 'Read',
+          input: {'path': 'characters/c_1/avatar_asset_id'},
+        );
         final second = await runSubjectImage('character', 'generate-photo', {
           'character': 'c_1',
           'prompt': 'edit prompt',
-          'path': first['local_path'],
+          'asset_id': avatar['value'],
         });
         expect(second['ok'], true, reason: '$second');
+        await container.pump();
+        expect(container.exists(imageEditCallbackProvider('work')), isFalse);
+        final subscription = container.listen(
+          aiChatSessionProvider('image-result'),
+          (_, _) {},
+        );
+        addTearDown(subscription.close);
+        final session = container.read(
+          aiChatSessionProvider('image-result').notifier,
+        );
+        session.startStreamingMessage();
         for (final result in [first, second]) {
+          session.upsertImageBlock(
+            const AiImageBlock(id: 'result', prompt: 'portrait'),
+          );
+          session.patchImageBlock(
+            'result',
+            status: AiImageStatus.success,
+            assetId: result['asset_id'] as String?,
+            localFilePath: result['local_path'] as String?,
+          );
+          final block = container
+              .read(aiChatSessionProvider('image-result'))
+              .messages
+              .expand((message) => message.blocks)
+              .whereType<AiImageBlock>()
+              .single;
+          expect(block.assetId, isNotNull);
+          final restored =
+              AiMessageBlock.fromJson(block.toJson()) as AiImageBlock;
+          expect(restored.assetId, result['asset_id']);
           expect(result['local_path'], startsWith('images/'));
+          expect(
+            await appDb.imageAssetDao.getAsset(result['asset_id'] as String),
+            isNotNull,
+          );
           expect(
             await File(
               '${RevericPaths.supportRoot}/file_workspaces/work/${result['local_path']}',
@@ -1062,6 +1123,7 @@ void main() {
         }
         final assets = await appDb.select(appDb.assets).get();
         expect(assets, hasLength(2));
+        expect(assets.map((asset) => asset.novelId), everyElement('work'));
         expect(
           assets.map((a) => a.purpose),
           everyElement(AssetPurpose.ai_chat_generated.value),
@@ -1095,10 +1157,36 @@ void main() {
 
         expect(avatar['command'], 'character generate-avatar');
         expect(avatar['local_path'], startsWith('images/'));
+        expect(avatar['asset_id'], isA<String>());
         expect(avatar['character_id'], 'c_1');
         expect(photo['command'], 'character generate-photo');
         expect(photo['local_path'], startsWith('images/'));
+        expect(photo['asset_id'], isA<String>());
         expect(photo['character_id'], 'c_1');
+        final write = await toolManager.executeTool(
+          name: 'Write',
+          input: {
+            'path': 'characters/c_1/avatar_asset_id',
+            'value': avatar['asset_id'],
+          },
+        );
+        expect(write['updated'], isTrue, reason: '$write');
+        final read = await toolManager.executeTool(
+          name: 'Read',
+          input: {'path': 'characters/c_1/avatar_asset_id'},
+        );
+        expect(read['value'], avatar['asset_id']);
+        final photos = await toolManager.executeTool(
+          name: 'Write',
+          input: {
+            'path': 'characters/c_1/photos',
+            'value': [
+              {'asset_id': photo['asset_id'], 'name': '全身'},
+            ],
+          },
+        );
+        expect(photos['updated'], isTrue, reason: '$photos');
+        expect(await appDb.select(appDb.assets).get(), hasLength(1));
         expect(prompts, ['1024x1024:stern mage', '864x1536:full body']);
       },
     );
@@ -1124,81 +1212,135 @@ void main() {
       ('character', 'generate-photo', 'c_1'),
       ('item', 'generate-photo', 'item_1'),
     ]) {
-      test('$command $subcommand accepts only local reference paths', () async {
-        final root = await Directory.systemTemp.createTemp('image-input-');
-        const channel = MethodChannel('plugins.flutter.io/path_provider');
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, (_) async => root.path);
-        await RevericPaths.initialize();
-        addTearDown(() async {
-          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(channel, null);
-          await root.delete(recursive: true);
-        });
-        await Directory(
-          '${RevericPaths.supportRoot}/file_workspaces/work',
-        ).create(recursive: true);
-        final source =
+      test(
+        '$command $subcommand references only valid images in this work',
+        () async {
+          final edited = <String>[];
+          late AssetRow reference;
+          await useSubjectImageHost(
+            approval: false,
+            edit: (prompt, {required imageData, model}) async {
+              edited.add(imageData);
+              return AiImageGenerationResult(
+                localFilePath: imageData,
+                assetId: reference.id,
+              );
+            },
+          );
+          final source = await File('${RevericPaths.supportRoot}/参考图.png')
+              .writeAsBytes(
+                base64Decode(
+                  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+                ),
+              );
+          final library = buildImageLibraryService(appDb);
+          reference = await library.importFile(
+            source.path,
+            novelId: 'work',
+            purpose: AssetPurpose.avatar,
+          );
+          final options = {command: subject, 'prompt': 'Keep the character'};
+          final result = await runSubjectImage(command, subcommand, {
+            ...options,
+            'asset_id': reference.id,
+          });
+          expect(result['ok'], isTrue, reason: '$result');
+          expect(
+            edited.single,
             await File(
-              '${RevericPaths.supportRoot}/file_workspaces/work/参考图.png',
-            ).writeAsBytes(
-              base64Decode(
-                'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+              RevericPaths.resolveStored(reference.path)!,
+            ).resolveSymbolicLinks(),
+          );
+          expect(
+            await File(edited.single).readAsBytes(),
+            await source.readAsBytes(),
+          );
+
+          for (final invalid in [
+            'missing',
+            source.path,
+            'https://example.com/reference.png',
+            '',
+            42,
+            null,
+          ]) {
+            final rejected = await runSubjectImage(command, subcommand, {
+              ...options,
+              'asset_id': invalid,
+            });
+            expect(rejected['ok'], isFalse, reason: '$rejected');
+          }
+          for (final invalidState in [
+            const AssetsCompanion(novelId: Value('other-work')),
+            const AssetsCompanion(novelId: Value(null)),
+            AssetsCompanion(deletedAt: Value(DateTime(2026))),
+            const AssetsCompanion(type: Value('video')),
+            const AssetsCompanion(path: Value(null)),
+            const AssetsCompanion(
+              path: Value('file_workspaces/work/images/missing.png'),
+            ),
+          ]) {
+            await (appDb.update(
+              appDb.assets,
+            )..where((row) => row.id.equals(reference.id))).write(invalidState);
+            final rejected = await runSubjectImage(command, subcommand, {
+              ...options,
+              'asset_id': reference.id,
+            });
+            expect(rejected['ok'], isFalse, reason: '$rejected');
+            await (appDb.update(
+              appDb.assets,
+            )..where((row) => row.id.equals(reference.id))).write(
+              AssetsCompanion(
+                novelId: const Value('work'),
+                deletedAt: Value(notDeletedSentinel),
+                type: const Value('image'),
+                path: Value(reference.path),
               ),
             );
-        final edited = <String>[];
-        await useSubjectImageHost(
-          approval: false,
-          edit: (prompt, {required imageData, model}) async {
-            edited.add(imageData);
-            return AiImageGenerationResult(localFilePath: source.path);
-          },
-        );
-        final options = {command: subject, 'prompt': 'Keep the character'};
-        await Directory(
-          '${RevericPaths.supportRoot}/file_workspaces/work',
-        ).create(recursive: true);
-        await source.copy(
-          '${RevericPaths.supportRoot}/file_workspaces/work/参考图.png',
-        );
-        for (final path in [source.path, '参考图.png']) {
-          final result = await runSubjectImage(command, subcommand, {
-            ...options,
-            'path': path,
-          });
-          expect(result['ok'], true, reason: '$result');
-          expect(edited.last, endsWith('参考图.png'));
-        }
-        for (final path in [
-          'https://example.com/reference.png',
-          'http://example.com/reference.png',
-          'data:image/png;base64,AQID',
-          'AQID',
-          source.uri.toString(),
-          '${root.path}/missing.png',
-          root.path,
-          '',
-          42,
-          null,
-        ]) {
-          final result = await runSubjectImage(command, subcommand, {
-            ...options,
-            'path': path,
-          });
-          expect(result['ok'], false, reason: '$path: $result');
-          expect(edited, hasLength(2));
-        }
-        for (final oldName in ['image', 'image_path', 'file_path']) {
-          final result = await runSubjectImage(command, subcommand, {
-            ...options,
-            oldName: source.path,
-          });
-          expect(result['ok'], false, reason: '$result');
-        }
-        expect(edited, hasLength(2));
-        expect(prompts, isEmpty);
-      });
+          }
+          expect(edited, hasLength(1));
+          expect(prompts, isEmpty);
+        },
+      );
     }
+
+    test('reference asset is checked again after approval', () async {
+      var edits = 0;
+      final broker = await useSubjectImageHost(
+        approval: true,
+        edit: (prompt, {required imageData, model}) async {
+          edits++;
+          throw StateError(
+            'Deleted reference must not reach the image service',
+          );
+        },
+      );
+      final source = await File('${RevericPaths.supportRoot}/reference.png')
+          .writeAsBytes(
+            base64Decode(
+              'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+            ),
+          );
+      final reference = await buildImageLibraryService(
+        appDb,
+      ).importFile(source.path, novelId: 'work', purpose: AssetPurpose.avatar);
+      final waiting = broker.stream.firstWhere((rows) => rows.isNotEmpty);
+      final pending = runSubjectImage('character', 'generate-photo', {
+        'character': 'c_1',
+        'prompt': 'Portrait',
+        'asset_id': reference.id,
+      });
+      final request = (await waiting).single;
+      await (appDb.update(appDb.assets)
+            ..where((row) => row.id.equals(reference.id)))
+          .write(AssetsCompanion(deletedAt: Value(DateTime(2026))));
+      await broker.resolve(request, allow: true);
+      final result = await pending;
+      expect(result['ok'], isFalse, reason: '$result');
+      expect(edits, 0);
+      expect(prompts, isEmpty);
+    });
 
     test(
       'character image waits for approval and denial never generates',
@@ -2354,11 +2496,6 @@ void main() {
       );
     });
   });
-}
-
-class _ImageWorkContext extends AiSessionContextNotifier {
-  @override
-  AiSessionContext build() => const AiSessionContext(workId: 'work');
 }
 
 /// ffmpeg execute 固定后台执行；拿到回执后等待同一 run 结束，同步命令原样返回。

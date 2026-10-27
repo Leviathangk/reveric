@@ -99,30 +99,3 @@ String? _unwrapCodemodeSource(String source) {
   }
   return null;
 }
-
-/// Only capability-bearing fields are checked. URLs in chapter prose are data.
-/// Remote avatar imports are rejected before Create can create the character;
-/// the local avatar importer itself must not become an implicit network path.
-bool codemodeHasExternalInput(String name, Map<String, dynamic> input) {
-  if (!codemodeWriteToolNames.contains(name)) {
-    return false;
-  }
-  Object? fields = input['fields'];
-  if (fields is String) {
-    try {
-      fields = jsonDecode(fields);
-    } on FormatException {
-      fields = null;
-    }
-  }
-  final path = input['path'];
-  final candidates = [
-    input['avatar_path'],
-    if (fields is Map) fields['avatar_path'],
-    if (path is String && path.trim().endsWith('/avatar_path')) input['value'],
-  ];
-  return candidates.whereType<String>().any((value) {
-    final uri = Uri.tryParse(value.trim());
-    return uri?.scheme == 'http' || uri?.scheme == 'https';
-  });
-}

@@ -666,6 +666,14 @@ mixin _AiToolManagerCreateMixin
         firstAppearance == null || firstAppearance.isEmpty
         ? null
         : firstAppearance;
+    final avatarAssetId = input['avatar_asset_id'] as String?;
+    final avatarError = await _avatarAssetError(
+      'characters/avatar_asset_id',
+      avatarAssetId,
+    );
+    if (avatarError != null) {
+      return avatarError;
+    }
     late final String newId;
     try {
       newId = await _contentService.createCharacterProfile(
@@ -722,14 +730,11 @@ mixin _AiToolManagerCreateMixin
       toolName: 'Create',
       summary: 'AI created character $name',
     );
-    if (input.containsKey('avatar_path')) {
-      final avatarResult = await _writeCharacterAvatarPath(
-        characterId: newId,
-        sourcePath: input['avatar_path'] as String? ?? '',
+    if (avatarAssetId != null && avatarAssetId.isNotEmpty) {
+      await _contentService.updateCharacterAvatarAndPhotos(
+        entryId: newId,
+        avatarAssetId: avatarAssetId,
       );
-      if (avatarResult['error'] != null) {
-        return avatarResult;
-      }
     }
     return {'path': 'characters/$newId', 'id': newId, 'created': true};
   }

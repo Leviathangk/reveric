@@ -264,6 +264,7 @@ class AiImageBlock extends AiMessageBlock {
     this.imageUrl,
     this.imageBase64,
     this.localFilePath,
+    this.assetId,
     this.revisedPrompt,
     this.characterId,
     this.itemId,
@@ -276,6 +277,7 @@ class AiImageBlock extends AiMessageBlock {
   final String? imageUrl;
   final String? imageBase64;
   final String? localFilePath;
+  final String? assetId;
   final String? revisedPrompt;
   final String? characterId;
   final String? itemId;
@@ -298,6 +300,7 @@ class AiImageBlock extends AiMessageBlock {
     String? imageUrl,
     String? imageBase64,
     String? localFilePath,
+    String? assetId,
     String? revisedPrompt,
     String? characterId,
     String? itemId,
@@ -311,6 +314,7 @@ class AiImageBlock extends AiMessageBlock {
       imageUrl: imageUrl ?? this.imageUrl,
       imageBase64: imageBase64 ?? this.imageBase64,
       localFilePath: localFilePath ?? this.localFilePath,
+      assetId: assetId ?? this.assetId,
       revisedPrompt: revisedPrompt ?? this.revisedPrompt,
       characterId: characterId ?? this.characterId,
       itemId: itemId ?? this.itemId,

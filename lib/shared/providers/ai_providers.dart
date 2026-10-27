@@ -1635,6 +1635,7 @@ class AiChatSession extends _$AiChatSession {
     String? imageUrl,
     String? imageBase64,
     String? localFilePath,
+    String? assetId,
     String? revisedPrompt,
     String? characterId,
     String? itemId,
@@ -1655,6 +1656,7 @@ class AiChatSession extends _$AiChatSession {
             imageUrl: imageUrl,
             imageBase64: imageBase64,
             localFilePath: localFilePath,
+            assetId: assetId,
             revisedPrompt: revisedPrompt,
             characterId: characterId,
             itemId: itemId,
@@ -2226,7 +2228,9 @@ AiClient? aiService(Ref ref, String? sessionId) {
   final locationsService = novelContentPath == null || novelContentPath.isEmpty
       ? null
       : ref.watch(locationsServiceProvider(novelContentPath));
-  final imageCallback = ref.watch(imageGenerationCallbackProvider);
+  final imageCallback = currentWorkId == null || currentWorkId.isEmpty
+      ? null
+      : ref.watch(imageGenerationCallbackProvider(currentWorkId));
   final lease = ref.read(aiHttpClientRegistryProvider).acquire(config);
   ref.onDispose(lease.release);
   final httpClient = lease.client;
@@ -2349,7 +2353,9 @@ Future<AiClient?> aiServiceAsync(Ref ref, String? sessionId) async {
   final locationsService = novelContentPath == null || novelContentPath.isEmpty
       ? null
       : ref.watch(locationsServiceProvider(novelContentPath));
-  final imageCallback = ref.watch(imageGenerationCallbackProvider);
+  final imageCallback = currentWorkId == null || currentWorkId.isEmpty
+      ? null
+      : ref.watch(imageGenerationCallbackProvider(currentWorkId));
   final lease = ref.read(aiHttpClientRegistryProvider).acquire(config);
   ref.onDispose(lease.release);
   final httpClient = lease.client;
@@ -2450,12 +2456,8 @@ CoverStudioImageModelSelection? coverStudioImageModelSelection(Ref ref) {
 
 @riverpod
 AiProvider? imageGenerationConfig(Ref ref) {
-  final context = ref.watch(aiSessionContextNotifierProvider);
   final option = ref.watch(
-    resolvedAiModelOptionForKindProvider(
-      kind: AiModelKind.image,
-      databasePath: context.databasePath,
-    ),
+    resolvedAiModelOptionForKindProvider(kind: AiModelKind.image),
   );
   if (option == null) return null;
   final settings = ref.watch(aiSettingsProvider);
@@ -2466,24 +2468,19 @@ AiProvider? imageGenerationConfig(Ref ref) {
   );
 }
 
-String _requireWorkId(AiSessionContext context) {
-  final workId = context.workId?.trim();
-  if (workId == null || workId.isEmpty) {
-    throw StateError('Image generation requires a work context.');
-  }
-  return workId;
-}
-
 @riverpod
-AiImageGenerationCallback? imageGenerationCallback(Ref ref) {
+AiImageGenerationCallback? imageGenerationCallback(Ref ref, String workId) {
+  if (workId.trim().isEmpty) {
+    throw ArgumentError.value(
+      workId,
+      'workId',
+      'Image generation requires a work ID.',
+    );
+  }
   final config = ref.watch(imageGenerationConfigProvider);
   if (config == null) return null;
-  final context = ref.watch(aiSessionContextNotifierProvider);
   final preferredOption = ref.watch(
-    resolvedAiModelOptionForKindProvider(
-      kind: AiModelKind.image,
-      databasePath: context.databasePath,
-    ),
+    resolvedAiModelOptionForKindProvider(kind: AiModelKind.image),
   );
   if (preferredOption == null) {
     return null;
@@ -2492,7 +2489,6 @@ AiImageGenerationCallback? imageGenerationCallback(Ref ref) {
   final imageLibrary = ref.watch(imageLibraryServiceProvider);
   return (String prompt, {String? model, String? size, String? quality}) async {
     // 生图工具只作用于作品内的角色和物品，结果按作品入库。
-    final novelId = _requireWorkId(context);
     final service = AiImageGenerationService(
       config,
       model: model ?? defaultModel,
@@ -2505,7 +2501,7 @@ AiImageGenerationCallback? imageGenerationCallback(Ref ref) {
     );
     final asset = await imageLibrary.importGenerated(
       result,
-      novelId: novelId,
+      novelId: workId,
       purpose: AssetPurpose.ai_chat_generated,
       prompt: prompt,
       model: model ?? defaultModel,
@@ -2516,6 +2512,7 @@ AiImageGenerationCallback? imageGenerationCallback(Ref ref) {
       revisedPrompt: result.revisedPrompt,
       mimeSubtype: result.mimeSubtype,
       localFilePath: imageLibrary.resolve(asset.path),
+      assetId: asset.id,
     );
   };
 }
@@ -2557,15 +2554,18 @@ AiMultiImageEditCallback? coverImageMultiEditCallback(Ref ref) {
 }
 
 @riverpod
-AiImageEditCallback? imageEditCallback(Ref ref) {
+AiImageEditCallback? imageEditCallback(Ref ref, String workId) {
+  if (workId.trim().isEmpty) {
+    throw ArgumentError.value(
+      workId,
+      'workId',
+      'Image editing requires a work ID.',
+    );
+  }
   final config = ref.watch(imageGenerationConfigProvider);
   if (config == null) return null;
-  final context = ref.watch(aiSessionContextNotifierProvider);
   final preferredOption = ref.watch(
-    resolvedAiModelOptionForKindProvider(
-      kind: AiModelKind.image,
-      databasePath: context.databasePath,
-    ),
+    resolvedAiModelOptionForKindProvider(kind: AiModelKind.image),
   );
   if (preferredOption == null) {
     return null;
@@ -2574,7 +2574,6 @@ AiImageEditCallback? imageEditCallback(Ref ref) {
   final imageLibrary = ref.watch(imageLibraryServiceProvider);
   return (String prompt, {required String imageData, String? model}) async {
     // 生图工具只作用于作品内的角色和物品，结果按作品入库。
-    final novelId = _requireWorkId(context);
     final service = AiImageGenerationService(
       config,
       model: model ?? defaultModel,
@@ -2586,7 +2585,7 @@ AiImageEditCallback? imageEditCallback(Ref ref) {
     );
     final asset = await imageLibrary.importGenerated(
       result,
-      novelId: novelId,
+      novelId: workId,
       purpose: AssetPurpose.ai_chat_generated,
       prompt: prompt,
       model: model ?? defaultModel,
@@ -2597,6 +2596,7 @@ AiImageEditCallback? imageEditCallback(Ref ref) {
       revisedPrompt: result.revisedPrompt,
       mimeSubtype: result.mimeSubtype,
       localFilePath: imageLibrary.resolve(asset.path),
+      assetId: asset.id,
     );
   };
 }

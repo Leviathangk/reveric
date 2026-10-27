@@ -542,6 +542,7 @@ void main() {
             'success': true,
             'command': 'character generate-avatar',
             'local_path': 'images/avatar.png',
+            'asset_id': 'avatar-asset',
             'character_id': 'character_1',
           },
         ),
@@ -579,6 +580,7 @@ void main() {
     final toolCall = blocks.whereType<AiToolCallBlock>().single;
     expect(toolCall.callId, 'avatar');
     expect(toolCall.result?['local_path'], 'images/avatar.png');
+    expect(toolCall.result?['asset_id'], 'avatar-asset');
 
     final replay = messages
         .expand(convertAiMessageToAgentMessagesForModel)

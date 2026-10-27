@@ -1195,6 +1195,37 @@ class NovelContentService {
     }
   }
 
+  Future<void> addCharacterPhotos(String id, List<String> assetIds) async {
+    try {
+      await _database.transaction(() async {
+        final character = await getCharacterProfileById(id);
+        if (character == null) {
+          throw StateError('Character no longer exists');
+        }
+        final photos = character.photos ?? const <SubjectPhoto>[];
+        final existing = photos.map((photo) => photo.assetId).toSet();
+        final added = [
+          for (final assetId in assetIds)
+            if (existing.add(assetId)) SubjectPhoto(assetId: assetId),
+        ];
+        if (added.isEmpty) {
+          return;
+        }
+        await updateCharacterAvatarAndPhotos(
+          entryId: id,
+          photos: [...photos, ...added],
+        );
+      });
+    } catch (error, stackTrace) {
+      _log.error(
+        '[DB] table=character_profiles operation=ADD_PHOTOS id=$id',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   Future<void> updateCharacterAvatarAndPhotos({
     required String entryId,
     String? avatarAssetId,
