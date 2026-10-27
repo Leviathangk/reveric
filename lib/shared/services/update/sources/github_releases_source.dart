@@ -1,4 +1,4 @@
-// 职责: GitHub Releases 更新源 — 从 GitHub API 获取最新 release
+// 职责: 从 GitHub Releases 获取最新版本并选择匹配平台和架构的更新包
 // 关联文件:
 //   lib/shared/services/update/models.dart
 //   lib/shared/services/update/update_source.dart
@@ -9,6 +9,7 @@
 // 遵循的 Rules:
 //   .agents/rules/state-management.md
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
@@ -25,12 +26,17 @@ class GitHubReleasesSource implements UpdateSource {
   final String owner;
   final String repo;
   final String? apiToken;
+  final String _operatingSystem;
+  final Abi _abi;
 
   GitHubReleasesSource({
     required this.owner,
     required this.repo,
     this.apiToken,
-  });
+    String? operatingSystem,
+    Abi? abi,
+  }) : _operatingSystem = operatingSystem ?? Platform.operatingSystem,
+       _abi = abi ?? Abi.current();
 
   @override
   Future<UpdateCheckResult> checkForUpdate(String currentVersion) async {
@@ -92,19 +98,25 @@ class GitHubReleasesSource implements UpdateSource {
   }
 
   Map<String, dynamic>? _findPlatformAsset(List<dynamic>? assets) {
-    if (assets == null || assets.isEmpty) return null;
+    if (assets == null || assets.isEmpty) {
+      return null;
+    }
 
     final patterns = _platformAssetPatterns();
     for (final asset in assets) {
-      if (asset is! Map<String, dynamic>) continue;
+      if (asset is! Map<String, dynamic>) {
+        continue;
+      }
       final name = (asset['name'] as String? ?? '').toLowerCase();
       if (!_isSupportedUpdateAsset(name)) {
         continue;
       }
       for (final pattern in patterns) {
-        if (name.contains(pattern)) return asset;
+        if (name.contains(pattern)) {
+          return asset;
+        }
       }
-      if (Platform.isWindows && _isSupportedUpdateAsset(name)) {
+      if (_operatingSystem == 'windows' && _isSupportedUpdateAsset(name)) {
         return asset;
       }
     }
@@ -112,22 +124,32 @@ class GitHubReleasesSource implements UpdateSource {
   }
 
   bool _isSupportedUpdateAsset(String name) {
-    if (Platform.isWindows) {
+    if (_operatingSystem == 'macos') {
+      final architecture = switch (_abi) {
+        Abi.macosArm64 => 'arm64',
+        Abi.macosX64 => 'x86_64',
+        _ => null,
+      };
+      return architecture != null && name.endsWith('-macos-$architecture.zip');
+    }
+    if (_operatingSystem == 'windows') {
       // Windows 更新使用 Inno Setup 安装器：安装目录可能需要 UAC，且安装器会处理
       // VC++ redistributable、关闭旧进程和替换完整 Flutter bundle。
       return name.endsWith('.exe') && name.contains('setup');
     }
-    if (Platform.isAndroid) {
+    if (_operatingSystem == 'android') {
       return name.endsWith('.apk') && name.contains('arm64-v8a');
     }
     return name.endsWith('.zip');
   }
 
   List<String> _platformAssetPatterns() {
-    if (Platform.isMacOS) return ['macos', 'mac', 'darwin'];
-    if (Platform.isWindows) return ['windows', 'win'];
-    if (Platform.isLinux) return ['linux', 'ubuntu', 'appimage'];
-    if (Platform.isAndroid) return ['arm64-v8a', 'android', 'apk'];
-    return [];
+    return switch (_operatingSystem) {
+      'macos' => ['macos'],
+      'windows' => ['windows', 'win'],
+      'linux' => ['linux', 'ubuntu', 'appimage'],
+      'android' => ['arm64-v8a', 'android', 'apk'],
+      _ => [],
+    };
   }
 }

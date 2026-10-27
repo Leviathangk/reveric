@@ -136,8 +136,8 @@ jobs:
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           files: |
-            dist/**/*.dmg
-            dist/**/*.zip
+            dist/**/*-macos-arm64.dmg
+            dist/**/*-macos-arm64.zip
 
   package-windows:
     if: |

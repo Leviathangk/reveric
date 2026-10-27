@@ -25,9 +25,7 @@ retained_dylib() {
 
 IOS_DEVICE_DYLIB="$(retained_dylib aarch64-apple-ios)"
 IOS_SIM_ARM_DYLIB="$(retained_dylib aarch64-apple-ios-sim)"
-IOS_SIM_X64_DYLIB="$(retained_dylib x86_64-apple-ios)"
 MACOS_ARM_DYLIB="$(retained_dylib aarch64-apple-darwin)"
-MACOS_X64_DYLIB="$(retained_dylib x86_64-apple-darwin)"
 
 PACKAGE_VERSION="$(sed -n 's/^version:[[:space:]]*//p' "$WORKSPACE_ROOT/pubspec.yaml" | head -n 1)"
 [ -n "$PACKAGE_VERSION" ] || fail "unable to read package version from pubspec.yaml"
@@ -59,7 +57,6 @@ create_framework() {
   minimum_version="$2"
   framework_style="$3"
   first_dylib="$4"
-  second_dylib="${5:-}"
 
   framework_dir="$FRAMEWORK_ROOT/$platform_name/fjs.framework"
   contents_dir="$framework_dir"
@@ -73,11 +70,7 @@ create_framework() {
 
   mkdir -p "$contents_dir/Headers" "$contents_dir/Modules" "$resources_dir"
   framework_binary="$contents_dir/fjs"
-  if [ -n "$second_dylib" ]; then
-    lipo -create "$first_dylib" "$second_dylib" -output "$framework_binary"
-  else
-    cp "$first_dylib" "$framework_binary"
-  fi
+  cp "$first_dylib" "$framework_binary"
   install_name_tool -id "@rpath/fjs.framework/fjs" "$framework_binary"
 
   cat > "$resources_dir/Info.plist" <<EOF
@@ -126,8 +119,8 @@ EOF
 }
 
 create_framework ios "$IOS_MINIMUM" shallow "$IOS_DEVICE_DYLIB"
-create_framework ios-simulator "$IOS_MINIMUM" shallow "$IOS_SIM_ARM_DYLIB" "$IOS_SIM_X64_DYLIB"
-create_framework macos "$MACOS_MINIMUM" versioned "$MACOS_ARM_DYLIB" "$MACOS_X64_DYLIB"
+create_framework ios-simulator "$IOS_MINIMUM" shallow "$IOS_SIM_ARM_DYLIB"
+create_framework macos "$MACOS_MINIMUM" versioned "$MACOS_ARM_DYLIB"
 
 xcodebuild -create-xcframework \
   -framework "$FRAMEWORK_ROOT/ios/fjs.framework" \

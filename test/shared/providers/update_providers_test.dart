@@ -42,10 +42,10 @@ void main() {
   test('default update check uses Reveric GitHub release assets', () async {
     final requests = <Uri>[];
     final assets = {
-      'macos': 'reveric-0.2.0-macos.zip',
-      'windows': 'reveric-0.2.0-windows-setup.exe',
-      'android': 'reveric-0.2.0-android-arm64-v8a.apk',
-      'linux': 'reveric-0.2.0-linux.zip',
+      'macos': 'reveric-9.2.0-macos-arm64.zip',
+      'windows': 'reveric-9.2.0-windows-setup.exe',
+      'android': 'reveric-9.2.0-android-arm64-v8a.apk',
+      'linux': 'reveric-9.2.0-linux.zip',
     };
     final result = await http.runWithClient(
       () async {
@@ -56,7 +56,7 @@ void main() {
         requests.add(request.url);
         return http.Response(
           jsonEncode({
-            'tag_name': 'v0.2.0',
+            'tag_name': 'v9.2.0',
             'body': 'Release notes',
             'assets': [
               for (final name in assets.values)
@@ -64,7 +64,7 @@ void main() {
                   'name': name,
                   'size': 1024,
                   'browser_download_url':
-                      'https://github.com/looplj/reveric/releases/download/v0.2.0/$name',
+                      'https://github.com/looplj/reveric/releases/download/v9.2.0/$name',
                 },
             ],
           }),
@@ -77,7 +77,7 @@ void main() {
     ]);
     expect(result, isA<UpdateAvailable>());
     final info = (result as UpdateAvailable).info;
-    expect(info.version, '0.2.0');
+    expect(info.version, '9.2.0');
     expect(info.downloadUrl, endsWith(assets[Platform.operatingSystem]!));
     expect(info.fileSize, 1024);
   });

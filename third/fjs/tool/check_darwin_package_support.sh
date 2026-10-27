@@ -257,23 +257,21 @@ check_structure() {
 
   expected_targets='aarch64-apple-ios
 aarch64-apple-ios-sim
-x86_64-apple-ios
-aarch64-apple-darwin
-x86_64-apple-darwin'
+aarch64-apple-darwin'
   recipe_targets="$(awk '
     $0 == "    rust_targets:" { targets = 1; next }
     targets && $0 == "  composite_groups:" { exit }
     targets && /^      - / { sub(/^      - /, ""); print }
   ' libfjs/cargokit.yaml)"
   [ "$recipe_targets" = "$expected_targets" ] ||
-    fail "libfjs/cargokit.yaml must pin exactly the five Apple Rust targets"
+    fail "libfjs/cargokit.yaml must pin exactly the three Apple Rust targets"
   composite_targets="$(awk '
     $0 == "      required_targets:" { targets = 1; next }
     targets && $0 == "      argv:" { exit }
     targets && /^        - / { sub(/^        - /, ""); print }
   ' libfjs/cargokit.yaml)"
   [ "$composite_targets" = "$expected_targets" ] ||
-    fail "SwiftPM composite must require exactly the five Apple Rust targets"
+    fail "SwiftPM composite must require exactly the three Apple Rust targets"
   require_line_count "libfjs/cargokit.yaml" "    - name: swiftpm" 1
   require_exact_line "libfjs/cargokit.yaml" "      host: macos"
   composite_outputs="$(awk '
@@ -291,9 +289,7 @@ fjs.xcframework.zip.checksum'
   for rust_target in \
     aarch64-apple-ios \
     aarch64-apple-ios-sim \
-    x86_64-apple-ios \
-    aarch64-apple-darwin \
-    x86_64-apple-darwin; do
+    aarch64-apple-darwin; do
     require_contains "tool/assemble_fjs_xcframework.sh" "$rust_target"
   done
   if grep -Ei '(^|[^[:alnum:]_])cargo([^[:alnum:]_]|$)|rustup|build-pod|build-precompiled-generation' \
@@ -302,7 +298,7 @@ fjs.xcframework.zip.checksum'
   fi
   require_contains "tool/assemble_fjs_xcframework.sh" 'xcodebuild -create-xcframework'
   require_contains "tool/assemble_fjs_xcframework.sh" '@rpath/fjs.framework/fjs'
-  require_contains "tool/assemble_fjs_xcframework.sh" 'lipo -create "$first_dylib" "$second_dylib"'
+  require_contains "tool/assemble_fjs_xcframework.sh" 'cp "$first_dylib" "$framework_binary"'
   require_contains "tool/assemble_fjs_xcframework.sh" 'ln -s A "$framework_dir/Versions/Current"'
   require_contains "tool/assemble_fjs_xcframework.sh" 'zip -q -y -X "$ARCHIVE_TEMP" -@'
   require_contains "tool/assemble_fjs_xcframework.sh" 'check_darwin_package_support.sh" --artifact "$ARCHIVE_TEMP"'
@@ -324,14 +320,12 @@ fjs.xcframework.zip.checksum'
   for rust_target in \
     aarch64-apple-ios \
     aarch64-apple-ios-sim \
-    x86_64-apple-ios \
-    aarch64-apple-darwin \
-    x86_64-apple-darwin; do
+    aarch64-apple-darwin; do
     require_contains "tool/build_fjs_xcframework.sh" "--target $rust_target"
   done
   wrapper_target_count="$(grep -Ec '^    --target ' tool/build_fjs_xcframework.sh || true)"
-  [ "$wrapper_target_count" -eq 5 ] ||
-    fail "tool/build_fjs_xcframework.sh must request exactly five Rust targets"
+  [ "$wrapper_target_count" -eq 3 ] ||
+    fail "tool/build_fjs_xcframework.sh must request exactly three Rust targets"
   require_contains "tool/build_fjs_xcframework.sh" 'GENERATION_ROOT/composites/swiftpm'
   require_not_contains "tool/build_fjs_xcframework.sh" 'build-pod'
   require_not_contains "tool/build_fjs_xcframework.sh" 'xcodebuild -create-xcframework'
@@ -498,8 +492,8 @@ check_artifact() {
   xcframework="$extracted/fjs.xcframework"
   require_file "$xcframework/Info.plist"
   ios_framework="$xcframework/ios-arm64/fjs.framework"
-  simulator_framework="$xcframework/ios-arm64_x86_64-simulator/fjs.framework"
-  macos_framework="$xcframework/macos-arm64_x86_64/fjs.framework"
+  simulator_framework="$xcframework/ios-arm64-simulator/fjs.framework"
+  macos_framework="$xcframework/macos-arm64/fjs.framework"
   require_file "$ios_framework/fjs"
   require_file "$ios_framework/Info.plist"
   require_file "$simulator_framework/fjs"
@@ -511,8 +505,8 @@ check_artifact() {
   require_plist_version "$simulator_framework/Info.plist"
   require_plist_version "$macos_framework/Versions/A/Resources/Info.plist"
   require_architectures "$ios_framework/fjs" "arm64"
-  require_architectures "$simulator_framework/fjs" "arm64 x86_64"
-  require_architectures "$macos_framework/Versions/A/fjs" "arm64 x86_64"
+  require_architectures "$simulator_framework/fjs" "arm64"
+  require_architectures "$macos_framework/Versions/A/fjs" "arm64"
 
   require_symlink "$macos_framework/Versions/Current" "A"
   require_symlink "$macos_framework/fjs" "Versions/Current/fjs"
@@ -521,9 +515,7 @@ check_artifact() {
   require_symlink "$macos_framework/Resources" "Versions/Current/Resources"
 
   require_macho_slice "$ios_framework/fjs" "arm64" "IOS" "12.0"
-  require_macho_slice "$simulator_framework/fjs" "x86_64" "IOSSIMULATOR" "12.0"
   require_macho_slice "$simulator_framework/fjs" "arm64" "IOSSIMULATOR" "14.0"
-  require_macho_slice "$macos_framework/Versions/A/fjs" "x86_64" "MACOS" "10.14"
   require_macho_slice "$macos_framework/Versions/A/fjs" "arm64" "MACOS" "11.0"
 
   "$DART_EXECUTABLE" tool/check_frb_content_hash.dart "$macos_framework/Versions/A/fjs" "$EXPECTED_FRB_CONTENT_HASH" ||

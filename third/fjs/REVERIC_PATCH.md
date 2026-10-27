@@ -136,7 +136,7 @@ The focused builder regression checks the emitted compiler and Cargo toolchain.
 and builds/verifies the Apple archive before Makefile/CI app builds, reusing a
 machine-level cache keyed by the identity below. `third/fjs/tool/artifact.py` records
 source hashes (including patch, Cargo.lock, version and builder),
-Rust/compiler identity, host architecture, five Apple targets and Xcode/SDKs.
+Rust/compiler identity, host architecture, three Apple arm64 targets (macOS; iOS device and simulator) and Xcode/SDKs.
 A cache entry is accepted only when identity and SHA-256 match. Its local CargoKit
 generation manifest must identify Rust 1.97.1 and the same archive checksum.
 `--verify-app APP` compares packaged macOS framework UUIDs with that archive;

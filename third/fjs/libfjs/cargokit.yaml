@@ -35,18 +35,14 @@ precompiled_binaries:
     rust_targets:
       - aarch64-apple-ios
       - aarch64-apple-ios-sim
-      - x86_64-apple-ios
       - aarch64-apple-darwin
-      - x86_64-apple-darwin
   composite_groups:
     - name: swiftpm
       host: macos
       required_targets:
         - aarch64-apple-ios
         - aarch64-apple-ios-sim
-        - x86_64-apple-ios
         - aarch64-apple-darwin
-        - x86_64-apple-darwin
       argv:
         - tool/assemble_fjs_xcframework.sh
       environment:

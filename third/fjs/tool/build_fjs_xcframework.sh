@@ -5,7 +5,7 @@ usage() {
   cat <<'USAGE'
 Usage: tool/build_fjs_xcframework.sh [--configuration Release] [--output PATH] [--zip-output PATH]
 
-Builds one pinned CargoKit generation for all five Apple targets and copies its
+Builds one pinned CargoKit generation for the three Apple arm64 targets and copies its
 already-assembled SwiftPM zip and checksum to the requested destination.
 USAGE
 }
@@ -81,9 +81,7 @@ CARGOKIT_TOOL_TEMP_DIR="$TOOL_TEMP_ROOT" \
     --temp-dir "$RUST_TEMP_ROOT" \
     --target aarch64-apple-ios \
     --target aarch64-apple-ios-sim \
-    --target x86_64-apple-ios \
-    --target aarch64-apple-darwin \
-    --target x86_64-apple-darwin
+    --target aarch64-apple-darwin
 
 COMPOSITE_ROOT="$GENERATION_ROOT/composites/swiftpm"
 SOURCE_ZIP="$COMPOSITE_ROOT/fjs.xcframework.zip"

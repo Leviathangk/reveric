@@ -184,7 +184,7 @@ Reveric 为短剧制片与无限画布深度集成了主流视频生成大模型
 
 | 操作系统 | 推荐环境 | 安装包格式 | 说明 |
 | :--- | :--- | :--- | :--- |
-| **macOS** | macOS 12.0 及以上（Apple Silicon / Intel） | `.dmg` | 拖拽至 Applications 即可运行 |
+| **macOS** | macOS 12.0 及以上（Apple Silicon，arm64） | `.dmg` | 拖拽至 Applications 即可运行 |
 | **Windows** | Windows 10 / 11 64-bit | `-setup.exe` | 运行安装向导即可完成配置 |
 | **Android** | Android 8.0 及以上 (ARM64) | `.apk` | 移动端随行阅读与灵感速记 |
 

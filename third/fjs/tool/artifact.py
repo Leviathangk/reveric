@@ -14,8 +14,8 @@ BINARIES = ROOT / 'third/fjs/darwin/fjs/Binaries'
 ARCHIVE = BINARIES / 'fjs.xcframework.zip'
 RECORD = BINARIES / 'reveric-build.json'
 RUST = '1.97.1'
-TARGETS = ['aarch64-apple-ios', 'aarch64-apple-ios-sim', 'x86_64-apple-ios',
-           'aarch64-apple-darwin', 'x86_64-apple-darwin']
+TARGETS = ['aarch64-apple-ios', 'aarch64-apple-ios-sim',
+           'aarch64-apple-darwin']
 
 
 def run(*args):
@@ -89,7 +89,7 @@ def main():
         binary = app / 'Contents/Frameworks/fjs.framework/fjs'
         with tempfile.TemporaryDirectory(prefix='codemode-artifact-') as temporary:
             with zipfile.ZipFile(ARCHIVE) as archive:
-                member = next(n for n in archive.namelist() if n.endswith('macos-arm64_x86_64/fjs.framework/Versions/A/fjs'))
+                member = next(n for n in archive.namelist() if n.endswith('macos-arm64/fjs.framework/Versions/A/fjs'))
                 reference = archive.extract(member, temporary)
             def uuids(path):
                 return {tuple(line.split()[1:3]) for line in run('dwarfdump', '--uuid', str(path)).splitlines()}
