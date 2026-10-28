@@ -1,4 +1,4 @@
-// 职责: 「清晰度 + 比例」弹层本体（含本次提交的样片选项），以及用它的节点输入框 pill 和顶栏剧本制作设置 chip。
+// 职责: 「清晰度 + 比例」弹层本体（含音频生成与本次提交的样片选项），以及用它的节点输入框 pill 和顶栏剧本制作设置 chip。
 // 关联文件:
 //   lib/desktop/features/production/popover.dart
 //   lib/desktop/features/production/region.dart
@@ -14,6 +14,7 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../shared/components/reveric_popover.dart';
+import '../../../shared/components/reveric_switch.dart';
 import '../../../shared/localization/app_localization.dart';
 import '../../../shared/localization/locale_keys.dart';
 import '../../../shared/models/production/settings.dart';
@@ -90,6 +91,8 @@ class ProductionSpecPanel extends StatelessWidget {
     required this.onChanged,
     this.note,
     this.sample,
+    this.audio,
+    this.onAudio,
     this.onSample,
   });
   final List<String> ratios;
@@ -97,6 +100,8 @@ class ProductionSpecPanel extends StatelessWidget {
   final String ratio;
   final String resolution;
   final ProductionSpecChange onChanged;
+  final bool? audio;
+  final ValueChanged<bool>? onAudio;
   final String? note;
 
   /// 模型支持样片时不为 null：清晰度末尾多一个「样片」，与清晰度互斥；
@@ -258,6 +263,62 @@ class ProductionSpecPanel extends StatelessWidget {
                 ),
             ],
           ),
+          if (audio != null) ...[
+            const SizedBox(height: RevericSpacing.lg),
+            MergeSemantics(
+              child: Material(
+                color: colors.surfaceContainer,
+                borderRadius: BorderRadius.circular(RevericRadius.large),
+                child: InkWell(
+                  onTap: onAudio == null ? null : () => onAudio!(!audio!),
+                  borderRadius: BorderRadius.circular(RevericRadius.large),
+                  hoverColor: colors.surfaceContainerHigh,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      RevericSpacing.md,
+                      RevericSpacing.sm,
+                      RevericSpacing.xs,
+                      RevericSpacing.sm,
+                    ),
+                    child: Row(
+                      children: [
+                        RevericIcon(
+                          audio!
+                              ? RevericIcons.speaker_high
+                              : RevericIcons.speaker_slash,
+                          size: 16,
+                          color: audio! ? colors.accent : colors.textMuted,
+                        ),
+                        const SizedBox(width: RevericSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                context.t(LocaleKeys.productionGenerateAudio),
+                                style: typo.uiSmallSemibold.copyWith(
+                                  color: colors.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                context.t(
+                                  LocaleKeys.productionGenerateAudioHint,
+                                ),
+                                style: typo.uiTiny.copyWith(
+                                  color: colors.textMuted,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        RevericSwitch(value: audio!, onChanged: onAudio),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
           if (note != null) ...[
             const SizedBox(height: RevericSpacing.lg),
             Text(note!, style: typo.uiTiny.copyWith(color: colors.textMuted)),
@@ -279,12 +340,16 @@ class ProductionSpecPill extends StatelessWidget {
     required this.resolution,
     required this.onChanged,
     this.sample,
+    this.audio,
+    this.onAudio,
   });
   final List<String> ratios;
   final List<String> resolutions;
   final String ratio;
   final String resolution;
   final ProductionSpecChange onChanged;
+  final bool? audio;
+  final ValueChanged<bool>? onAudio;
   final ValueNotifier<bool>? sample;
   @override
   Widget build(BuildContext context) {
@@ -311,12 +376,26 @@ class ProductionSpecPill extends StatelessWidget {
           children: [
             Text(
               '${productionRatioLabel(context, ratio)} · '
-              '${sampleOn == true ? context.t(LocaleKeys.productionSampleSpec, namedArgs: {'resolution': productionResolutionLabel(videoDraftResolution)}) : productionResolutionLabel(resolution)}',
+              '${sampleOn == true ? context.t(LocaleKeys.productionSampleSpec, namedArgs: {'resolution': productionResolutionLabel(videoDraftResolution)}) : productionResolutionLabel(resolution)}'
+              '${audio == null ? '' : ' · '}',
               style: typo.uiSmall.copyWith(
                 color: colors.textPrimary,
                 fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
+            if (audio case final on?)
+              Tooltip(
+                message: context.t(
+                  on
+                      ? LocaleKeys.productionAudioOn
+                      : LocaleKeys.productionAudioOff,
+                ),
+                child: RevericIcon(
+                  on ? RevericIcons.speaker_high : RevericIcons.speaker_slash,
+                  size: 14,
+                  color: on ? colors.textPrimary : colors.textMuted,
+                ),
+              ),
             const SizedBox(width: 5),
             ProductionCaret(open: open),
           ],
@@ -329,6 +408,8 @@ class ProductionSpecPill extends StatelessWidget {
         resolution: resolution,
         onChanged: onChanged,
         sample: sampleOn,
+        audio: audio,
+        onAudio: onAudio,
         onSample: sample == null ? null : (on) => sample!.value = on,
       ),
     );

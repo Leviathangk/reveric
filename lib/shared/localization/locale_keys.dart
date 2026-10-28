@@ -209,6 +209,7 @@ abstract final class LocaleKeys {
   static const aiApprovalFactRatio = 'ai.approval_fact_ratio';
   static const aiApprovalFactSize = 'ai.approval_fact_size';
   static const aiApprovalFactDuration = 'ai.approval_fact_duration';
+  static const aiApprovalFactAudio = 'ai.approval_fact_audio';
   static const aiApprovalFactReferences = 'ai.approval_fact_references';
   static const aiApprovalFactPrompt = 'ai.approval_fact_prompt';
   static const aiApprovalFactPath = 'ai.approval_fact_path';
@@ -2223,6 +2224,11 @@ abstract final class LocaleKeys {
   static const productionStyleBefore = 'screenplay.production_style_before';
   static const productionStyleAfter = 'screenplay.production_style_after';
   static const productionStyleDelete = 'screenplay.production_style_delete';
+  static const productionGenerateAudio = 'screenplay.production_generate_audio';
+  static const productionGenerateAudioHint =
+      'screenplay.production_generate_audio_hint';
+  static const productionAudioOn = 'screenplay.production_audio_on';
+  static const productionAudioOff = 'screenplay.production_audio_off';
   static const productionSpecResolution =
       'screenplay.production_spec_resolution';
   static const productionSpecRatio = 'screenplay.production_spec_ratio';

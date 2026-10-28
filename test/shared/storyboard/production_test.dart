@@ -479,6 +479,8 @@ void main() {
       );
       expect(fields['scene_id']['nullable'], isTrue);
       expect(fields['sort_order']['nullable'], isTrue);
+      expect(fields['generate_audio']['nullable'], isTrue);
+      expect(fields['generate_audio']['write'], isTrue);
       expect(fields.keys, isNot(contains('status')));
       expect(fields.keys, contains('reference_mode'));
       expect(
@@ -537,6 +539,19 @@ void main() {
       expect(write['error_code'], isNull, reason: '$write');
       expect(write['updated'], isTrue);
       expect((await service.getShot(id))!.title, 'Changed');
+      final muted = await tools.executeTool(
+        name: 'Write',
+        input: {'path': 'clips/$id/generate_audio', 'value': false},
+      );
+      expect(muted['error_code'], isNull, reason: '$muted');
+      expect((await service.getShot(id))!.generateAudio, isFalse);
+      expect(
+        (await tools.executeTool(
+          name: 'Read',
+          input: {'path': 'clips/$id/generate_audio'},
+        ))['value'],
+        isFalse,
+      );
       expect(
         NovelWorkspaceSection.storyboard.aiResourcePath(itemId: id),
         '/clips/$id',

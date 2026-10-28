@@ -16,6 +16,47 @@ void main() {
   setUp(() => rootBundle.clear());
   setUpAll(initializeDirectorTest);
 
+  testWidgets('audio switch reflects changes while the specs remain open', (
+    tester,
+  ) async {
+    final audio = ValueNotifier(true);
+    addTearDown(audio.dispose);
+    await tester.pumpWidget(
+      directorTestApp(
+        Center(
+          child: ValueListenableBuilder<bool>(
+            valueListenable: audio,
+            builder: (context, value, _) => ProductionSpecPill(
+              ratios: const ['9:16'],
+              resolutions: const ['720p'],
+              ratio: '9:16',
+              resolution: '720p',
+              audio: value,
+              onAudio: (value) => audio.value = value,
+              onChanged: ({ratio, resolution}) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Audio on'), findsOneWidget);
+    await tester.tap(find.text('9:16 · 720P · '));
+    await tester.pumpAndSettle();
+    expect(find.text('Generate audio'), findsOneWidget);
+    expect(find.text('Turn off to generate a silent video'), findsOneWidget);
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+    expect(audio.value, isFalse);
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+    expect(find.byTooltip('Audio off'), findsOneWidget);
+    await tester.tap(find.text('Generate audio'));
+    await tester.pumpAndSettle();
+    expect(audio.value, isTrue);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+  });
+
   testWidgets(
     'sample is picked beside resolutions and a resolution cancels it',
     (tester) async {

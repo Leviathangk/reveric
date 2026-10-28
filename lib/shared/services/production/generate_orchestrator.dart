@@ -34,6 +34,7 @@ VideoRequest shotVideoRequest(ProductionClipRow shot) => VideoRequest(
   resolution: shot.resolution,
   ratio: shot.ratio,
   durationSeconds: (shot.durationMs ?? 0) ~/ 1000,
+  audio: shot.generateAudio,
 );
 
 /// 用户只选两种生成方式：全参考（不挂输入就是文生视频）和首尾帧（只挂首帧是它的子集）。
@@ -326,6 +327,14 @@ class ProductionGenerateOrchestrator {
         resolution: draft ? videoDraftResolution : raw.resolution,
         ratio: raw.ratio,
         durationSeconds: raw.durationSeconds,
+        audio:
+            lookupVideoChannelModel(
+                  provider.type,
+                  raw.modelId,
+                )?.requiresAudio ==
+                true
+            ? raw.audio
+            : null,
       ),
       ordered,
     );

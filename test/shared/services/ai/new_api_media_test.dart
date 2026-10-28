@@ -17,6 +17,7 @@ import 'package:reveric/shared/utils/storage_paths.dart';
 import 'package:reveric/shared/models/audio/request.dart';
 import 'package:reveric/shared/models/audio/result.dart';
 import 'package:reveric/shared/models/audio/exception.dart';
+import 'package:reveric/shared/models/video/channels.dart';
 import 'package:reveric/shared/models/video/request.dart';
 import 'package:reveric/shared/models/video/task_result.dart';
 import 'package:reveric/shared/providers/production_audio.dart';
@@ -459,6 +460,25 @@ void main() {
       );
     },
   );
+
+  test('Seedance 2.0 mini alias omits the audio switch 88api rejects', () {
+    expect(
+      lookupVideoChannelModel('api88', 'seedance-2.0-mini官方版')!.requiresAudio,
+      isFalse,
+    );
+    expect(
+      lookupVideoChannelModel('api88', 'seedance-2.0官方版')!.requiresAudio,
+      isTrue,
+    );
+    final transport = MockClient(
+      (_) async => throw StateError('must not submit'),
+    );
+    addTearDown(transport.close);
+    final body = NewApiClient(
+      _provider(),
+    ).video(transport).encode(_video('seedance-2.0-mini官方版'), const []);
+    expect(body['metadata'], isNot(contains('generate_audio')));
+  });
 
   test('Seedance 2.5 reference mode preserves the Ark omni task type', () {
     final transport = MockClient(

@@ -68,6 +68,7 @@
   "ai.approval_fact_ratio": "Ratio",
   "ai.approval_fact_size": "Size",
   "ai.approval_fact_duration": "Duration",
+  "ai.approval_fact_audio": "Audio",
   "ai.approval_fact_references": "References",
   "ai.approval_fact_prompt": "Prompt",
   "ai.approval_fact_path": "Location",

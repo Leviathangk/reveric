@@ -383,6 +383,7 @@ void main() {
       (_) async => previewDirectory.path,
     );
     addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+    await RevericPaths.initialize();
     final renderer = PreviewRenderer();
     final service = StagingEditService(db, previewRenderer: () => renderer);
     final staging = await service.create('Explicit owner');

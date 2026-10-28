@@ -10,6 +10,92 @@ import 'package:reveric/shared/database/app_database.dart';
 import 'package:reveric/shared/database/novel_content_database.dart';
 
 void main() {
+  test(
+    'v1 clips migrate with nullable audio preference and preserved data',
+    () async {
+      // v0.4.0 production_clips table and its scene index.
+      final database = NovelContentDatabase.forTest(
+        NativeDatabase.memory(
+          setup: (db) {
+            db.execute("""
+          CREATE TABLE production_clips (
+            inputs TEXT NOT NULL DEFAULT '[]', character_id TEXT,
+            location_id TEXT, item_id TEXT, style_selection TEXT,
+            last_applied_generation_task_id TEXT, id TEXT NOT NULL PRIMARY KEY,
+            episode_id TEXT NOT NULL, kind TEXT NOT NULL, scene_id TEXT,
+            sort_order INTEGER, title TEXT NOT NULL DEFAULT '',
+            prompt TEXT NOT NULL DEFAULT '',
+            error_dismissed INTEGER NOT NULL DEFAULT 0 CHECK (error_dismissed IN (0, 1)),
+            provider_id TEXT, model_id TEXT,
+            reference_mode TEXT NOT NULL DEFAULT 'reference', duration_ms INTEGER,
+            ratio TEXT NOT NULL DEFAULT '9:16', resolution TEXT NOT NULL DEFAULT '720p',
+            adopted_asset_id TEXT, created_at INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL, deleted_at INTEGER NOT NULL DEFAULT 0
+          );
+          CREATE INDEX production_clips_by_scene_id_deleted_at_sort_order
+            ON production_clips (scene_id, deleted_at, sort_order);
+          INSERT INTO production_clips
+            (id, episode_id, kind, title, prompt, created_at, updated_at)
+            VALUES ('clip', 'episode', 'video', 'Original', 'Rain', 123, 456);
+          PRAGMA user_version = 1;
+        """);
+          },
+        ),
+      );
+      addTearDown(database.close);
+      final clips = await database.select(database.productionClips).get();
+      expect(clips, hasLength(1));
+      expect(clips.single.id, 'clip');
+      expect(clips.single.title, 'Original');
+      expect(clips.single.prompt, 'Rain');
+      expect(clips.single.generateAudio, isNull);
+      expect(
+        (await database.customSelect('PRAGMA user_version').getSingle())
+            .read<int>('user_version'),
+        2,
+      );
+      final columns = await database
+          .customSelect('PRAGMA table_info(production_clips)')
+          .get();
+      expect(
+        columns
+            .singleWhere((c) => c.read<String>('name') == 'id')
+            .read<int>('pk'),
+        1,
+      );
+      expect(
+        columns
+            .singleWhere((c) => c.read<String>('name') == 'generate_audio')
+            .read<String>('type'),
+        'INTEGER',
+      );
+      final indexes = await database
+          .customSelect('PRAGMA index_list(production_clips)')
+          .get();
+      expect(
+        indexes.map((i) => i.read<String>('name')),
+        contains('production_clips_by_scene_id_deleted_at_sort_order'),
+      );
+      await database.customStatement(
+        'UPDATE production_clips SET generate_audio = 0',
+      );
+      expect(
+        (await database.select(database.productionClips).getSingle())
+            .generateAudio,
+        isFalse,
+      );
+      expect(
+        (await database
+                .customSelect(
+                  'SELECT typeof(generate_audio) AS type FROM production_clips',
+                )
+                .getSingle())
+            .read<String>('type'),
+        'integer',
+      );
+    },
+  );
+
   test('fresh schema excludes removed feature tables', () async {
     final database = AppDatabase.forTest(NativeDatabase.memory());
     addTearDown(database.close);

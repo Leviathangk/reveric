@@ -1222,6 +1222,7 @@ class ProductionCanvasService {
       'provider_id': providerId,
       'model_id': providerId == null ? null : request.modelId,
       'reference_mode': request.mode.name,
+      'generate_audio': request.audio,
       'duration_ms': request.durationSeconds == 0
           ? null
           : request.durationSeconds * 1000,

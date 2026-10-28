@@ -30,7 +30,7 @@ INSERT INTO screenplay_episodes(id,screenplay_id,season_id,episode_number,create
         (await db.customSelect('PRAGMA user_version').getSingle()).read<int>(
           'user_version',
         ),
-        1,
+        NovelContentDatabase.currentSchemaVersion,
       );
       expect(
         (await db

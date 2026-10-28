@@ -1555,6 +1555,9 @@ class ProductionClips extends Table {
   // 'preset:<slug>' 为内置预设；其他值为指定的自定义风格（production_styles）ID。
   // 此列同时表达继承策略和风格引用，不能只按 ID 解释。
   TextColumn get styleSelection => text().nullable()();
+
+  /// null 继承模型默认值；false 明确关闭生成音频。
+  BoolColumn get generateAudio => boolean().nullable()();
   TextColumn get lastAppliedGenerationTaskId => text().nullable()();
   TextColumn get id => text()();
   TextColumn get episodeId => text()();
@@ -1674,13 +1677,21 @@ class NovelContentDatabase extends _$NovelContentDatabase {
 
   late final chapterDao = ChapterDao(this);
 
-  static const currentSchemaVersion = 1;
+  static const currentSchemaVersion = 2;
 
   @override
   int get schemaVersion => currentSchemaVersion;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        await migrator.addColumn(
+          productionClips,
+          productionClips.generateAudio,
+        );
+      }
+    },
     onCreate: (migrator) async {
       // checkpoint 立即落盘：原生崩溃（sqlite3.dll）会绕过 catch，
       // 这条日志用于区分"死在建库"与其它启动路径。

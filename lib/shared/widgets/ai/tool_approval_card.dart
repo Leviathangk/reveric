@@ -747,6 +747,7 @@ String? _factLabelKey(String key) => switch (key) {
   'ratio' => LocaleKeys.aiApprovalFactRatio,
   'resolution' || 'size' => LocaleKeys.aiApprovalFactSize,
   'duration' => LocaleKeys.aiApprovalFactDuration,
+  'audio' => LocaleKeys.aiApprovalFactAudio,
   'references' || 'image' => LocaleKeys.aiApprovalFactReferences,
   'prompt' => LocaleKeys.aiApprovalFactPrompt,
   'path' || 'inputs' => LocaleKeys.aiApprovalFactPath,

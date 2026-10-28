@@ -167,6 +167,59 @@ void main() {
     await root.delete(recursive: true);
   });
   test(
+    'video audio choice survives save, copy and request compilation',
+    () async {
+      await appDb
+          .into(appDb.aiProviders)
+          .insert(
+            app.AiProvidersCompanion.insert(
+              id: 'video',
+              name: 'Video',
+              type: 'doubao',
+              enabled: const Value(true),
+              apiKey: const Value('test'),
+              videoModels: const Value(['doubao-seedance-2-0-260128']),
+            ),
+          );
+      final node = await service.ensureShotNode(shot.id);
+      final generate = ProductionGenerateOrchestrator();
+      for (final audio in [null, false, true]) {
+        await service.save(
+          nodeId: node.id,
+          providerId: 'video',
+          overlay: overlay,
+          inputs: [],
+          request: VideoRequest(
+            modelId: 'doubao-seedance-2-0-260128',
+            prompt: 'Rain at night',
+            mode: VideoMode.reference,
+            resolution: '720p',
+            ratio: '9:16',
+            audio: audio,
+          ),
+        );
+        final restored = (await service.shots.getShot(shot.id))!;
+        expect(shotVideoRequest(restored).audio, audio);
+        final preview = await generate.preview(service, node.id);
+        expect(preview.request.audio, audio ?? true);
+        expect(
+          VideoRequest.fromJson(preview.request.toJson()).audio,
+          audio ?? true,
+        );
+        final copy = await service.copyVideo(node.id, overlay: overlay);
+        expect(
+          (await service.shots.getShot(copy.clipId!))!.generateAudio,
+          audio,
+        );
+        expect(
+          (await generate.preview(service, copy.id)).request.audio,
+          audio ?? true,
+        );
+      }
+    },
+  );
+
+  test(
     'image method saves independently, preserves colors and survives copying',
     () async {
       final canvas = await service.ensureCanvas(episode);

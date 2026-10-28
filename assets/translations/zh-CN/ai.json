@@ -68,6 +68,7 @@
   "ai.approval_fact_ratio": "画幅",
   "ai.approval_fact_size": "规格",
   "ai.approval_fact_duration": "时长",
+  "ai.approval_fact_audio": "音频",
   "ai.approval_fact_references": "参考",
   "ai.approval_fact_prompt": "提示词",
   "ai.approval_fact_path": "位置",

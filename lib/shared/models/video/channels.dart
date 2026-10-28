@@ -147,8 +147,10 @@ const videoChannelModels = <VideoProtocol, Map<String, VideoChannelModel>>{
     'doubao-seedance-2-0-mini-260615': VideoChannelModel(
       catalogId: 'doubao-seedance-2-0-mini-260615',
     ),
+    // 88api rejects any generate_audio value for this alias, including false.
     'seedance-2.0-mini官方版': VideoChannelModel(
       catalogId: 'doubao-seedance-2-0-mini-260615',
+      requestDefaults: VideoRequestDefaults(audio: ConfigValue(null)),
     ),
     // New API's Google plugin forwards only the first frame.
     'veo-3.1': VideoChannelModel(

@@ -220,6 +220,7 @@ class StoryboardService {
     'model_id': row.modelId,
     'reference_mode': row.referenceMode,
     'duration_ms': row.durationMs,
+    'generate_audio': row.generateAudio,
     'ratio': row.ratio,
     'resolution': row.resolution,
   };
@@ -541,6 +542,11 @@ class StoryboardService {
       modelId: Value(model),
       referenceMode: Value(mode),
       durationMs: Value(duration),
+      generateAudio: Value(
+        values.containsKey('generate_audio')
+            ? values['generate_audio'] as bool?
+            : previous?.generateAudio,
+      ),
       ratio: Value(values['ratio'] as String),
       resolution: Value(values['resolution'] as String),
       updatedAt: Value(DateTime.now()),

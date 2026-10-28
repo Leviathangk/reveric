@@ -36,6 +36,7 @@ enum ShotField<T> implements FieldSchema {
   prompt<String>(),
   model<(String, String)>(),
   imagePreset<ImageGenerationPreset>(),
+  generateAudio<bool>(),
   audioVoice<String>(),
   audioInstructions<String>(),
   mode<String>(),

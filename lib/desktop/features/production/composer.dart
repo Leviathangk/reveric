@@ -180,6 +180,7 @@ class _ComposerForm extends HookConsumerWidget {
         ShotField.ratio: initial.request.ratio,
         ShotField.resolution: initial.request.resolution,
         ShotField.duration: '${initial.request.durationSeconds}',
+        ShotField.generateAudio: initial.request.audio,
       },
       keys: [node.id],
     );
@@ -210,7 +211,7 @@ class _ComposerForm extends HookConsumerWidget {
     final overlay = ref.watch(workingOverlayServiceProvider(path));
     String value(ShotField field) => form.getValue<String>(field) ?? '';
     String signature() =>
-        '${value(ShotField.title)}|${prompt.source}|${inputs.value.map((i) => '${i.identity}:${i.role.name}:${i.sourceNodeId}:${i.voiceAssetId}').join('|')}|${form.getValue<(String, String)>(ShotField.model)}|${value(ShotField.mode)}|${value(ShotField.ratio)}|${value(ShotField.resolution)}|${value(ShotField.duration)}';
+        '${value(ShotField.title)}|${prompt.source}|${inputs.value.map((i) => '${i.identity}:${i.role.name}:${i.sourceNodeId}:${i.voiceAssetId}').join('|')}|${form.getValue<(String, String)>(ShotField.model)}|${value(ShotField.mode)}|${value(ShotField.ratio)}|${value(ShotField.resolution)}|${value(ShotField.duration)}|${form.getValue<bool>(ShotField.generateAudio)}';
     if (saved.value.isEmpty) {
       saved.value = signature();
     }
@@ -250,6 +251,7 @@ class _ComposerForm extends HookConsumerWidget {
             resolution: value(ShotField.resolution),
             ratio: value(ShotField.ratio),
             durationSeconds: duration,
+            audio: form.getValue<bool>(ShotField.generateAudio),
           ),
           inputs: inputs.value,
           overlay: overlay,
@@ -484,6 +486,10 @@ class _ComposerForm extends HookConsumerWidget {
       form,
       () => VideoMode.values.byName(value(ShotField.mode)),
     );
+    final generateAudio = useListenableSelector(
+      form,
+      () => form.getValue<bool>(ShotField.generateAudio),
+    );
     final ratio = useListenableSelector(form, () => value(ShotField.ratio));
     final resolution = useListenableSelector(
       form,
@@ -582,7 +588,10 @@ class _ComposerForm extends HookConsumerWidget {
                   : value(ShotField.resolution),
               ratio: value(ShotField.ratio),
               durationSeconds: int.tryParse(value(ShotField.duration)) ?? 0,
-              audio: modelConfig?.requestDefaults.audio,
+              audio: modelConfig?.requiresAudio == true
+                  ? form.getValue<bool>(ShotField.generateAudio) ??
+                        modelConfig?.requestDefaults.audio
+                  : null,
               promptExtend: modelConfig?.requestDefaults.promptExtend,
             ),
             [
@@ -943,6 +952,12 @@ class _ComposerForm extends HookConsumerWidget {
                       ratio: ratio,
                       resolution: resolution,
                       sample: supportsDraft ? sample : null,
+                      audio: modelConfig?.requiresAudio == true
+                          ? generateAudio ?? modelConfig?.requestDefaults.audio
+                          : null,
+                      onAudio: (value) {
+                        form.updateValue(ShotField.generateAudio, value);
+                      },
                       onChanged: ({ratio, resolution}) {
                         if (ratio != null) {
                           form.updateValue(ShotField.ratio, ratio);

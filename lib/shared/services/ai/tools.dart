@@ -3330,6 +3330,13 @@ const _resourceDefinitions = <String, _ResourceDefinition>{
         create: _FieldInputUse(),
         write: _FieldInputUse(field: true),
       ),
+      'generate_audio': _ResourceField(
+        description: '是否生成音频；null 跟随模型默认。',
+        value: _ValueSchema(_ValueType.boolean, nullable: true),
+        read: _FieldRead(listing: true, path: true),
+        create: _FieldInputUse(),
+        write: _FieldInputUse(field: true),
+      ),
       'ratio': _ResourceField(
         value: _ValueSchema(_ValueType.string),
         read: _FieldRead(listing: true, path: true),

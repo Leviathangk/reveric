@@ -21618,6 +21618,20 @@ class $ProductionClipsTable extends ProductionClips
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _generateAudioMeta = const VerificationMeta(
+    'generateAudio',
+  );
+  @override
+  late final GeneratedColumn<bool> generateAudio = GeneratedColumn<bool>(
+    'generate_audio',
+    aliasedName,
+    true,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("generate_audio" IN (0, 1))',
+    ),
+  );
   static const VerificationMeta _lastAppliedGenerationTaskIdMeta =
       const VerificationMeta('lastAppliedGenerationTaskId');
   @override
@@ -21837,6 +21851,7 @@ class $ProductionClipsTable extends ProductionClips
     locationId,
     itemId,
     styleSelection,
+    generateAudio,
     lastAppliedGenerationTaskId,
     id,
     episodeId,
@@ -21896,6 +21911,15 @@ class $ProductionClipsTable extends ProductionClips
         styleSelection.isAcceptableOrUnknown(
           data['style_selection']!,
           _styleSelectionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('generate_audio')) {
+      context.handle(
+        _generateAudioMeta,
+        generateAudio.isAcceptableOrUnknown(
+          data['generate_audio']!,
+          _generateAudioMeta,
         ),
       );
     }
@@ -22059,6 +22083,10 @@ class $ProductionClipsTable extends ProductionClips
         DriftSqlType.string,
         data['${effectivePrefix}style_selection'],
       ),
+      generateAudio: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}generate_audio'],
+      ),
       lastAppliedGenerationTaskId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}last_applied_generation_task_id'],
@@ -22155,6 +22183,9 @@ class ProductionClipRow extends DataClass
   final String? locationId;
   final String? itemId;
   final String? styleSelection;
+
+  /// null 继承模型默认值；false 明确关闭生成音频。
+  final bool? generateAudio;
   final String? lastAppliedGenerationTaskId;
   final String id;
   final String episodeId;
@@ -22182,6 +22213,7 @@ class ProductionClipRow extends DataClass
     this.locationId,
     this.itemId,
     this.styleSelection,
+    this.generateAudio,
     this.lastAppliedGenerationTaskId,
     required this.id,
     required this.episodeId,
@@ -22221,6 +22253,9 @@ class ProductionClipRow extends DataClass
     }
     if (!nullToAbsent || styleSelection != null) {
       map['style_selection'] = Variable<String>(styleSelection);
+    }
+    if (!nullToAbsent || generateAudio != null) {
+      map['generate_audio'] = Variable<bool>(generateAudio);
     }
     if (!nullToAbsent || lastAppliedGenerationTaskId != null) {
       map['last_applied_generation_task_id'] = Variable<String>(
@@ -22275,6 +22310,9 @@ class ProductionClipRow extends DataClass
       styleSelection: styleSelection == null && nullToAbsent
           ? const Value.absent()
           : Value(styleSelection),
+      generateAudio: generateAudio == null && nullToAbsent
+          ? const Value.absent()
+          : Value(generateAudio),
       lastAppliedGenerationTaskId:
           lastAppliedGenerationTaskId == null && nullToAbsent
           ? const Value.absent()
@@ -22323,6 +22361,7 @@ class ProductionClipRow extends DataClass
       locationId: serializer.fromJson<String?>(json['locationId']),
       itemId: serializer.fromJson<String?>(json['itemId']),
       styleSelection: serializer.fromJson<String?>(json['styleSelection']),
+      generateAudio: serializer.fromJson<bool?>(json['generateAudio']),
       lastAppliedGenerationTaskId: serializer.fromJson<String?>(
         json['lastAppliedGenerationTaskId'],
       ),
@@ -22355,6 +22394,7 @@ class ProductionClipRow extends DataClass
       'locationId': serializer.toJson<String?>(locationId),
       'itemId': serializer.toJson<String?>(itemId),
       'styleSelection': serializer.toJson<String?>(styleSelection),
+      'generateAudio': serializer.toJson<bool?>(generateAudio),
       'lastAppliedGenerationTaskId': serializer.toJson<String?>(
         lastAppliedGenerationTaskId,
       ),
@@ -22385,6 +22425,7 @@ class ProductionClipRow extends DataClass
     Value<String?> locationId = const Value.absent(),
     Value<String?> itemId = const Value.absent(),
     Value<String?> styleSelection = const Value.absent(),
+    Value<bool?> generateAudio = const Value.absent(),
     Value<String?> lastAppliedGenerationTaskId = const Value.absent(),
     String? id,
     String? episodeId,
@@ -22412,6 +22453,9 @@ class ProductionClipRow extends DataClass
     styleSelection: styleSelection.present
         ? styleSelection.value
         : this.styleSelection,
+    generateAudio: generateAudio.present
+        ? generateAudio.value
+        : this.generateAudio,
     lastAppliedGenerationTaskId: lastAppliedGenerationTaskId.present
         ? lastAppliedGenerationTaskId.value
         : this.lastAppliedGenerationTaskId,
@@ -22449,6 +22493,9 @@ class ProductionClipRow extends DataClass
       styleSelection: data.styleSelection.present
           ? data.styleSelection.value
           : this.styleSelection,
+      generateAudio: data.generateAudio.present
+          ? data.generateAudio.value
+          : this.generateAudio,
       lastAppliedGenerationTaskId: data.lastAppliedGenerationTaskId.present
           ? data.lastAppliedGenerationTaskId.value
           : this.lastAppliedGenerationTaskId,
@@ -22493,6 +22540,7 @@ class ProductionClipRow extends DataClass
           ..write('locationId: $locationId, ')
           ..write('itemId: $itemId, ')
           ..write('styleSelection: $styleSelection, ')
+          ..write('generateAudio: $generateAudio, ')
           ..write('lastAppliedGenerationTaskId: $lastAppliedGenerationTaskId, ')
           ..write('id: $id, ')
           ..write('episodeId: $episodeId, ')
@@ -22523,6 +22571,7 @@ class ProductionClipRow extends DataClass
     locationId,
     itemId,
     styleSelection,
+    generateAudio,
     lastAppliedGenerationTaskId,
     id,
     episodeId,
@@ -22552,6 +22601,7 @@ class ProductionClipRow extends DataClass
           other.locationId == this.locationId &&
           other.itemId == this.itemId &&
           other.styleSelection == this.styleSelection &&
+          other.generateAudio == this.generateAudio &&
           other.lastAppliedGenerationTaskId ==
               this.lastAppliedGenerationTaskId &&
           other.id == this.id &&
@@ -22580,6 +22630,7 @@ class ProductionClipsCompanion extends UpdateCompanion<ProductionClipRow> {
   final Value<String?> locationId;
   final Value<String?> itemId;
   final Value<String?> styleSelection;
+  final Value<bool?> generateAudio;
   final Value<String?> lastAppliedGenerationTaskId;
   final Value<String> id;
   final Value<String> episodeId;
@@ -22606,6 +22657,7 @@ class ProductionClipsCompanion extends UpdateCompanion<ProductionClipRow> {
     this.locationId = const Value.absent(),
     this.itemId = const Value.absent(),
     this.styleSelection = const Value.absent(),
+    this.generateAudio = const Value.absent(),
     this.lastAppliedGenerationTaskId = const Value.absent(),
     this.id = const Value.absent(),
     this.episodeId = const Value.absent(),
@@ -22633,6 +22685,7 @@ class ProductionClipsCompanion extends UpdateCompanion<ProductionClipRow> {
     this.locationId = const Value.absent(),
     this.itemId = const Value.absent(),
     this.styleSelection = const Value.absent(),
+    this.generateAudio = const Value.absent(),
     this.lastAppliedGenerationTaskId = const Value.absent(),
     required String id,
     required String episodeId,
@@ -22662,6 +22715,7 @@ class ProductionClipsCompanion extends UpdateCompanion<ProductionClipRow> {
     Expression<String>? locationId,
     Expression<String>? itemId,
     Expression<String>? styleSelection,
+    Expression<bool>? generateAudio,
     Expression<String>? lastAppliedGenerationTaskId,
     Expression<String>? id,
     Expression<String>? episodeId,
@@ -22689,6 +22743,7 @@ class ProductionClipsCompanion extends UpdateCompanion<ProductionClipRow> {
       if (locationId != null) 'location_id': locationId,
       if (itemId != null) 'item_id': itemId,
       if (styleSelection != null) 'style_selection': styleSelection,
+      if (generateAudio != null) 'generate_audio': generateAudio,
       if (lastAppliedGenerationTaskId != null)
         'last_applied_generation_task_id': lastAppliedGenerationTaskId,
       if (id != null) 'id': id,
@@ -22719,6 +22774,7 @@ class ProductionClipsCompanion extends UpdateCompanion<ProductionClipRow> {
     Value<String?>? locationId,
     Value<String?>? itemId,
     Value<String?>? styleSelection,
+    Value<bool?>? generateAudio,
     Value<String?>? lastAppliedGenerationTaskId,
     Value<String>? id,
     Value<String>? episodeId,
@@ -22746,6 +22802,7 @@ class ProductionClipsCompanion extends UpdateCompanion<ProductionClipRow> {
       locationId: locationId ?? this.locationId,
       itemId: itemId ?? this.itemId,
       styleSelection: styleSelection ?? this.styleSelection,
+      generateAudio: generateAudio ?? this.generateAudio,
       lastAppliedGenerationTaskId:
           lastAppliedGenerationTaskId ?? this.lastAppliedGenerationTaskId,
       id: id ?? this.id,
@@ -22789,6 +22846,9 @@ class ProductionClipsCompanion extends UpdateCompanion<ProductionClipRow> {
     }
     if (styleSelection.present) {
       map['style_selection'] = Variable<String>(styleSelection.value);
+    }
+    if (generateAudio.present) {
+      map['generate_audio'] = Variable<bool>(generateAudio.value);
     }
     if (lastAppliedGenerationTaskId.present) {
       map['last_applied_generation_task_id'] = Variable<String>(
@@ -22863,6 +22923,7 @@ class ProductionClipsCompanion extends UpdateCompanion<ProductionClipRow> {
           ..write('locationId: $locationId, ')
           ..write('itemId: $itemId, ')
           ..write('styleSelection: $styleSelection, ')
+          ..write('generateAudio: $generateAudio, ')
           ..write('lastAppliedGenerationTaskId: $lastAppliedGenerationTaskId, ')
           ..write('id: $id, ')
           ..write('episodeId: $episodeId, ')
@@ -34063,6 +34124,7 @@ typedef $$ProductionClipsTableCreateCompanionBuilder =
       Value<String?> locationId,
       Value<String?> itemId,
       Value<String?> styleSelection,
+      Value<bool?> generateAudio,
       Value<String?> lastAppliedGenerationTaskId,
       required String id,
       required String episodeId,
@@ -34091,6 +34153,7 @@ typedef $$ProductionClipsTableUpdateCompanionBuilder =
       Value<String?> locationId,
       Value<String?> itemId,
       Value<String?> styleSelection,
+      Value<bool?> generateAudio,
       Value<String?> lastAppliedGenerationTaskId,
       Value<String> id,
       Value<String> episodeId,
@@ -34149,6 +34212,11 @@ class $$ProductionClipsTableFilterComposer
 
   ColumnFilters<String> get styleSelection => $composableBuilder(
     column: $table.styleSelection,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get generateAudio => $composableBuilder(
+    column: $table.generateAudio,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -34282,6 +34350,11 @@ class $$ProductionClipsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get generateAudio => $composableBuilder(
+    column: $table.generateAudio,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get lastAppliedGenerationTaskId => $composableBuilder(
     column: $table.lastAppliedGenerationTaskId,
     builder: (column) => ColumnOrderings(column),
@@ -34408,6 +34481,11 @@ class $$ProductionClipsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<bool> get generateAudio => $composableBuilder(
+    column: $table.generateAudio,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get lastAppliedGenerationTaskId => $composableBuilder(
     column: $table.lastAppliedGenerationTaskId,
     builder: (column) => column,
@@ -34522,6 +34600,7 @@ class $$ProductionClipsTableTableManager
                 Value<String?> locationId = const Value.absent(),
                 Value<String?> itemId = const Value.absent(),
                 Value<String?> styleSelection = const Value.absent(),
+                Value<bool?> generateAudio = const Value.absent(),
                 Value<String?> lastAppliedGenerationTaskId =
                     const Value.absent(),
                 Value<String> id = const Value.absent(),
@@ -34549,6 +34628,7 @@ class $$ProductionClipsTableTableManager
                 locationId: locationId,
                 itemId: itemId,
                 styleSelection: styleSelection,
+                generateAudio: generateAudio,
                 lastAppliedGenerationTaskId: lastAppliedGenerationTaskId,
                 id: id,
                 episodeId: episodeId,
@@ -34577,6 +34657,7 @@ class $$ProductionClipsTableTableManager
                 Value<String?> locationId = const Value.absent(),
                 Value<String?> itemId = const Value.absent(),
                 Value<String?> styleSelection = const Value.absent(),
+                Value<bool?> generateAudio = const Value.absent(),
                 Value<String?> lastAppliedGenerationTaskId =
                     const Value.absent(),
                 required String id,
@@ -34604,6 +34685,7 @@ class $$ProductionClipsTableTableManager
                 locationId: locationId,
                 itemId: itemId,
                 styleSelection: styleSelection,
+                generateAudio: generateAudio,
                 lastAppliedGenerationTaskId: lastAppliedGenerationTaskId,
                 id: id,
                 episodeId: episodeId,

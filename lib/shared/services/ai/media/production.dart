@@ -340,6 +340,10 @@ class ProductionToolHost {
       'resolution': request['resolution'],
       if (request['duration_seconds'] != null)
         'duration': '${request['duration_seconds']}s',
+      if (request['audio'] case final bool audio)
+        'audio': tr(
+          audio ? LocaleKeys.productionAudioOn : LocaleKeys.productionAudioOff,
+        ),
       if (references.isNotEmpty) 'references': references.length,
       'prompt': request['prompt'],
     }..removeWhere((_, value) => value == null);
