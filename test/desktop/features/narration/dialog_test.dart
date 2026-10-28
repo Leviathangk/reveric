@@ -131,11 +131,11 @@ void main() {
         await tester.tap(find.byKey(const ValueKey('screenplay-narration')));
         await tester.pumpAndSettle();
         expect(find.byType(NarrationDialog), findsOneWidget);
-        expect(find.text('Puck'), findsOneWidget);
+        expect(find.text('Upbeat male'), findsOneWidget);
         // Edit a role voice and ensure the submitted plan uses the new value.
-        await tester.tap(find.text('Puck'));
+        await tester.tap(find.text('Upbeat male'));
         await tester.pumpAndSettle();
-        await tester.tap(find.text('Zephyr').last);
+        await tester.tap(find.text('Bright female').last);
         await tester.pumpAndSettle();
         await tester.tap(find.text('Play'));
         await tester.pumpAndSettle();

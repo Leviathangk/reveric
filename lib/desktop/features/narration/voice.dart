@@ -1,7 +1,10 @@
 // 职责: 选择朗读预设音色或输入自定义音色 ID。
 // 关联文件:
 //   lib/desktop/features/narration/setup.dart
+//   lib/shared/localization/audio_voice_localization.dart
 //   lib/shared/localization/locale_keys.dart
+//   assets/translations/en/audio.json
+//   assets/translations/zh-CN/audio.json
 //   assets/translations/en/screenplay.json
 //   assets/translations/zh-CN/screenplay.json
 //   assets/translations/en/common.json
@@ -17,6 +20,7 @@ import '../../../shared/components/reveric_dialog.dart';
 import '../../../shared/components/reveric_select.dart';
 import '../../../shared/form/form.dart';
 import '../../../shared/localization/app_localization.dart';
+import '../../../shared/localization/audio_voice_localization.dart';
 import '../../../shared/localization/locale_keys.dart';
 
 const _custom = '\u0000custom';
@@ -47,7 +51,14 @@ class NarrationVoiceSelect extends StatelessWidget {
           label: context.t(LocaleKeys.narrationUseNarrator),
         ),
       for (final voice in {...voices, if (value.isNotEmpty) value})
-        RevericSelectItem(value: voice, label: voice),
+        RevericSelectItem(
+          value: voice,
+          label: localizedAudioVoiceName(
+            context,
+            voice,
+            presetIndex: voices.indexOf(voice),
+          ),
+        ),
       RevericSelectItem(
         value: _custom,
         label: context.t(LocaleKeys.productionSpeechCustomVoice),

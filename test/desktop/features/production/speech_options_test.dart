@@ -72,13 +72,13 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Kore').first);
+      await tester.tap(find.text('Firm female').first);
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Puck'));
+      await tester.tap(find.text('Upbeat male'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Read values'));
       expect(voice, 'Puck');
-      await tester.tap(find.text('Puck').first);
+      await tester.tap(find.text('Upbeat male').first);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Custom voice ID…'));
       await tester.pumpAndSettle();

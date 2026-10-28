@@ -15,6 +15,156 @@
 //   反查某个 key 是否已存在时，优先 Grep value 的片段，不要猜常量名。
 // - 新增或修改 key 必须同步 en 与 zh-CN 两份 JSON，规则见 .agents/rules/i18n.md。
 abstract final class LocaleKeys {
+  // ── audio ──
+  static const audioVoiceMinimaxKindheartedgirl =
+      'audio.voice.minimaxKindheartedgirl';
+  static const audioVoiceUnnamedPreset = 'audio.voice.unnamedPreset';
+  static const audioVoiceQwenHuan31 = 'audio.voice.qwenHuan31';
+  static const audioVoiceQwenLingxin31 = 'audio.voice.qwenLingxin31';
+  static const audioVoiceQwenNanchuan31 = 'audio.voice.qwenNanchuan31';
+  static const audioVoiceQwenFengyue31 = 'audio.voice.qwenFengyue31';
+  static const audioVoiceQwenHuan36 = 'audio.voice.qwenHuan36';
+  static const audioVoiceQwenLingxin = 'audio.voice.qwenLingxin';
+  static const audioVoiceQwenLufeng = 'audio.voice.qwenLufeng';
+  static const audioVoiceQwenFengyue = 'audio.voice.qwenFengyue';
+  static const audioVoiceQwenYuanfei = 'audio.voice.qwenYuanfei';
+  static const audioVoiceQwenLingxi = 'audio.voice.qwenLingxi';
+  static const audioVoiceQwenXiaoxin = 'audio.voice.qwenXiaoxin';
+  static const audioVoiceQwenJielidou = 'audio.voice.qwenJielidou';
+  static const audioVoiceQwenPaopao = 'audio.voice.qwenPaopao';
+  static const audioVoiceQwenHuohuo = 'audio.voice.qwenHuohuo';
+  static const audioVoiceQwenChuanshu = 'audio.voice.qwenChuanshu';
+  static const audioVoiceQwenMary = 'audio.voice.qwenMary';
+  static const audioVoiceQwenEva = 'audio.voice.qwenEva';
+  static const audioVoiceQwenJohn = 'audio.voice.qwenJohn';
+  static const audioVoiceGeminiZephyr = 'audio.voice.geminiZephyr';
+  static const audioVoiceGeminiPuck = 'audio.voice.geminiPuck';
+  static const audioVoiceGeminiCharon = 'audio.voice.geminiCharon';
+  static const audioVoiceGeminiKore = 'audio.voice.geminiKore';
+  static const audioVoiceGeminiFenrir = 'audio.voice.geminiFenrir';
+  static const audioVoiceGeminiLeda = 'audio.voice.geminiLeda';
+  static const audioVoiceGeminiOrus = 'audio.voice.geminiOrus';
+  static const audioVoiceGeminiAoede = 'audio.voice.geminiAoede';
+  static const audioVoiceGeminiCallirrhoe = 'audio.voice.geminiCallirrhoe';
+  static const audioVoiceGeminiAutonoe = 'audio.voice.geminiAutonoe';
+  static const audioVoiceGeminiEnceladus = 'audio.voice.geminiEnceladus';
+  static const audioVoiceGeminiIapetus = 'audio.voice.geminiIapetus';
+  static const audioVoiceGeminiUmbriel = 'audio.voice.geminiUmbriel';
+  static const audioVoiceGeminiAlgieba = 'audio.voice.geminiAlgieba';
+  static const audioVoiceGeminiDespina = 'audio.voice.geminiDespina';
+  static const audioVoiceGeminiErinome = 'audio.voice.geminiErinome';
+  static const audioVoiceGeminiAlgenib = 'audio.voice.geminiAlgenib';
+  static const audioVoiceGeminiRasalgethi = 'audio.voice.geminiRasalgethi';
+  static const audioVoiceGeminiLaomedeia = 'audio.voice.geminiLaomedeia';
+  static const audioVoiceGeminiAchernar = 'audio.voice.geminiAchernar';
+  static const audioVoiceGeminiAlnilam = 'audio.voice.geminiAlnilam';
+  static const audioVoiceGeminiSchedar = 'audio.voice.geminiSchedar';
+  static const audioVoiceGeminiGacrux = 'audio.voice.geminiGacrux';
+  static const audioVoiceGeminiPulcherrima = 'audio.voice.geminiPulcherrima';
+  static const audioVoiceGeminiAchird = 'audio.voice.geminiAchird';
+  static const audioVoiceGeminiZubenelgenubi =
+      'audio.voice.geminiZubenelgenubi';
+  static const audioVoiceGeminiVindemiatrix = 'audio.voice.geminiVindemiatrix';
+  static const audioVoiceGeminiSadachbia = 'audio.voice.geminiSadachbia';
+  static const audioVoiceGeminiSadaltager = 'audio.voice.geminiSadaltager';
+  static const audioVoiceGeminiSulafat = 'audio.voice.geminiSulafat';
+  static const audioVoiceMinimaxExpressivenarrator =
+      'audio.voice.minimaxExpressivenarrator';
+  static const audioVoiceMinimaxRadiantgirl = 'audio.voice.minimaxRadiantgirl';
+  static const audioVoiceMinimaxMagneticvoicedman =
+      'audio.voice.minimaxMagneticvoicedman';
+  static const audioVoiceMinimaxCompellinglady =
+      'audio.voice.minimaxCompellinglady';
+  static const audioVoiceMinimaxAussiebloke = 'audio.voice.minimaxAussiebloke';
+  static const audioVoiceMinimaxCaptivatingfemale =
+      'audio.voice.minimaxCaptivatingfemale';
+  static const audioVoiceMinimaxUpbeatwoman = 'audio.voice.minimaxUpbeatwoman';
+  static const audioVoiceMinimaxTrustworthman =
+      'audio.voice.minimaxTrustworthman';
+  static const audioVoiceMinimaxCalmwoman = 'audio.voice.minimaxCalmwoman';
+  static const audioVoiceMinimaxUpsetgirl = 'audio.voice.minimaxUpsetgirl';
+  static const audioVoiceMinimaxGentlevoicedman =
+      'audio.voice.minimaxGentlevoicedman';
+  static const audioVoiceMinimaxWhisperinggirl =
+      'audio.voice.minimaxWhisperinggirl';
+  static const audioVoiceMinimaxDiligentman = 'audio.voice.minimaxDiligentman';
+  static const audioVoiceMinimaxGracefullady =
+      'audio.voice.minimaxGracefullady';
+  static const audioVoiceMinimaxReservedyoungman =
+      'audio.voice.minimaxReservedyoungman';
+  static const audioVoiceMinimaxPlayfulgirl = 'audio.voice.minimaxPlayfulgirl';
+  static const audioVoiceMinimaxManwithdeepvoice =
+      'audio.voice.minimaxManwithdeepvoice';
+  static const audioVoiceMinimaxMaturepartner =
+      'audio.voice.minimaxMaturepartner';
+  static const audioVoiceMinimaxFriendlyperson =
+      'audio.voice.minimaxFriendlyperson';
+  static const audioVoiceMinimaxMatureboss = 'audio.voice.minimaxMatureboss';
+  static const audioVoiceMinimaxDebator = 'audio.voice.minimaxDebator';
+  static const audioVoiceMinimaxLovelygirl = 'audio.voice.minimaxLovelygirl';
+  static const audioVoiceMinimaxSteadymentor =
+      'audio.voice.minimaxSteadymentor';
+  static const audioVoiceMinimaxDeepvoicedgentleman =
+      'audio.voice.minimaxDeepvoicedgentleman';
+  static const audioVoiceMinimaxWiselady = 'audio.voice.minimaxWiselady';
+  static const audioVoiceMinimaxCaptivatingstoryteller =
+      'audio.voice.minimaxCaptivatingstoryteller';
+  static const audioVoiceMinimaxDecentyoungman =
+      'audio.voice.minimaxDecentyoungman';
+  static const audioVoiceMinimaxSentimentallady =
+      'audio.voice.minimaxSentimentallady';
+  static const audioVoiceMinimaxImposingmanner =
+      'audio.voice.minimaxImposingmanner';
+  static const audioVoiceMinimaxSadteen = 'audio.voice.minimaxSadteen';
+  static const audioVoiceMinimaxPassionatewarrior =
+      'audio.voice.minimaxPassionatewarrior';
+  static const audioVoiceMinimaxWisescholar = 'audio.voice.minimaxWisescholar';
+  static const audioVoiceMinimaxSoftspokengirl =
+      'audio.voice.minimaxSoftspokengirl';
+  static const audioVoiceMinimaxSerenewoman = 'audio.voice.minimaxSerenewoman';
+  static const audioVoiceMinimaxConfidentwoman =
+      'audio.voice.minimaxConfidentwoman';
+  static const audioVoiceMinimaxPatientman = 'audio.voice.minimaxPatientman';
+  static const audioVoiceMinimaxComedian = 'audio.voice.minimaxComedian';
+  static const audioVoiceMinimaxBossyleader = 'audio.voice.minimaxBossyleader';
+  static const audioVoiceMinimaxStrongwilledboy =
+      'audio.voice.minimaxStrongwilledboy';
+  static const audioVoiceMinimaxStressedlady =
+      'audio.voice.minimaxStressedlady';
+  static const audioVoiceMinimaxAssertivequeen =
+      'audio.voice.minimaxAssertivequeen';
+  static const audioVoiceMinimaxAnimecharacter =
+      'audio.voice.minimaxAnimecharacter';
+  static const audioVoiceMinimaxJovialman = 'audio.voice.minimaxJovialman';
+  static const audioVoiceMinimaxWhimsicalgirl =
+      'audio.voice.minimaxWhimsicalgirl';
+  static const audioVoiceElevenBella = 'audio.voice.elevenBella';
+  static const audioVoiceElevenRoger = 'audio.voice.elevenRoger';
+  static const audioVoiceElevenSarah = 'audio.voice.elevenSarah';
+  static const audioVoiceElevenLaura = 'audio.voice.elevenLaura';
+  static const audioVoiceElevenCharlie = 'audio.voice.elevenCharlie';
+  static const audioVoiceElevenGeorge = 'audio.voice.elevenGeorge';
+  static const audioVoiceElevenCallum = 'audio.voice.elevenCallum';
+  static const audioVoiceElevenRiver = 'audio.voice.elevenRiver';
+  static const audioVoiceElevenHarry = 'audio.voice.elevenHarry';
+  static const audioVoiceElevenLiam = 'audio.voice.elevenLiam';
+  static const audioVoiceElevenAlice = 'audio.voice.elevenAlice';
+  static const audioVoiceElevenMatilda = 'audio.voice.elevenMatilda';
+  static const audioVoiceElevenWill = 'audio.voice.elevenWill';
+  static const audioVoiceElevenJessica = 'audio.voice.elevenJessica';
+  static const audioVoiceElevenEric = 'audio.voice.elevenEric';
+  static const audioVoiceElevenChris = 'audio.voice.elevenChris';
+  static const audioVoiceElevenBrian = 'audio.voice.elevenBrian';
+  static const audioVoiceElevenDaniel = 'audio.voice.elevenDaniel';
+  static const audioVoiceElevenLily = 'audio.voice.elevenLily';
+  static const audioVoiceElevenAdam = 'audio.voice.elevenAdam';
+  static const audioVoiceElevenBill = 'audio.voice.elevenBill';
+  static const audioVoiceXaiEve = 'audio.voice.xaiEve';
+  static const audioVoiceXaiAra = 'audio.voice.xaiAra';
+  static const audioVoiceXaiLeo = 'audio.voice.xaiLeo';
+  static const audioVoiceXaiRex = 'audio.voice.xaiRex';
+  static const audioVoiceXaiSal = 'audio.voice.xaiSal';
+
   static const directorFrameUnavailable = 'director.frame_unavailable';
   static const directorRecoveryFields = 'director.recovery_fields';
   static const directorParallelReferenceUp = 'director.parallel_reference_up';

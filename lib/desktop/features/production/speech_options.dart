@@ -3,7 +3,10 @@
 //   lib/desktop/features/production/audio_composer.dart
 //   lib/desktop/features/storyboard/edit_form.dart
 //   lib/shared/models/audio/config.dart
+//   lib/shared/localization/audio_voice_localization.dart
 //   lib/shared/localization/locale_keys.dart
+//   assets/translations/en/audio.json
+//   assets/translations/zh-CN/audio.json
 //   assets/translations/en/screenplay.json
 //   assets/translations/zh-CN/screenplay.json
 //   assets/translations/en/common.json
@@ -21,6 +24,7 @@ import '../../../shared/components/reveric_select.dart';
 import '../../../shared/components/reveric_text_field.dart';
 import '../../../shared/form/form.dart';
 import '../../../shared/localization/app_localization.dart';
+import '../../../shared/localization/audio_voice_localization.dart';
 import '../../../shared/localization/locale_keys.dart';
 import '../../../shared/models/audio/config.dart';
 import '../../../shared/theme/theme.dart';
@@ -86,7 +90,14 @@ class ProductionSpeechVoiceSelect extends HookWidget {
           ),
           if (custom) RevericSelectItem(value: voice, label: voice),
           for (final id in capability.voices)
-            RevericSelectItem(value: id, label: id),
+            RevericSelectItem(
+              value: id,
+              label: localizedAudioVoiceName(
+                context,
+                id,
+                presetIndex: capability.voices.indexOf(id),
+              ),
+            ),
         ],
         onChanged: changed,
       ),

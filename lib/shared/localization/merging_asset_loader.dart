@@ -23,6 +23,7 @@ class MergingAssetLoader extends AssetLoader {
     'ai',
     'app',
     'assets',
+    'audio',
     'canvas',
     'chapter',
     'character',
