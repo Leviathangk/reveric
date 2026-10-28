@@ -29,9 +29,35 @@
   <a href="#许可证">许可证</a>
 </p>
 
-![Reveric 主界面](.github/images/home.png)
-
 </div>
+
+---
+
+## 赞助
+
+<table width="100%">
+  <tr>
+    <td align="center" valign="top">
+      <a href="https://88api.ai/sign-up?aff=5q8X">
+        <img src=".github/images/88api-logo.png" alt="88API Token 聚合平台" height="80"/>
+        <br/>
+        <strong>88API Token 聚合平台</strong>
+      </a>
+      <p align="center">
+        <a href="https://88api.ai/sign-up?aff=5q8X">
+          <img src=".github/images/88api-banner.png" alt="88API · 88api.ai" width="600"/>
+        </a>
+      </p>
+      <p align="left"><strong>感谢 88API Token 聚合平台赞助本项目！</strong></p>
+      <p align="left">88API 是一家由香港企业运营、面向开发者、创作者与 AI 应用用户的一站式多模型 API 平台，通过统一接口接入文本、图片、语音和视频模型，覆盖 AI 编程、智能翻译、内容创作、配音、图像生成和视频生成等常见工作流。平台提供高质量 DeepSeek 算力，支持国际主流付款方式，可提供发票，并提供企业级稳定服务。</p>
+      <p align="left">通过<a href="https://88api.ai/sign-up?aff=5q8X">专属链接注册</a>，可以获取专属赠送额度！</p>
+      <p align="left">
+        官网：<a href="https://88api.ai/">88api.ai</a><br/>
+        请求地址：<code>https://api.88api.ai</code>
+      </p>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -43,6 +69,8 @@
 - **智能体操作所有模块**：小说、剧本、画布、3D 导演台、剪辑台，智能体都能直接上手操作。
 - **素材自动生成**：角色定妆、分镜参考图、视频片段与音频，由智能体调用模型直接生成到画布上。
 - **本地优先，模型自选（BYOK）**：作品数据保存在本地 SQLite，模型直连 OpenAI、Anthropic、Gemini、DeepSeek、Seedance、H3 或自建网关。
+
+![Reveric 主界面](.github/images/home.png)
 
 ---
 
