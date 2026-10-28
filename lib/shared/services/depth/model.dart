@@ -8,6 +8,9 @@ import '../../models/production/media.dart';
 
 enum DepthStage {
   preparing,
+  connecting,
+  downloading,
+  verifying,
   decoding,
   inference,
   mapping,

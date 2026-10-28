@@ -5,6 +5,7 @@
 //   lib/shared/widgets/settings/ai_providers_section.dart
 //   lib/shared/providers/settings_providers.dart
 //   lib/shared/models/ai_provider.dart
+//   lib/shared/models/network_proxy.dart
 //   lib/shared/components/reveric_text_field.dart
 //   lib/shared/localization/ai_provider_localization.dart
 //   lib/shared/localization/locale_keys.dart
@@ -37,6 +38,7 @@ import '../../localization/app_localization.dart';
 import '../../localization/locale_keys.dart';
 import '../../logger/app_logger.dart';
 import '../../models/ai_provider.dart';
+import '../../models/network_proxy.dart';
 import '../../models/image/channels.dart';
 import '../../models/audio/channels.dart';
 import '../../models/video/channels.dart';
@@ -49,6 +51,7 @@ import 'provider_actions.dart';
 import 'provider_video_models.dart';
 import 'provider_models_editor.dart';
 import 'provider_audio_models.dart';
+import 'proxy_settings_section.dart';
 import 'codex_connection.dart';
 import '../../components/reveric_dialog.dart';
 import '../../components/reveric_button.dart';
@@ -189,9 +192,10 @@ class ProviderConfigPanel extends HookConsumerWidget {
         imageModels: imageModels ?? config.availableImageModels,
         videoModels: videoModels ?? config.availableVideoModels,
         audioModels: audioModels ?? config.availableAudioModels,
-        proxyUrl: proxyUrl ?? proxyUrlController.text,
-        proxyUsername: proxyUsername ?? proxyUsernameController.text,
-        proxyPassword: proxyPassword ?? proxyPasswordController.text,
+        // 代理字段只由 _ProxySection 校验通过后写入，其余字段保存时沿用已存值。
+        proxyUrl: proxyUrl ?? config.proxyUrl,
+        proxyUsername: proxyUsername ?? config.proxyUsername,
+        proxyPassword: proxyPassword ?? config.proxyPassword,
       );
       await settingsNotifier.setAiProviderConfig(nextConfig);
     }
@@ -517,11 +521,11 @@ class ProviderConfigPanel extends HookConsumerWidget {
           urlController: proxyUrlController,
           usernameController: proxyUsernameController,
           passwordController: proxyPasswordController,
-          onUrlChanged: () => saveConfig(proxyUrl: proxyUrlController.text),
-          onUsernameChanged: () =>
-              saveConfig(proxyUsername: proxyUsernameController.text),
-          onPasswordChanged: () =>
-              saveConfig(proxyPassword: proxyPasswordController.text),
+          onChanged: () => saveConfig(
+            proxyUrl: proxyUrlController.text,
+            proxyUsername: proxyUsernameController.text,
+            proxyPassword: proxyPasswordController.text,
+          ),
         ),
       ],
     );
@@ -1205,28 +1209,66 @@ class _AssetCredentialsSection extends HookWidget {
 }
 
 /// 代理设置区：默认折叠，已配置代理地址时展开。
+///
+/// 输入不合法时只提示错误、不写回配置，避免把无法使用的代理存进 provider。
 class _ProxySection extends HookWidget {
   const _ProxySection({
     required this.urlController,
     required this.usernameController,
     required this.passwordController,
-    required this.onUrlChanged,
-    required this.onUsernameChanged,
-    required this.onPasswordChanged,
+    required this.onChanged,
   });
 
   final TextEditingController urlController;
   final TextEditingController usernameController;
   final TextEditingController passwordController;
-  final VoidCallback onUrlChanged;
-  final VoidCallback onUsernameChanged;
-  final VoidCallback onPasswordChanged;
+  final VoidCallback onChanged;
+
+  /// 与 [AiProviderX.createProxyClient] 一致，按去掉首尾空白后的值校验。
+  ({String? url, String? username, String? password}) _errors(
+    BuildContext context,
+  ) {
+    final url = urlController.text.trim();
+    final credentials = NetworkProxy.credentialFieldErrors(
+      address: url,
+      username: usernameController.text.trim(),
+      password: passwordController.text.trim(),
+    );
+    return (
+      url: url.isNotEmpty && NetworkProxy.parseAddress(url) == null
+          ? context.t(LocaleKeys.settingsProxyInvalidUrl)
+          : null,
+      username: networkProxyCredentialErrorText(
+        context,
+        credentials.username,
+        username: true,
+      ),
+      password: networkProxyCredentialErrorText(
+        context,
+        credentials.password,
+        username: false,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = RevericTheme.colorsOf(context);
     final typo = RevericTheme.typographyOf(context);
     final expanded = useState(urlController.text.trim().isNotEmpty);
+    useListenable(
+      Listenable.merge([urlController, usernameController, passwordController]),
+    );
+    final errors = _errors(context);
+
+    void save() {
+      final current = _errors(context);
+      if (current.url == null &&
+          current.username == null &&
+          current.password == null) {
+        onChanged();
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1261,14 +1303,17 @@ class _ProxySection extends HookWidget {
             label: context.t(LocaleKeys.settingsProviderProxyUrlLabel),
             hintText: context.t(LocaleKeys.settingsProviderProxyUrlHint),
             controller: urlController,
-            onChanged: (_) => onUrlChanged(),
+            errorText: errors.url,
+            keyboardType: TextInputType.url,
+            onChanged: (_) => save(),
           ),
           const SizedBox(height: RevericSpacing.lg),
           RevericTextField(
             label: context.t(LocaleKeys.settingsProviderProxyUsernameLabel),
             hintText: context.t(LocaleKeys.settingsProviderProxyUsernameHint),
             controller: usernameController,
-            onChanged: (_) => onUsernameChanged(),
+            errorText: errors.username,
+            onChanged: (_) => save(),
           ),
           const SizedBox(height: RevericSpacing.lg),
           RevericTextField(
@@ -1276,7 +1321,8 @@ class _ProxySection extends HookWidget {
             hintText: context.t(LocaleKeys.settingsProviderProxyPasswordHint),
             controller: passwordController,
             obscureText: true,
-            onChanged: (_) => onPasswordChanged(),
+            errorText: errors.password,
+            onChanged: (_) => save(),
           ),
         ],
       ],

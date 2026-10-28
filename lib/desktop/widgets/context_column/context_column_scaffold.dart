@@ -81,7 +81,7 @@ class ContextColumnScaffold extends StatelessWidget {
                     ),
                   ),
                 const Spacer(),
-                if (trailing != null) trailing!,
+                ?trailing,
               ],
             ),
           ),

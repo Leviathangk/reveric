@@ -4310,6 +4310,25 @@ abstract final class LocaleKeys {
   static const settingsGroupSystem = 'settings.group_system';
   static const settingsLanguage = 'settings.language';
   static const settingsLanguageDescription = 'settings.language_description';
+  static const settingsProxyTitle = 'settings.proxy.title';
+  static const settingsProxyDescription = 'settings.proxy.description';
+  static const settingsProxyMode = 'settings.proxy.mode';
+  static const settingsProxyDirect = 'settings.proxy.direct';
+  static const settingsProxyEnvironment = 'settings.proxy.environment';
+  static const settingsProxyCustom = 'settings.proxy.custom';
+  static const settingsProxyAddress = 'settings.proxy.address';
+  static const settingsProxyAddressHint = 'settings.proxy.address_hint';
+  static const settingsProxyUsername = 'settings.proxy.username';
+  static const settingsProxyPassword = 'settings.proxy.password';
+  static const settingsProxyCredentialHint = 'settings.proxy.credential_hint';
+  static const settingsProxyCredentialsIncomplete =
+      'settings.proxy.credentials_incomplete';
+  static const settingsProxyUsernameInvalid = 'settings.proxy.username_invalid';
+  static const settingsProxyPasswordInvalid = 'settings.proxy.password_invalid';
+  static const settingsProxyCredentialTooLong =
+      'settings.proxy.credential_too_long';
+  static const settingsProxyInvalidUrl = 'settings.proxy.invalid_url';
+  static const settingsProxyLoadFailed = 'settings.proxy.load_failed';
   static const settingsLanguageSection = 'settings.language_section';
   static const settingsPrivacySection = 'settings.privacy_section';
   static const settingsPrivacyDescription = 'settings.privacy_description';

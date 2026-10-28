@@ -119,8 +119,7 @@ List<String> formatScreenplayElementLines(
           element.text
               .split('\n')
               .map(
-                (line) =>
-                    alignTitle?.call(line, centered: centered) ?? line,
+                (line) => alignTitle?.call(line, centered: centered) ?? line,
               ),
         );
       case ScreenplayElementType.note:

@@ -138,6 +138,48 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     await EasyLocalization.ensureInitialized();
   });
+  testWidgets('shows connection, download percentage and verification stages', (
+    tester,
+  ) async {
+    final tasks = _Tasks(installed: false);
+    tasks.state.value = const DepthTask(
+      id: 'task',
+      novelId: 'work',
+      nodeId: 'node',
+      stage: DepthStage.connecting,
+    );
+    await tester.pumpWidget(_app(tasks));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Task status'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('Connecting to model source'), findsOneWidget);
+    tasks.state.value = const DepthTask(
+      id: 'task',
+      novelId: 'work',
+      nodeId: 'node',
+      stage: DepthStage.downloading,
+      progress: 0.42,
+    );
+    await tester.pump();
+    expect(find.text('Downloading model'), findsOneWidget);
+    expect(find.text('42%'), findsOneWidget);
+    tasks.state.value = const DepthTask(
+      id: 'task',
+      novelId: 'work',
+      nodeId: 'node',
+      stage: DepthStage.verifying,
+    );
+    await tester.pump();
+    expect(find.text('Verifying model'), findsOneWidget);
+    expect(find.text('42%'), findsNothing);
+    await tester.tap(button('Close'));
+    await tester.pumpAndSettle();
+    expect(tasks.cancellations, 0);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpAndSettle();
+    tasks.state.dispose();
+  });
   testWidgets('completion before the next frame still closes automatically', (
     tester,
   ) async {

@@ -39,7 +39,7 @@ void main() {
     overrides: [updateSourceProvider.overrideWithValue(source)],
   );
 
-  test('default update check uses Reveric GitHub release assets', () async {
+  test('default update source targets Reveric GitHub release assets', () async {
     final requests = <Uri>[];
     final assets = {
       'macos': 'reveric-9.2.0-macos-arm64.zip',
@@ -50,7 +50,12 @@ void main() {
     final result = await http.runWithClient(
       () async {
         final container = ProviderContainer.test();
-        return container.read(latestReleaseProvider.future);
+        final configured =
+            container.read(updateSourceProvider) as GitHubReleasesSource;
+        return GitHubReleasesSource(
+          owner: configured.owner,
+          repo: configured.repo,
+        ).checkForUpdate('0.0.0');
       },
       () => MockClient((request) async {
         requests.add(request.url);

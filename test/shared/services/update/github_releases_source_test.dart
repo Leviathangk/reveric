@@ -4,13 +4,51 @@
 //   lib/shared/services/update/models.dart
 import 'dart:convert';
 import 'dart:ffi';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:reveric/shared/services/update.dart';
 
+class _TrackedClient extends MockClient {
+  _TrackedClient(super.handler);
+  bool closed = false;
+  @override
+  void close() {
+    closed = true;
+    super.close();
+  }
+}
+
 void main() {
+  test(
+    'each check obtains the current client and closes it on success or failure',
+    () async {
+      final clients = <_TrackedClient>[];
+      final source = GitHubReleasesSource(
+        owner: 'example',
+        repo: 'app',
+        createClient: () async {
+          final fail = clients.isEmpty;
+          final client = _TrackedClient((_) async {
+            if (fail) {
+              throw const SocketException('proxy unavailable');
+            }
+            return http.Response('{"tag_name":"v1.0.0"}', 200);
+          });
+          clients.add(client);
+          return client;
+        },
+      );
+      expect(await source.checkForUpdate('1.0.0'), isA<UpdateCheckFailed>());
+      expect(clients.single.closed, true);
+      expect(await source.checkForUpdate('1.0.0'), isA<UpdateUpToDate>());
+      expect(clients.length, 2);
+      expect(clients.last.closed, true);
+    },
+  );
+
   Future<UpdateCheckResult> check(
     List<String> names, {
     String platform = 'macos',

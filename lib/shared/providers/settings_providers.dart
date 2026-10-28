@@ -22,6 +22,7 @@ import '../../third/form/flutter_hook_form.dart';
 import '../localization/locale_keys.dart';
 import '../database/app_database.dart';
 import '../models/ai_provider.dart';
+import '../models/network_proxy.dart';
 import '../models/app_settings_aggregate_data.dart';
 import '../models/editor_settings_data.dart';
 import '../models/webdav_backup_config.dart';
@@ -390,6 +391,8 @@ class AppSettings {
   /// 用户头像图片路径（本地文件路径），为空则使用默认头像。
   final String avatarPath;
 
+  final NetworkProxy networkProxy;
+
   // ---- Auto Update ----
 
   /// 是否启动时检查更新，默认 true。
@@ -497,6 +500,7 @@ class AppSettings {
     this.appBackgroundTheme,
     this.username = '',
     this.avatarPath = '',
+    this.networkProxy = const NetworkProxy(),
     this.checkForUpdates = true,
     this.updateCheckIntervalHours = 24,
     this.lastUpdateCheckTime,
@@ -512,6 +516,7 @@ class AppSettings {
     AiSettings? aiSettings,
     SearchEngine? searchEngine,
     int? changeRecordRetentionDays,
+    NetworkProxy? networkProxy,
     bool? checkForUpdates,
     int? updateCheckIntervalHours,
     Object? lastUpdateCheckTime = _unset,
@@ -580,6 +585,7 @@ class AppSettings {
       searchEngine: searchEngine ?? this.searchEngine,
       changeRecordRetentionDays:
           changeRecordRetentionDays ?? this.changeRecordRetentionDays,
+      networkProxy: networkProxy ?? this.networkProxy,
       checkForUpdates: checkForUpdates ?? this.checkForUpdates,
       updateCheckIntervalHours:
           updateCheckIntervalHours ?? this.updateCheckIntervalHours,
@@ -1229,6 +1235,12 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
           : _parseTheme(appearanceSettings.backgroundTheme),
       username: localProfile.username,
       avatarPath: localProfile.avatarPath,
+      networkProxy: _loadAggregate(
+        key: NetworkProxy.settingsKey,
+        raw: allSettings[NetworkProxy.settingsKey],
+        decode: NetworkProxy.decode,
+        defaults: const NetworkProxy(),
+      ),
       checkForUpdates: checkForUpdates,
       updateCheckIntervalHours: updateCheckIntervalHours,
       lastUpdateCheckTime: lastUpdateCheckTime,
@@ -1286,6 +1298,11 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       database,
       key: _debugSettingsKey,
       value: _debugSettingsDataFromAppSettings(settings).encode(),
+    );
+    await _persistSettingsAggregate(
+      database,
+      key: NetworkProxy.settingsKey,
+      value: settings.networkProxy.encode(),
     );
     await database.appSettingsDao.set(
       key: _languageKey,
@@ -2617,6 +2634,21 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
       appearanceSettings: nextState,
       aiSettings: nextAiSettings.copyWith(providers: const []),
     );
+  }
+
+  Future<void> setNetworkProxy(NetworkProxy config) async {
+    if (!config.isValid) {
+      throw const FormatException('Invalid network proxy configuration');
+    }
+    await _requireCurrentState('SET_NETWORK_PROXY');
+    await _persistSettingsAggregate(
+      ref.read(appSettingsDatabaseProvider),
+      key: NetworkProxy.settingsKey,
+      value: config.encode(),
+    );
+    if (ref.mounted) {
+      state = AsyncData(state.requireValue.copyWith(networkProxy: config));
+    }
   }
 
   // ---- Update setters ----

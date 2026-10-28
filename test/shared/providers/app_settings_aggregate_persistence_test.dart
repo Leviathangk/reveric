@@ -16,6 +16,7 @@ import 'package:flutter/material.dart' show Brightness;
 import 'package:reveric/desktop/widgets/workspace/chapter_outline_window.dart';
 import 'package:reveric/shared/database/app_database.dart';
 import 'package:reveric/shared/models/ai_provider.dart';
+import 'package:reveric/shared/models/network_proxy.dart';
 import 'package:reveric/shared/models/app_settings_aggregate_data.dart';
 import 'package:reveric/shared/models/webdav_backup_config.dart';
 import 'package:reveric/shared/providers/settings_providers.dart';
@@ -23,6 +24,73 @@ import 'package:reveric/shared/services/initialization/provider_seeds.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  test(
+    'proxy defaults to environment and persists custom settings across reloads',
+    () async {
+      final database = AppDatabase.forTest(NativeDatabase.memory());
+      final container = _createContainer(database);
+      addTearDown(() async {
+        container.dispose();
+        await database.close();
+      });
+      expect(
+        (await container.read(appSettingsProvider.future)).networkProxy.mode,
+        NetworkProxyMode.environment,
+      );
+      const custom = NetworkProxy(
+        mode: NetworkProxyMode.custom,
+        url: 'socks5://127.0.0.1:1080',
+        username: 'user',
+        password: 'secret',
+      );
+      await container
+          .read(appSettingsProvider.notifier)
+          .setNetworkProxy(custom);
+      container.invalidate(appSettingsProvider);
+      expect(
+        (await container.read(
+          appSettingsProvider.future,
+        )).networkProxy.encode(),
+        custom.encode(),
+      );
+      await expectLater(
+        container
+            .read(appSettingsProvider.notifier)
+            .setNetworkProxy(
+              const NetworkProxy(mode: NetworkProxyMode.custom, url: 'invalid'),
+            ),
+        throwsFormatException,
+      );
+      await expectLater(
+        container
+            .read(appSettingsProvider.notifier)
+            .setNetworkProxy(
+              NetworkProxy(
+                mode: NetworkProxyMode.custom,
+                url: custom.url,
+                username: 'user',
+              ),
+            ),
+        throwsFormatException,
+      );
+      expect(
+        await database.appSettingsDao.get(NetworkProxy.settingsKey),
+        custom.encode(),
+      );
+      await container
+          .read(appSettingsProvider.notifier)
+          .setNetworkProxy(
+            NetworkProxy(mode: NetworkProxyMode.direct, url: custom.url),
+          );
+      container.invalidate(appSettingsProvider);
+      final direct = (await container.read(
+        appSettingsProvider.future,
+      )).networkProxy;
+      expect(direct.mode, NetworkProxyMode.direct);
+      expect(direct.url, custom.url);
+    },
+  );
+
   test(
     'startup preserves unsupported AI provider data and selections',
     () async {
@@ -533,8 +601,6 @@ void main() {
 
 ProviderContainer _createContainer(AppDatabase database) {
   return ProviderContainer(
-    overrides: [
-      appSettingsDatabaseProvider.overrideWithValue(database),
-    ],
+    overrides: [appSettingsDatabaseProvider.overrideWithValue(database)],
   );
 }

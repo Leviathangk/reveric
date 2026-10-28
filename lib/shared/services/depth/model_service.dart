@@ -6,16 +6,20 @@ import 'dart:async';
 import 'dart:io';
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:path/path.dart' as p;
+import 'package:socks5_proxy/exceptions.dart';
 import '../production/ffmpeg_runner.dart';
 import '../editing/disk_space.dart';
 import 'model.dart';
+import '../../logger/app_logger.dart';
 
 class DepthModelService {
   DepthModelService(
     this.directory,
     this.manifest, {
     this.freeBytes = editingFreeBytes,
+    this.createClient = HttpClient.new,
   });
+  final FutureOr<HttpClient> Function() createClient;
   final int Function(String directory) freeBytes;
   final Directory directory;
   final DepthModelManifest manifest;
@@ -68,17 +72,26 @@ class DepthModelService {
             !['localhost', '127.0.0.1', '::1'].contains(uri.host)) {
           throw const DepthException(DepthFailure.model_source);
         }
-        client = HttpClient()..connectionTimeout = const Duration(seconds: 30);
+        progress(DepthStage.connecting, null);
+        client = await createClient();
+        client.connectionTimeout = const Duration(seconds: 30);
+        checkDepthCancellation(token);
         await token.bind(() async => client?.close(force: true));
-        final request = await client.getUrl(uri);
+        final request = await client
+            .getUrl(uri)
+            .timeout(const Duration(seconds: 30));
         final response = await request.close().timeout(
           const Duration(seconds: 30),
+        );
+        AppLogger.info(
+          '[Depth] model response host=${uri.host} status=${response.statusCode}',
         );
         if (response.statusCode != 200 ||
             (response.contentLength >= 0 &&
                 response.contentLength != manifest.bytes)) {
           throw const DepthException(DepthFailure.model_source);
         }
+        progress(DepthStage.downloading, 0);
         input = response.timeout(const Duration(seconds: 30));
       } else {
         input = File(manifest.source).openRead();
@@ -93,13 +106,14 @@ class DepthModelService {
             throw const DepthException(DepthFailure.model_invalid);
           }
           await output.writeFrom(chunk);
-          progress(DepthStage.preparing, received / manifest.bytes);
+          progress(DepthStage.downloading, received / manifest.bytes);
         }
         await output.flush();
       } finally {
         await output.close();
       }
       checkDepthCancellation(token);
+      progress(DepthStage.verifying, null);
       final hash = await crypto.sha256
           .bind(
             part.openRead().map((chunk) {
@@ -119,6 +133,21 @@ class DepthModelService {
       }
       await part.rename(file.path);
       return file;
+    } catch (error, stack) {
+      checkDepthCancellation(token);
+      if (error is SocketException ||
+          error is HttpException ||
+          error is TlsException ||
+          error is SocksClientException ||
+          error is TimeoutException) {
+        AppLogger.error(
+          '[Depth] model download failed host=${Uri.tryParse(manifest.source)?.host} type=${error.runtimeType}',
+          error: error.toString().replaceAll(RegExp(r'https?://\S+'), '<url>'),
+          stackTrace: stack,
+        );
+        throw const DepthException(DepthFailure.model_source);
+      }
+      rethrow;
     } finally {
       token.unbind();
       client?.close(force: true);

@@ -8,6 +8,7 @@
 //   assets/translations/zh-CN/settings.json
 // 遵循的 Rules:
 //   .agents/rules/state-management.md
+import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
@@ -23,6 +24,7 @@ final _log = AppLogger.forModule('GitHubReleases');
 
 /// GitHub Releases 更新源
 class GitHubReleasesSource implements UpdateSource {
+  final FutureOr<http.Client> Function() createClient;
   final String owner;
   final String repo;
   final String? apiToken;
@@ -33,6 +35,7 @@ class GitHubReleasesSource implements UpdateSource {
     required this.owner,
     required this.repo,
     this.apiToken,
+    this.createClient = http.Client.new,
     String? operatingSystem,
     Abi? abi,
   }) : _operatingSystem = operatingSystem ?? Platform.operatingSystem,
@@ -40,7 +43,9 @@ class GitHubReleasesSource implements UpdateSource {
 
   @override
   Future<UpdateCheckResult> checkForUpdate(String currentVersion) async {
+    http.Client? client;
     try {
+      client = await createClient();
       final uri = Uri.parse(
         'https://api.github.com/repos/$owner/$repo/releases/latest',
       );
@@ -54,7 +59,7 @@ class GitHubReleasesSource implements UpdateSource {
         'GitHub release check owner=$owner repo=$repo currentVersion=$currentVersion',
       );
 
-      final response = await http
+      final response = await client
           .get(uri, headers: headers)
           .timeout(const Duration(seconds: 10));
 
@@ -94,6 +99,8 @@ class GitHubReleasesSource implements UpdateSource {
     } catch (e) {
       _log.warning('GitHub release check failed error=$e');
       return const UpdateCheckFailed(LocaleKeys.settingsAboutCheckFailed);
+    } finally {
+      client?.close();
     }
   }
 

@@ -94,6 +94,51 @@ void main() {
       await server.close(force: true);
       await directory.delete(recursive: true);
     });
+    test(
+      'reports connecting, download bytes and verification separately',
+      () async {
+        final stages = <DepthStage>[];
+        final amounts = <double>[];
+        await service.prepare(MediaCancellation(), (stage, progress) {
+          stages.add(stage);
+          if (stage == DepthStage.downloading && progress != null) {
+            amounts.add(progress);
+          }
+        });
+        expect(stages.toSet().toList(), [
+          DepthStage.preparing,
+          DepthStage.connecting,
+          DepthStage.downloading,
+          DepthStage.verifying,
+        ]);
+        expect(amounts.first, 0);
+        expect(amounts.last, 1);
+        expect(await service.isReady(MediaCancellation()), true);
+      },
+    );
+    test(
+      'connection errors are model download failures, never native failures',
+      () async {
+        final failing = DepthModelService(
+          directory,
+          service.manifest,
+          createClient: () => throw const SocketException('Connection refused'),
+        );
+        await expectLater(
+          failing.prepare(MediaCancellation(), (_, _) {}),
+          throwsA(
+            isA<DepthException>().having(
+              (e) => e.reason,
+              'reason',
+              DepthFailure.model_source,
+            ),
+          ),
+        );
+        expect(await directory.list().length, 0);
+        await service.prepare(MediaCancellation(), (_, _) {});
+        expect(await service.isReady(MediaCancellation()), true);
+      },
+    );
     test('verified model is reused and corruption is repaired', () async {
       await service.prepare(MediaCancellation(), (_, _) {});
       await service.prepare(MediaCancellation(), (_, _) {});

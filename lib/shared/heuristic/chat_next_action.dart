@@ -367,7 +367,7 @@ Map<String, dynamic> serializeChatNextAction(ChatNextAction action) {
       'kind': 'feature',
       'label': action.label,
       'feature': feature.storageKey,
-      if (seedText != null) 'seed': seedText,
+      'seed': ?seedText,
     },
   };
 }

@@ -18,6 +18,7 @@ import '../../third/form/flutter_hook_form.dart';
 import '../database/app_database.dart';
 import '../localization/locale_keys.dart';
 import '../services/ai/codex/credentials.dart';
+import '../services/proxy_client.dart';
 import 'models_catalog.dart';
 import 'audio/channels.dart';
 import 'image/channels.dart';
@@ -492,26 +493,13 @@ extension AiProviderX on AiProvider {
     final url = proxyUrl.trim();
     if (url.isEmpty) return null;
 
-    final proxyUri = Uri.parse(url);
-    final httpClient = HttpClient()
-      ..findProxy = (_) => 'PROXY ${proxyUri.host}:${proxyUri.port}';
-
-    final username = proxyUsername.trim();
-    final password = proxyPassword.trim();
-    if (username.isNotEmpty && password.isNotEmpty) {
-      httpClient.authenticate = (Uri url, String scheme, String? realm) async {
-        if (scheme == 'basic') {
-          httpClient.addCredentials(
-            url,
-            realm ?? '',
-            HttpClientBasicCredentials(username, password),
-          );
-          return true;
-        }
-        return false;
-      };
-    }
-
+    final httpClient = HttpClient();
+    configureHttpClientProxy(
+      httpClient,
+      Uri.parse(url),
+      username: proxyUsername.trim(),
+      password: proxyPassword.trim(),
+    );
     return IOClient(httpClient);
   }
 

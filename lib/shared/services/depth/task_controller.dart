@@ -240,6 +240,7 @@ class DepthTaskController {
     } catch (error, stack) {
       AppLogger.error(
         '[Depth] task failed stage=${state.value?.stage.name} type=${error.runtimeType}',
+        error: error is FileSystemException ? error.osError : error,
         stackTrace: stack,
       );
       if (resultAsset != null) {

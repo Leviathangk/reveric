@@ -11,6 +11,7 @@
 //   .agents/rules/state-management.md
 import 'dart:async';
 
+import 'package:http/io_client.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,6 +19,8 @@ import '../app_config.dart' show appVersion;
 import '../logger/app_logger.dart';
 import '../localization/locale_keys.dart';
 import '../services/update.dart';
+import '../services/proxy_client.dart';
+import 'settings_providers.dart';
 
 part 'update_providers.g.dart';
 
@@ -26,7 +29,15 @@ final _log = AppLogger.forModule('UpdateProvider');
 /// UpdateSource 单例
 @Riverpod(keepAlive: true)
 UpdateSource updateSource(Ref ref) {
-  return GitHubReleasesSource(owner: 'looplj', repo: 'reveric');
+  return GitHubReleasesSource(
+    owner: 'looplj',
+    repo: 'reveric',
+    createClient: () async => IOClient(
+      await createProxyHttpClient(
+        (await ref.read(appSettingsProvider.future)).networkProxy,
+      ),
+    ),
+  );
 }
 
 /// UpdateService 单例

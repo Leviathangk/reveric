@@ -88,20 +88,21 @@ Map<String, Offset> resolveCanvasAutoLayout({
   for (final row in pending) {
     // 快照:同层节点互不影响彼此的目标列,否则结果依赖遍历顺序。
     final reference = Map<String, int>.of(placedColumns);
-    final targets = <({CanvasLayoutNode node, double target})>[
-      for (final node in rows[row]!)
-        (
-          node: node,
-          target:
-              _barycenter(neighbors[node.id], reference) ??
-              columnOf[node.id]!.toDouble(),
-        ),
-    ]..sort((a, b) {
-      // 只按目标列与 id 排序,不掺入当前列 —— 掺入的话「重排一次」与「重排两次」
-      // 的抢位顺序不同,同一张画布点两次按钮会得到两种布局。
-      final byTarget = a.target.compareTo(b.target);
-      return byTarget != 0 ? byTarget : a.node.id.compareTo(b.node.id);
-    });
+    final targets =
+        <({CanvasLayoutNode node, double target})>[
+          for (final node in rows[row]!)
+            (
+              node: node,
+              target:
+                  _barycenter(neighbors[node.id], reference) ??
+                  columnOf[node.id]!.toDouble(),
+            ),
+        ]..sort((a, b) {
+          // 只按目标列与 id 排序,不掺入当前列 —— 掺入的话「重排一次」与「重排两次」
+          // 的抢位顺序不同,同一张画布点两次按钮会得到两种布局。
+          final byTarget = a.target.compareTo(b.target);
+          return byTarget != 0 ? byTarget : a.node.id.compareTo(b.node.id);
+        });
 
     for (final entry in targets) {
       final (column, cellRow) = _firstFreeCell(

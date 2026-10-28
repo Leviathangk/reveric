@@ -16,6 +16,8 @@ import '../utils/storage_paths.dart';
 import '../logger/app_logger.dart';
 import '../services/system_tray_service.dart';
 import 'video_tasks.dart';
+import 'settings_providers.dart';
+import '../services/proxy_client.dart';
 
 final depthTaskProvider = Provider<DepthTaskController>((ref) {
   final results = ref.watch(productionResultServiceProvider);
@@ -32,6 +34,9 @@ final depthTaskProvider = Provider<DepthTaskController>((ref) {
     models: DepthModelService(
       Directory(p.join(RevericPaths.supportRoot, 'cache', 'modles')),
       DepthModelManifest(source: source),
+      createClient: () async => createProxyHttpClient(
+        (await ref.read(appSettingsProvider.future)).networkProxy,
+      ),
     ),
     native: DepthNativeRunner(
       Platform.environment['REVERIC_DEPTH_EXECUTABLE'] ??
