@@ -1,4 +1,4 @@
-// 职责: 将预置 AI Provider 的稳定 id 解析为当前语言的显示名，未知 Provider 保持用户名称。
+// 职责: 提供 AI 供应商的本地化名称与类型说明，未知供应商保留用户名称。
 // 关联文件:
 //   lib/shared/models/ai_provider.dart
 //   lib/shared/localization/locale_keys.dart
@@ -48,4 +48,34 @@ String localizedBuiltinAiProviderName(
     _ => null,
   };
   return key == null ? fallbackName : context.t(key);
+}
+
+String localizedProviderTypeDescription(
+  BuildContext context,
+  AiProviderType type,
+) {
+  final key = switch (type) {
+    AiProviderType.openai => LocaleKeys.settingsProviderDescriptionOpenai,
+    AiProviderType.codex => LocaleKeys.settingsProviderDescriptionCodex,
+    AiProviderType.openai_compatible =>
+      LocaleKeys.settingsProviderDescriptionOpenaiCompatible,
+    AiProviderType.api88 => LocaleKeys.settingsProviderDescriptionApi88,
+    AiProviderType.openrouter =>
+      LocaleKeys.settingsProviderDescriptionOpenrouter,
+    AiProviderType.xai => LocaleKeys.settingsProviderDescriptionXai,
+    AiProviderType.anthropic => LocaleKeys.settingsProviderDescriptionAnthropic,
+    AiProviderType.qwen => LocaleKeys.settingsProviderDescriptionQwen,
+    AiProviderType.gemini => LocaleKeys.settingsProviderDescriptionGemini,
+    AiProviderType.deepseek => LocaleKeys.settingsProviderDescriptionDeepseek,
+    AiProviderType.moonshot => LocaleKeys.settingsProviderDescriptionMoonshot,
+    AiProviderType.zhipu => LocaleKeys.settingsProviderDescriptionZhipu,
+    AiProviderType.doubao => LocaleKeys.settingsProviderDescriptionDoubao,
+    AiProviderType.volcengine =>
+      LocaleKeys.settingsProviderDescriptionVolcengine,
+    AiProviderType.minimax => LocaleKeys.settingsProviderDescriptionMinimax,
+    AiProviderType.agnes => LocaleKeys.settingsProviderDescriptionAgnes,
+    AiProviderType.atlascloud =>
+      LocaleKeys.settingsProviderDescriptionAtlascloud,
+  };
+  return context.t(key);
 }

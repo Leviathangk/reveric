@@ -28,6 +28,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../components/dialog_feedback.dart';
 import '../../components/reveric_search_field.dart';
@@ -365,7 +366,12 @@ class ProviderConfigPanel extends HookConsumerWidget {
             label: context.t(LocaleKeys.settingsProviderTypeLabel),
             value: localizedProviderTypeName(context, config.typeEnum),
           ),
+          const SizedBox(height: RevericSpacing.xs),
         ],
+        Text(
+          localizedProviderTypeDescription(context, config.typeEnum),
+          style: typo.uiSmall.copyWith(color: colors.textMuted),
+        ),
         const SizedBox(height: RevericSpacing.lg),
         if (config.hasFixedBaseUrl)
           _buildReadOnlyField(
@@ -410,13 +416,27 @@ class ProviderConfigPanel extends HookConsumerWidget {
         if (config.isCodex)
           CodexConnection(config: config)
         else
-          _buildTextField(
-            context: context,
-            label: context.t(LocaleKeys.settingsAiApiKey),
-            hint: context.t(LocaleKeys.settingsAiApiKeyHint),
-            controller: apiKeyController,
-            obscureText: true,
-            onChanged: () => saveConfig(),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  context: context,
+                  label: context.t(LocaleKeys.settingsAiApiKey),
+                  hint: context.t(LocaleKeys.settingsAiApiKeyHint),
+                  controller: apiKeyController,
+                  obscureText: true,
+                  onChanged: () => saveConfig(),
+                ),
+              ),
+              if (_apiKeyUrls[config.type] case final url?) ...[
+                const SizedBox(width: RevericSpacing.sm),
+                RevericButton.text(
+                  label: context.t(LocaleKeys.settingsAiGetApiKey),
+                  onPressed: () => _openApiKeyUrl(context, url),
+                ),
+              ],
+            ],
           ),
         if (!config.isCodex && !config.hasApiKey) ...[
           const SizedBox(height: RevericSpacing.xs),
@@ -625,6 +645,53 @@ class ProviderConfigPanel extends HookConsumerWidget {
           onChanged(selected.toList());
         }
       },
+    );
+  }
+
+  static const _apiKeyUrls = {
+    'api88': 'https://88api.ai/sign-up?aff=5q8X',
+    'openai': 'https://platform.openai.com/api-keys',
+    'openrouter': 'https://openrouter.ai/settings/keys',
+    'xai': 'https://console.x.ai/',
+    'anthropic': 'https://platform.claude.com/settings/keys',
+    'qwen': 'https://platform.qianwenai.com/api-keys',
+    'gemini': 'https://aistudio.google.com/apikey',
+    'deepseek': 'https://platform.deepseek.com/api_keys',
+    'moonshot': 'https://platform.kimi.com/console/api-keys',
+    'zhipu': 'https://z.ai/manage-apikey/apikey-list',
+    'doubao': 'https://console.volcengine.com/ark/region:cn-beijing/apiKey',
+    'volcengine': 'https://console.volcengine.com/ark/region:cn-beijing/apiKey',
+    'minimax': 'https://platform.minimax.io/console/access',
+    'agnes': 'https://platform.agnes-ai.com/',
+    'atlascloud': 'https://www.atlascloud.ai?ref=6MQKFA',
+  };
+
+  Future<void> _openApiKeyUrl(BuildContext context, String url) async {
+    try {
+      if (await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      )) {
+        return;
+      }
+      AppLogger.warning('[ProviderConfig] URL launch returned false: $url');
+    } catch (error, stackTrace) {
+      AppLogger.error(
+        '[ProviderConfig] Failed to open API key page: $url',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    }
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: DialogToast(
+          variant: DialogToastVariant.error,
+          child: Text(context.t(LocaleKeys.settingsAiOpenApiKeyFailed)),
+        ),
+      ),
     );
   }
 

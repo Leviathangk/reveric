@@ -3724,6 +3724,8 @@ abstract final class LocaleKeys {
   static const settingsAiAgentsDescription = 'settings.ai_agents_description';
   static const settingsAiAgentsSection = 'settings.ai_agents_section';
   static const settingsAiApiKey = 'settings.ai_api_key';
+  static const settingsAiGetApiKey = 'settings.ai_get_api_key';
+  static const settingsAiOpenApiKeyFailed = 'settings.ai_open_api_key_failed';
   static const settingsCodexCheckLogin = 'settings.codex_check_login';
   static const settingsCodexChecking = 'settings.codex_checking';
   static const settingsCodexAuthReady = 'settings.codex_auth_ready';
@@ -4403,6 +4405,41 @@ abstract final class LocaleKeys {
   static const settingsProviderSelectPlaceholder =
       'settings.provider_select_placeholder';
   static const settingsProviderTypeLabel = 'settings.provider_type_label';
+  static const settingsProviderDescriptionOpenai =
+      'settings.provider_description_openai';
+  static const settingsProviderDescriptionCodex =
+      'settings.provider_description_codex';
+  static const settingsProviderDescriptionOpenaiCompatible =
+      'settings.provider_description_openai_compatible';
+  static const settingsProviderDescriptionApi88 =
+      'settings.provider_description_api88';
+  static const settingsProviderDescriptionOpenrouter =
+      'settings.provider_description_openrouter';
+  static const settingsProviderDescriptionXai =
+      'settings.provider_description_xai';
+  static const settingsProviderDescriptionAnthropic =
+      'settings.provider_description_anthropic';
+  static const settingsProviderDescriptionQwen =
+      'settings.provider_description_qwen';
+  static const settingsProviderDescriptionGemini =
+      'settings.provider_description_gemini';
+  static const settingsProviderDescriptionDeepseek =
+      'settings.provider_description_deepseek';
+  static const settingsProviderDescriptionMoonshot =
+      'settings.provider_description_moonshot';
+  static const settingsProviderDescriptionZhipu =
+      'settings.provider_description_zhipu';
+  static const settingsProviderDescriptionDoubao =
+      'settings.provider_description_doubao';
+  static const settingsProviderDescriptionVolcengine =
+      'settings.provider_description_volcengine';
+  static const settingsProviderDescriptionMinimax =
+      'settings.provider_description_minimax';
+  static const settingsProviderDescriptionAgnes =
+      'settings.provider_description_agnes';
+  static const settingsProviderDescriptionAtlascloud =
+      'settings.provider_description_atlascloud';
+
   static const settingsProviderUnsupportedBadge =
       'settings.provider_unsupported_badge';
   static const settingsProviderTypeUnsupported =
