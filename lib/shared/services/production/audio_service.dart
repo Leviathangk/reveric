@@ -52,7 +52,7 @@ class AudioTaskService {
   final ProductionAudioQuery? query;
   final Duration pollInterval;
   final Future<Uint8List> Function(Uri url) download;
-  final _outputs = <String, Uint8List>{};
+  final _outputs = <String, AudioGenerationResult>{};
   final Future<void> Function(String novelId, String type, String id)
   beforeCreate;
   final Future<void> Function(GenerationTask task) beforeSubmit;
@@ -336,7 +336,7 @@ class AudioTaskService {
       return;
     }
     if (result.bytes.isNotEmpty) {
-      _outputs[id] = result.bytes;
+      _outputs[id] = result;
     }
     final saved = await database.generationTaskDao.transition(
       id,
@@ -412,7 +412,10 @@ class AudioTaskService {
     }
     final model = channel.capabilities;
     final outputFormat = audioOutputFileFormat(
-      task.audioRequest.parameters.responseFormat,
+      task.path == null
+          ? task.audioRequest.parameters.responseFormat
+          : task.path!.split('.').last,
+      mimeType: _outputs[id]?.mimeType,
     );
     final outputPath = RevericPaths.mediaPath(
       task.novelId,
@@ -428,7 +431,7 @@ class AudioTaskService {
         throw const StoryboardException('invalid_result');
       }
       final bytes =
-          _outputs[id] ??
+          _outputs[id]?.bytes ??
           (task.outputUrl == null
               ? throw const AudioException('audio_output_unavailable')
               : await download(Uri.parse(task.outputUrl!)));

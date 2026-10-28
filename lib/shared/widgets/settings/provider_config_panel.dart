@@ -38,6 +38,7 @@ import '../../localization/app_localization.dart';
 import '../../localization/locale_keys.dart';
 import '../../logger/app_logger.dart';
 import '../../models/ai_provider.dart';
+import '../../services/ai/new_api.dart';
 import '../../models/network_proxy.dart';
 import '../../models/image/channels.dart';
 import '../../models/audio/channels.dart';
@@ -758,6 +759,9 @@ Future<List<String>> fetchProviderModels(
   AiProvider config, {
   AiModelKind kind = AiModelKind.chat,
 }) async {
+  if (config.typeEnum == AiProviderType.api88) {
+    return NewApiClient(config).modelIds(kind);
+  }
   if (kind == AiModelKind.audio &&
       config.typeEnum != AiProviderType.openrouter) {
     return audioModelsForProvider(config.type);

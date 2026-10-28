@@ -40,6 +40,10 @@ List<AppInitializationTask> defaultAppInitializationTasks() {
       run: seedDefaultThirdPartyProviders,
     ),
     AppInitializationTask(
+      id: 'default_api88_provider_v1',
+      run: seedDefaultApi88Provider,
+    ),
+    AppInitializationTask(
       id: 'default_global_agents_v1',
       run: seedDefaultGlobalAgents,
     ),

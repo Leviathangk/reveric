@@ -29,6 +29,13 @@ void main() {
       TargetPlatform.macOS,
       TargetPlatform.android,
     ])
+      for (final type in ['api88'])
+        (type, platform, ['seedance-2.0官方版', 'veo-3.1']),
+    for (final platform in [
+      TargetPlatform.windows,
+      TargetPlatform.macOS,
+      TargetPlatform.android,
+    ])
       (
         'atlascloud',
         platform,

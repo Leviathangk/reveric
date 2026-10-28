@@ -23,6 +23,7 @@ import 'package:reveric/shared/providers/novel_providers.dart';
 import 'package:reveric/shared/providers/production_images.dart';
 import 'package:reveric/shared/services/ai/image.dart';
 import 'package:reveric/shared/services/ai/image/client.dart';
+import 'package:reveric/shared/utils/storage_paths.dart';
 
 const _png =
     'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==';
@@ -53,6 +54,7 @@ void main() {
               ? support.path
               : null,
         );
+    await RevericPaths.initialize();
   });
   tearDown(() async {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

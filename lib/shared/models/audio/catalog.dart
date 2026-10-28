@@ -32,6 +32,19 @@ const _minimaxMusicModel = AudioModelCatalogEntry(
 // https://docs.byteplus.com/en/docs/byteplusvoice/seedaudio-01
 // https://platform.minimax.io/docs/api-reference/music-generation
 final audioModelsCatalog = <String, AudioModelCatalogEntry>{
+  for (final id in ['tts-1', 'tts-1-hd', 'gpt-4o-mini-tts'])
+    id: AudioModelCatalogEntry(
+      capabilities: AudioModelCapabilities(
+        speech: true,
+        maxPromptCharacters: 4000,
+        supportsInstructions: id == 'gpt-4o-mini-tts',
+        voices: ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'],
+      ),
+      requestDefaults: AudioRequestDefaults(
+        voice: ConfigValue('alloy'),
+        responseFormat: ConfigValue('mp3'),
+      ),
+    ),
   // https://platform.qianwenai.com/docs/api-reference/speech-synthesis/qwen-audio-tts/python-sdk
   // https://platform.qianwenai.com/docs/developer-guides/speech/voice-list/qwen-audio-tts
   'qwen-audio-3.1-tts-plus': AudioModelCatalogEntry(

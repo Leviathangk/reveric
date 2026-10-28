@@ -74,7 +74,7 @@ abstract class VideoClient {
     final json = await _request(
       'POST',
       url(createPath),
-      body: encodeSubmission(
+      body: await prepareSubmission(
         request,
         references,
         draft: draft,
@@ -103,6 +103,14 @@ abstract class VideoClient {
       throw const VideoException(VideoErrorCode.submission_unknown);
     }
   }
+
+  /// 在参数校验后准备协议需要的内联素材；完成后才发送收费 POST。
+  FutureOr<Map<String, dynamic>> prepareSubmission(
+    VideoRequest request,
+    List<VideoReference> references, {
+    bool draft = false,
+    String? draftId,
+  }) => encodeSubmission(request, references, draft: draft, draftId: draftId);
 
   /// 校验并编码收费请求；任务层在进入提交不确定窗口前也调用此方法。
   Map<String, dynamic> encodeSubmission(

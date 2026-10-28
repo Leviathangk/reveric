@@ -1,12 +1,17 @@
-// 职责: 验证音视频 HTTP 失败的中英文安全提示及预期错误不重复打印堆栈。
+// 职责: 验证视频参考校验提示、音视频 HTTP 失败的中英文提示及预期错误日志。
 // 关联文件:
+//   lib/desktop/features/production/composer.dart
 //   lib/desktop/features/production/support.dart
 //   lib/shared/services/ai/video/agnes.dart
 //   lib/shared/localization/merging_asset_loader.dart
 //   lib/shared/localization/locale_keys.dart
 //   assets/translations/en/ai.json
 //   assets/translations/zh-CN/ai.json
+//   assets/translations/en/screenplay.json
+//   assets/translations/zh-CN/screenplay.json
 
+import 'dart:convert';
+import 'dart:io';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -14,6 +19,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:reveric/desktop/features/production/support.dart';
+import 'package:reveric/desktop/features/production/composer.dart';
+import 'package:reveric/shared/localization/locale_keys.dart';
+import 'package:reveric/shared/models/video/capabilities.dart';
+import 'package:reveric/shared/models/video/channels.dart';
+import 'package:reveric/shared/models/video/task_result.dart';
+import 'package:reveric/shared/services/production/generate_orchestrator.dart';
 import 'package:reveric/shared/localization/merging_asset_loader.dart';
 import 'package:reveric/shared/models/video/request.dart';
 import 'package:reveric/shared/models/audio/request.dart';
@@ -22,6 +33,100 @@ import 'package:reveric/shared/services/ai/video/agnes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  for (final (model, mode, inputRoles, expected) in [
+    (
+      'veo-3.1',
+      VideoMode.reference,
+      [VideoInputRole.first_frame],
+      LocaleKeys.productionGenerateReferenceUnsupported,
+    ),
+    (
+      'veo-3.1',
+      VideoMode.first_last_frame,
+      [VideoInputRole.first_frame, VideoInputRole.last_frame],
+      LocaleKeys.productionGenerateFramesUnsupported,
+    ),
+    (
+      'veo-3.1',
+      VideoMode.first_last_frame,
+      <VideoInputRole>[],
+      LocaleKeys.productionGenerateFramesRequired,
+    ),
+    (
+      'veo-3.1',
+      VideoMode.first_last_frame,
+      [VideoInputRole.first_frame, VideoInputRole.first_frame],
+      LocaleKeys.productionGenerateFramesRequired,
+    ),
+  ]) {
+    test('$model $mode $inputRoles explains the actual reference failure', () {
+      final roles = inputRoles
+          .map((role) => productionSubmitRole(mode, role))
+          .toList();
+      try {
+        const VideoCapabilities('api88').validateParameters(
+          VideoRequest(
+            modelId: model,
+            prompt: 'bird',
+            mode: productionSubmitMode(mode, roles),
+            resolution: '720p',
+            ratio: '16:9',
+            durationSeconds: 4,
+          ),
+          roles,
+        );
+        fail('Expected reference validation to reject these inputs');
+      } on VideoException catch (error) {
+        expect(error.field, 'references');
+        expect(
+          productionReferenceErrorKey(
+            channel: lookupVideoChannelModel('api88', model)!,
+            mode: mode,
+            roles: roles,
+          ),
+          expected,
+        );
+      }
+    });
+  }
+  test('New API Veo accepts the same image as a single first frame', () {
+    const VideoCapabilities('api88').validateParameters(
+      const VideoRequest(
+        modelId: 'veo-3.1',
+        prompt: 'bird',
+        mode: VideoMode.first_frame,
+        resolution: '720p',
+        ratio: '16:9',
+        durationSeconds: 4,
+      ),
+      [VideoInputRole.first_frame],
+    );
+  });
+  test('reference hints are translated in both interface languages', () {
+    for (final locale in ['en', 'zh-CN']) {
+      final strings =
+          jsonDecode(
+                File(
+                  'assets/translations/$locale/screenplay.json',
+                ).readAsStringSync(),
+              )
+              as Map<String, dynamic>;
+      for (final key in [
+        LocaleKeys.productionGenerateReferenceUnsupported,
+        LocaleKeys.productionGenerateFramesUnsupported,
+        LocaleKeys.productionGenerateReferencesInvalid,
+      ]) {
+        expect(
+          strings[key],
+          isA<String>().having((s) => s.trim(), 'text', isNotEmpty),
+        );
+        expect(
+          strings[key],
+          isNot(strings[LocaleKeys.productionGenerateFramesRequired]),
+        );
+      }
+    }
+  });
   setUp(() => rootBundle.clear());
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});

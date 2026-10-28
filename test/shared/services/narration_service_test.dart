@@ -65,6 +65,25 @@ void main() {
   });
   tearDown(() => db.close());
 
+  test(
+    'playback uses the returned MIME rather than requested format',
+    () async {
+      final audio = Uint8List.fromList([1, 2, 3]);
+      final service = NarrationService(
+        database: db,
+        invoke: (_, _, _, _) async =>
+            AudioGenerationResult(audio, mimeType: 'audio/ogg'),
+      );
+      final result = await service.generate(
+        settings,
+        segment,
+        Completer<void>().future,
+      );
+      expect(result.bytes, audio);
+      expect(result.extension, 'ogg');
+    },
+  );
+
   for (final (model, voice, instructions) in [
     ('qwen-audio-3.1-tts-plus', 'longanhuan_v3.1', '轻声'),
     ('qwen-audio-3.0-tts-flash', 'longanhuan_v3.6', '轻声'),

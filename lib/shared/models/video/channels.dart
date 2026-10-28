@@ -117,6 +117,57 @@ class VideoChannelModel {
 }
 
 const videoChannelModels = <VideoProtocol, Map<String, VideoChannelModel>>{
+  VideoProtocol.new_api_video: {
+    'doubao-seedance-2-5-260628': VideoChannelModel(
+      catalogId: 'doubao-seedance-2-5-260628',
+      protocolOptions: VideoProtocolOptions(
+        framesRequireAdaptiveRatio: true,
+        supportsOmniReferenceTaskType: true,
+      ),
+    ),
+    'seedance-2.5官方版': VideoChannelModel(
+      catalogId: 'doubao-seedance-2-5-260628',
+      protocolOptions: VideoProtocolOptions(
+        framesRequireAdaptiveRatio: true,
+        supportsOmniReferenceTaskType: true,
+      ),
+    ),
+    'doubao-seedance-2-0-260128': VideoChannelModel(
+      catalogId: 'doubao-seedance-2-0-260128',
+    ),
+    'seedance-2.0官方版': VideoChannelModel(
+      catalogId: 'doubao-seedance-2-0-260128',
+    ),
+    'doubao-seedance-2-0-fast-260128': VideoChannelModel(
+      catalogId: 'doubao-seedance-2-0-fast-260128',
+    ),
+    'seedance-2.0-fast官方版': VideoChannelModel(
+      catalogId: 'doubao-seedance-2-0-fast-260128',
+    ),
+    'doubao-seedance-2-0-mini-260615': VideoChannelModel(
+      catalogId: 'doubao-seedance-2-0-mini-260615',
+    ),
+    'seedance-2.0-mini官方版': VideoChannelModel(
+      catalogId: 'doubao-seedance-2-0-mini-260615',
+    ),
+    // New API's Google plugin forwards only the first frame.
+    'veo-3.1': VideoChannelModel(
+      catalogId: 'veo-3.1',
+      capabilities: _newApiSingleFrame,
+    ),
+    'veo-3.1-fast': VideoChannelModel(
+      catalogId: 'veo-3.1-fast',
+      capabilities: _newApiSingleFrame,
+    ),
+    'veo-3.1-lite': VideoChannelModel(
+      catalogId: 'veo-3.1-lite',
+      capabilities: _newApiSingleFrame,
+    ),
+    'grok-imagine-video-1.5': VideoChannelModel(
+      catalogId: 'grok-imagine-video-1.5',
+      capabilities: _newApiSingleFrame,
+    ),
+  },
   // https://www.atlascloud.ai/docs/more-models/bytedance/seedance-2.5-reference-to-video/generateVideo
   VideoProtocol.atlascloud_video: {
     'bytedance/seedance-2.5': VideoChannelModel(
@@ -1951,3 +2002,10 @@ VideoChannelModel? lookupVideoChannelModel(
       .where((channel) => channel.catalogId == catalogId)
       .firstOrNull;
 }
+
+const _newApiSingleFrame = VideoModelCapabilities(
+  frameRoles: {VideoInputRole.first_frame},
+  maxReferences: 1,
+  allowsReferenceMode: false,
+  references: {VideoMediaKind.image: VideoReferenceLimits(maxCount: 1)},
+);

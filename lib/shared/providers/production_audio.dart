@@ -13,6 +13,7 @@ import '../services/ai/audio/client.dart';
 import '../services/ai/audio/seed.dart';
 import '../services/ai/audio/minimax.dart';
 import '../services/ai/audio/openrouter.dart';
+import '../services/ai/new_api.dart';
 import '../services/ai/audio/qwen.dart';
 import '../services/ai/audio/atlascloud.dart';
 import '../models/audio/exception.dart';
@@ -31,6 +32,9 @@ final productionAudioInvokeProvider = Provider<ProductionAudioInvoke>(
       final AudioClient client = switch (aiProviderTypeConfigFor(
         type,
       )?.audioProtocol) {
+        AudioProtocol.new_api_speech => NewApiClient(
+          provider,
+        ).audio(httpClient, request.modelId),
         AudioProtocol.openrouter_speech => OpenRouterAudioClient(
           httpClient,
           apiKey,

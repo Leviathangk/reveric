@@ -21,6 +21,7 @@ import 'image/codex.dart';
 import 'image/gemini.dart';
 import 'image/openai.dart';
 import 'image/openrouter.dart';
+import 'new_api.dart';
 import 'image/qwen.dart';
 
 /// 出图失败的分类。封面工作台按它决定那一格显示哪句「下一步怎么办」，
@@ -195,6 +196,7 @@ class AiImageGenerationService {
     ImageProtocol.ark_image => ArkImageClient(_config),
     ImageProtocol.openrouter_image => OpenRouterImageClient(_config),
     ImageProtocol.atlascloud_image => AtlasCloudImageClient(_config),
+    ImageProtocol.new_api_images => NewApiClient(_config).image(),
     ImageProtocol.openai_images => OpenAiImageClient(_config),
     ImageProtocol.codex_image => CodexImageGenerationClient(
       _config,

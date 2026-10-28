@@ -19,6 +19,7 @@ import 'package:reveric/shared/models/video/channels.dart';
 import 'package:reveric/shared/models/video/request.dart';
 import 'package:reveric/shared/models/video/task_result.dart';
 import 'package:reveric/shared/services/ai/video/ark.dart';
+import 'package:reveric/shared/services/ai/video/new_api.dart';
 import 'package:reveric/shared/services/ai/video/atlascloud.dart';
 import 'package:reveric/shared/services/ai/video/openrouter.dart';
 import 'package:reveric/shared/services/ai/video/agnes.dart';
@@ -44,7 +45,8 @@ VideoRequest request(
               model,
             )?.resolutions.first ??
             '720p')
-      : protocol == VideoProtocol.ark_video
+      : protocol == VideoProtocol.ark_video ||
+            protocol == VideoProtocol.new_api_video
       ? '720p'
       : protocol == VideoProtocol.minimax_video_v2
       ? '768P'
@@ -97,6 +99,12 @@ VideoReference reference(VideoInputRole role, {int duration = 2000}) =>
 
 VideoClient client(VideoProtocol protocol, http.Client transport) =>
     switch (protocol) {
+      VideoProtocol.new_api_video => NewApiVideoClient(
+        httpClient: transport,
+        providerType: videoProviderType(protocol),
+        endpoint: Uri.parse('https://example.com/proxy/v1'),
+        apiKey: 'secret',
+      ),
       VideoProtocol.atlascloud_video => AtlasCloudVideoClient(
         httpClient: transport,
         providerType: videoProviderType(protocol),
@@ -138,7 +146,8 @@ Map<String, dynamic> receipt(VideoProtocol protocol) => switch (protocol) {
     'code': 200,
     'data': {'id': 'task-1', 'status': 'processing'},
   },
-  VideoProtocol.openrouter_video => {'id': 'task-1'},
+  VideoProtocol.openrouter_video ||
+  VideoProtocol.new_api_video => {'id': 'task-1'},
   VideoProtocol.agnes_video => {
     'id': 'billing-task',
     'task_id': 'billing-task',
@@ -167,7 +176,7 @@ Map<String, dynamic> result(
       'outputs': [if (withUrl) 'https://result.example/movie.mp4'],
     },
   },
-  VideoProtocol.openrouter_video => {
+  VideoProtocol.openrouter_video || VideoProtocol.new_api_video => {
     if (withUrl) 'id': 'task-1',
     'status': switch (status) {
       'running' => 'in_progress',
@@ -652,10 +661,13 @@ void main() {
         }
       },
     );
+    // New API 的 metadata 和内联素材契约由 new_api_media_test.dart 覆盖。
     // Seedance 的多模态字段断言只适用于这两个型号；AtlasCloud 其他端点
     // 的字段、模式和查询契约由 atlascloud_test.dart 覆盖。
     for (final model
-        in protocol == VideoProtocol.atlascloud_video
+        in protocol == VideoProtocol.new_api_video
+            ? const <String>[]
+            : protocol == VideoProtocol.atlascloud_video
             ? ['bytedance/seedance-2.5', 'bytedance/seedance-2.0']
             : videoModelsForProvider(videoProviderType(protocol))) {
       test('$model reference request and original-ID query contract', () async {

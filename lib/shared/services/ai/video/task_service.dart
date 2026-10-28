@@ -45,6 +45,7 @@ import 'client.dart';
 import 'draft.dart';
 import 'minimax.dart';
 import 'openrouter.dart';
+import '../new_api.dart';
 import 'reference_storage_service.dart';
 import 'wan.dart';
 
@@ -1246,6 +1247,7 @@ class VideoTaskService {
         providerType: type,
         apiKey: apiKey,
       ),
+      VideoProtocol.new_api_video => NewApiClient(provider).video(transport),
       VideoProtocol.openrouter_video => OpenRouterVideoClient(
         httpClient: transport,
         providerType: type,

@@ -14,6 +14,7 @@ enum AudioProtocol {
   seed_audio,
   minimax_music,
   openrouter_speech,
+  new_api_speech,
   qwen_tts,
   atlascloud_audio,
 }
@@ -47,6 +48,23 @@ class AudioChannelModel {
 }
 
 final audioChannelModels = <AudioProtocol, Map<String, AudioChannelModel>>{
+  AudioProtocol.new_api_speech: {
+    for (final id in ['tts-1', 'tts-1-hd', 'gpt-4o-mini-tts'])
+      id: AudioChannelModel(catalogId: id),
+    for (final id in [
+      'gemini-2.5-flash-tts',
+      'gemini-2.5-pro-tts',
+      'gemini-3.1-flash-tts',
+      'gemini-3.8-flash-tts',
+    ])
+      id: AudioChannelModel(
+        catalogId: 'google/$id',
+        requestDefaults: AudioRequestDefaults(
+          voice: ConfigValue('Kore'),
+          responseFormat: ConfigValue('wav'),
+        ),
+      ),
+  },
   AudioProtocol.atlascloud_audio: {
     'bytedance/seed-audio-1.0': AudioChannelModel(catalogId: 'seed-audio-1.0'),
     'minimax/music-3.0': AudioChannelModel(catalogId: 'music-3.0'),

@@ -34,6 +34,7 @@ void main() {
       'openrouter',
       'atlascloud',
       'qwen',
+      'api88',
     ]) {
       testWidgets('$type audio models can be added and removed on $platform', (
         tester,
@@ -80,6 +81,7 @@ void main() {
         );
         await tester.pumpAndSettle();
         final model = switch (type) {
+          'api88' => 'gemini-3.1-flash-tts',
           'qwen' => 'qwen-audio-3.1-tts-next',
           'atlascloud' => 'bytedance/seed-audio-1.0',
           'minimax' => 'music-3.0',

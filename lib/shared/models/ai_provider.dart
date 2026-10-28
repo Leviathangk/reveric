@@ -33,6 +33,7 @@ enum AiProviderType {
   openai,
   codex,
   openai_compatible,
+  api88,
   openrouter,
   xai,
   anthropic,
@@ -127,6 +128,15 @@ const Map<AiProviderType, AiProviderTypeConfig> aiProviderTypeConfigs = {
     textModelKinds: _chatOnlyKinds,
     imageProtocol: ImageProtocol.openai_images,
   ),
+  AiProviderType.api88: AiProviderTypeConfig(
+    displayName: '88API',
+    modelIdSource: ModelIdSource.open,
+    textModelKinds: _chatOnlyKinds,
+    imageProtocol: ImageProtocol.new_api_images,
+    videoProtocol: VideoProtocol.new_api_video,
+    audioProtocol: AudioProtocol.new_api_speech,
+    fixedBaseUrl: true,
+  ),
   AiProviderType.openrouter: AiProviderTypeConfig(
     displayName: 'OpenRouter',
     modelIdSource: ModelIdSource.registered,
@@ -220,6 +230,7 @@ final List<AiProviderType> customAiProviderTypes = List.unmodifiable(
 );
 
 String aiProviderFixedBaseUrl(AiProviderType type) => switch (type) {
+  AiProviderType.api88 => 'https://api.88api.ai/v1',
   AiProviderType.atlascloud => 'https://api.atlascloud.ai/v1',
   AiProviderType.codex => 'https://chatgpt.com/backend-api/codex',
   AiProviderType.openrouter => 'https://openrouter.ai/api/v1',
@@ -248,6 +259,27 @@ String qwenBaseUrl(String value) {
 // ==================== Builtin 默认值 ====================
 
 final List<AiProvider> aiProviderBuiltinDefaults = [
+  AiProvider(
+    id: 'api88',
+    name: '88API',
+    builtin: true,
+    type: 'api88',
+    enabled: false,
+    apiKey: '',
+    baseUrl: aiProviderFixedBaseUrl(AiProviderType.api88),
+    models: const [],
+    imageModels: const [],
+    audioModels: const [],
+    videoModels: const [],
+    embeddingModels: const [],
+    temperature: 0.7,
+    maxTurns: 512,
+    proxyUrl: '',
+    proxyUsername: '',
+    proxyPassword: '',
+    updatedAt: _builtinEpoch,
+    deletedAt: notDeletedSentinel,
+  ),
   AiProvider(
     audioModels: const [],
     videoModels: const [],

@@ -195,6 +195,25 @@ void main() {
     await root.delete(recursive: true);
   });
   test(
+    'saved audio uses the actual MIME and preserves returned bytes',
+    () async {
+      final p = await preview();
+      final service = jobs(
+        (_, _, _, _) async =>
+            AudioGenerationResult(bytes, mimeType: 'audio/mpeg'),
+      );
+      addTearDown(service.shutdown);
+      final task = await service.requireRun(await submit(service, p));
+      expect(task.status, GenerationTaskStatus.completed);
+      expect(task.path, endsWith('.mp3'));
+      expect(
+        await File(canvas.library.resolvePath(task.path!)).readAsBytes(),
+        bytes,
+      );
+    },
+  );
+
+  test(
     'AtlasCloud persists prediction before polling and saves one completed output',
     () async {
       final p = await atlasPreview();

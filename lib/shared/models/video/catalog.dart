@@ -511,6 +511,18 @@ const Map<String, VideoModelCatalogEntry> videoModelsCatalog = {
       references: _seedance20References,
     ),
   ),
+  'doubao-seedance-2-0-fast-260128': VideoModelCatalogEntry(
+    requestDefaults: VideoRequestDefaults(audio: ConfigValue(true)),
+    aliases: {'seedance-2-0-fast'},
+    capabilities: VideoModelCapabilities(
+      resolutions: {'480p', '720p'},
+      durations: {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+      supportsAudioOnlyReference: false,
+      supportsAdaptiveTextRatio: true,
+      maxReferences: 9 + 3 + 3,
+      references: _seedance20References,
+    ),
+  ),
   'doubao-seedance-2-0-mini-260615': VideoModelCatalogEntry(
     requestDefaults: VideoRequestDefaults(audio: ConfigValue(true)),
     aliases: {'seedance-2-0-mini'},

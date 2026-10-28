@@ -58,6 +58,23 @@ import 'spec_panel.dart';
 import 'upload.dart';
 import '../../widgets/settings/settings_dialog.dart';
 
+/// 将参考输入校验失败映射为当前渠道和模式下可操作的提示。
+String productionReferenceErrorKey({
+  required VideoChannelModel channel,
+  required VideoMode mode,
+  required List<VideoInputRole> roles,
+}) {
+  if (!productionUsesFrames(mode)) {
+    return channel.capabilities.allowsReferenceMode
+        ? LocaleKeys.productionGenerateReferencesInvalid
+        : LocaleKeys.productionGenerateReferenceUnsupported;
+  }
+  if (roles.any((role) => !channel.frameRoles.contains(role))) {
+    return LocaleKeys.productionGenerateFramesUnsupported;
+  }
+  return LocaleKeys.productionGenerateFramesRequired;
+}
+
 class ProductionComposer extends HookConsumerWidget {
   const ProductionComposer({
     super.key,
@@ -582,7 +599,13 @@ class _ComposerForm extends HookConsumerWidget {
           );
         }
         if (e.field == 'references') {
-          return context.t(LocaleKeys.productionGenerateFramesRequired);
+          return context.t(
+            productionReferenceErrorKey(
+              channel: lookupVideoChannelModel(provider.type, model!.$2)!,
+              mode: mode,
+              roles: roles,
+            ),
+          );
         }
         if (e.field == 'audio_count') {
           return tooManyAudio();

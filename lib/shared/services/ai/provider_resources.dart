@@ -221,6 +221,8 @@ Map<String, dynamic>? _audio(AiProvider provider, String model) {
         ],
         AudioProtocol.minimax_music => ['mp3'],
         AudioProtocol.openrouter_speech => ['pcm', 'mp3'],
+        AudioProtocol.new_api_speech =>
+          channel.catalogId.contains('gemini-') ? ['wav'] : ['mp3', 'wav'],
       },
       'references': {
         for (final entry in caps.references.entries)

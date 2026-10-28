@@ -125,7 +125,10 @@ class NarrationService {
     }
     return NarrationAudio(
       bytes,
-      audioOutputFileFormat(request.parameters.responseFormat),
+      audioOutputFileFormat(
+        request.parameters.responseFormat,
+        mimeType: result.mimeType,
+      ),
     );
   }
 }

@@ -9,6 +9,7 @@ enum VideoProtocol {
   wan_video,
   agnes_video,
   openrouter_video,
+  new_api_video,
   atlascloud_video,
 }
 

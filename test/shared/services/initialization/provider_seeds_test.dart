@@ -42,6 +42,71 @@ void main() {
   );
 
   test(
+    '88API is seeded after DeepSeek initialization and stays deleted',
+    () async {
+      await database.appStateDao.set(
+        key: 'app_initialization.default_third_party_providers_v1',
+        value: 'done',
+      );
+      final tasks = defaultAppInitializationTasks()
+          .where((task) => task.id == 'default_api88_provider_v1')
+          .toList();
+      expect(tasks, hasLength(1));
+      await ensureAppInitializationTasks(database: database, tasks: tasks);
+      final provider = (await database.aiProviderDao.getById('api88'))!;
+      expect(provider.type, 'api88');
+      expect(provider.name, '88API');
+      expect(provider.effectiveBaseUrl, 'https://api.88api.ai/v1');
+      expect(provider.enabled, false);
+      expect(provider.apiKey, isEmpty);
+      expect(provider.models, isEmpty);
+      expect(provider.canDelete, true);
+      await database.aiProviderDao.softDelete(provider.id);
+      await ensureAppInitializationTasks(database: database, tasks: tasks);
+      await seedDefaultApi88Provider(database);
+      expect(await database.aiProviderDao.getById(provider.id), isNull);
+      expect(
+        await database.aiProviderDao.getAllIncludingDeleted(),
+        hasLength(1),
+      );
+    },
+  );
+
+  for (final deleted in [false, true]) {
+    test(
+      '88API seed uses its fixed ID independently of custom providers, deleted=$deleted',
+      () async {
+        final existing = aiProviderBuiltinById('api88')!.copyWith(
+          id: 'custom-api88',
+          builtin: false,
+          apiKey: 'existing-key',
+          models: ['selected-model'],
+          enabled: true,
+        );
+        await database.aiProviderDao.upsert(existing);
+        if (deleted) {
+          await database.aiProviderDao.softDelete(existing.id);
+        }
+        await seedDefaultApi88Provider(database);
+        await seedDefaultApi88Provider(database);
+        final providers = await database.aiProviderDao.getAllIncludingDeleted();
+        expect(providers, hasLength(2));
+        expect(await database.aiProviderDao.getById('api88'), isNotNull);
+        final custom = providers.singleWhere(
+          (provider) => provider.id == existing.id,
+        );
+        expect(custom.apiKey, existing.apiKey);
+        expect(custom.models, existing.models);
+        expect(custom.enabled, true);
+        expect(
+          await database.aiProviderDao.getById(existing.id),
+          deleted ? isNull : isNotNull,
+        );
+      },
+    );
+  }
+
+  test(
     'upgrade and retry preserve edits, custom providers and tombstones',
     () async {
       final configured = aiProviderBuiltinById(

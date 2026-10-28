@@ -384,6 +384,12 @@ abstract final class LocaleKeys {
       'screenplay.production.generateReferenceMissing';
   static const productionGenerateFramesRequired =
       'screenplay.production.generateFramesRequired';
+  static const productionGenerateReferenceUnsupported =
+      'screenplay.production.generateReferenceUnsupported';
+  static const productionGenerateFramesUnsupported =
+      'screenplay.production.generateFramesUnsupported';
+  static const productionGenerateReferencesInvalid =
+      'screenplay.production.generateReferencesInvalid';
   static const productionGenerateVisualReferenceRequired =
       'screenplay.production.generateVisualReferenceRequired';
   static const productionGenerateTooManyAudio =

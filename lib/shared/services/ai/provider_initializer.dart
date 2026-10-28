@@ -23,6 +23,7 @@ import '../../agent/client/anthropic_client.dart';
 import '../../agent/client/gemini_client.dart';
 import '../../agent/client/trace_headers_http_client.dart'
     show TraceHeadersProvider;
+import 'new_api.dart';
 import '../debug/debug_ai_provider.dart';
 import '../debug/debug_provider_client.dart';
 
@@ -49,27 +50,50 @@ class AiProviderInitializer {
   http.Client? _httpClient;
 
   ProviderClient? _client;
+  Future<ProviderClient>? _initializing;
+  int _generation = 0;
 
   bool get isInitialized => _client != null;
 
-  Future<ProviderClient> initialize() async {
-    if (_client != null) return _client!;
-
-    if (_ownsHttpClient) {
-      _httpClient = _config.createProxyClient();
+  Future<ProviderClient> initialize() {
+    final client = _client;
+    if (client != null) {
+      return Future.value(client);
     }
-    var client = _createClient();
-    if (kDebugMode) {
-      final scenario = debugAiProviderScenarioForId(_config.id);
-      if (scenario != null) {
-        client = DebugInjectedProviderClient(inner: client, scenario: scenario);
+    return _initializing ??= _initialize(_generation);
+  }
+
+  Future<ProviderClient> _initialize(int generation) async {
+    try {
+      if (_ownsHttpClient) {
+        _httpClient = _config.createProxyClient();
+      }
+      var client = await _createClient();
+      if (generation != _generation) {
+        client.cancel();
+        throw StateError('AI provider initialization was disposed');
+      }
+      if (kDebugMode) {
+        final scenario = debugAiProviderScenarioForId(_config.id);
+        if (scenario != null) {
+          client = DebugInjectedProviderClient(
+            inner: client,
+            scenario: scenario,
+          );
+        }
+      }
+      _client = RetryDecorator(inner: client, maxRetries: 2);
+      return _client!;
+    } finally {
+      if (generation == _generation) {
+        _initializing = null;
       }
     }
-    _client = RetryDecorator(inner: client, maxRetries: 2);
-    return _client!;
   }
 
   void dispose() {
+    _generation++;
+    _initializing = null;
     _client?.cancel();
     _client = null;
     if (_ownsHttpClient) {
@@ -86,7 +110,7 @@ class AiProviderInitializer {
   http.Client _createStreamHttpClient() =>
       _config.createProxyClient() ?? http.Client();
 
-  ProviderClient _createClient() {
+  Future<ProviderClient> _createClient() async {
     switch (_config.typeEnum) {
       case AiProviderType.agnes:
         throw UnsupportedError(
@@ -103,6 +127,14 @@ class AiProviderInitializer {
               _traceHeadersProvider?.call()['x-session-id'],
           httpClient: _httpClient,
           streamHttpClientFactory: _createStreamHttpClient,
+        );
+      case AiProviderType.api88:
+        return NewApiClient(_config).chat(
+          cacheKeyUserId: _cacheKeyUserId,
+          model: _chatModel,
+          httpClient: _httpClient,
+          streamClientFactory: _createStreamHttpClient,
+          traceHeadersProvider: _traceHeadersProvider,
         );
       case AiProviderType.openai:
         return OpenAIResponsesClient(

@@ -1,4 +1,4 @@
-// 职责: 通过 Gemini generateContent 接口文生图并解析内联图片回执。
+// 职责: 通过 Gemini 官方或网关 generateContent 接口生成和编辑图片。
 // 关联文件:
 //   lib/shared/services/ai/image/client.dart
 //   lib/shared/localization/locale_keys.dart
@@ -7,7 +7,6 @@
 import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
-import 'package:http/http.dart' as http;
 
 import '../../../models/ai_provider.dart';
 import '../../../localization/locale_keys.dart';
@@ -15,45 +14,51 @@ import '../image.dart';
 import 'client.dart';
 
 class GeminiImageClient extends ImageClient {
-  GeminiImageClient(super.config);
+  GeminiImageClient(super.config, {this.useGateway = false});
+
+  final bool useGateway;
 
   @override
-  bool get supportsEdit => false;
+  bool get supportsEdit => useGateway;
 
   @override
   Future<AiImageGenerationResult> generate(
     ImageGenerationRequest request,
   ) async {
+    final base = useGateway
+        ? config.effectiveBaseUrl.replaceFirst(RegExp(r'/v1$'), '')
+        : 'https://generativelanguage.googleapis.com';
     final url = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models/${request.model}:generateContent?key=${config.effectiveApiKey}',
+      '$base/v1beta/models/${Uri.encodeComponent(request.model)}:generateContent',
     );
-    final body = jsonEncode({
-      'contents': [
-        {
-          'parts': [
-            {'text': request.prompt},
-          ],
+    final partsInput = <Map<String, dynamic>>[
+      {'text': request.prompt},
+    ];
+    for (final image in request.images) {
+      final data = UriData.parse(await imageInputAsDataUri(image));
+      partsInput.add({
+        'inlineData': {
+          'mimeType': data.mimeType,
+          'data': base64Encode(data.contentAsBytes()),
         },
+      });
+    }
+    final data = await postImageJson(url, {
+      'contents': [
+        {'role': 'user', 'parts': partsInput},
       ],
       'generationConfig': {
         'responseModalities': ['IMAGE', 'TEXT'],
+        if (useGateway &&
+            (request.aspectRatio != null || request.resolution != null))
+          'imageConfig': {
+            if (request.aspectRatio != null && request.aspectRatio != 'auto')
+              'aspectRatio': request.aspectRatio,
+            if (request.resolution != null && request.resolution != 'auto')
+              'imageSize': request.resolution,
+          },
       },
-    });
-
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: body,
-    );
-
-    if (response.statusCode != 200) {
-      throw AiImageGenerationException(
-        'Gemini 图片生成失败 (${response.statusCode})',
-        debugMessage: response.body,
-      );
-    }
-
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    }, headers: useGateway ? null : {'x-goog-api-key': requireApiKey()});
     final candidates = data['candidates'] as List?;
     if (candidates == null || candidates.isEmpty) {
       throw AiImageGenerationException(tr(LocaleKeys.aiImageNoResult));

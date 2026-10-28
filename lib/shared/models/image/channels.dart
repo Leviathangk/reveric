@@ -16,6 +16,7 @@ enum ImageProtocol {
   openrouter_image,
   atlascloud_image,
   openai_images,
+  new_api_images,
   codex_image,
   gemini_image,
 }
@@ -91,6 +92,17 @@ const _openrouterDefaults = ImageRequestDefaults(
 
 final imageChannelModels = <ImageProtocol, Map<String, ImageChannelModel>>{
   ..._listedImageChannels,
+  ImageProtocol.new_api_images: {
+    ..._pixelSizeChannels,
+    for (final id in imageModelsCatalog.keys.where(
+      (id) => id.startsWith('gemini-'),
+    ))
+      id: ImageChannelModel(catalogId: id, includedInPresets: false),
+    'doubao-seedream-5-0-pro': ImageChannelModel(
+      catalogId: 'seedream-5.0-pro',
+      includedInPresets: false,
+    ),
+  },
   ImageProtocol.openai_images: _pixelSizeChannels,
   ImageProtocol.codex_image: _pixelSizeChannels,
   ImageProtocol.gemini_image: _geminiChannels,

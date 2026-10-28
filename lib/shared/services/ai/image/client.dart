@@ -125,8 +125,9 @@ abstract class ImageClient {
   @protected
   Future<Map<String, dynamic>> postImageJson(
     Uri uri,
-    Map<String, dynamic> body,
-  ) async {
+    Map<String, dynamic> body, {
+    Map<String, String>? headers,
+  }) async {
     final apiKey = requireApiKey();
     final client = config.createProxyClient() ?? http.Client();
     try {
@@ -138,7 +139,8 @@ abstract class ImageClient {
           .post(
             uri,
             headers: {
-              'Authorization': 'Bearer $apiKey',
+              ...?headers,
+              if (headers == null) 'Authorization': 'Bearer $apiKey',
               'Content-Type': 'application/json',
             },
             body: jsonEncode(body),

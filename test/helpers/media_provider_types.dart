@@ -9,6 +9,7 @@ import 'package:reveric/shared/models/video/request.dart';
 
 /// 原生协议选可接中转站的 provider，保持型号识别回退；聚合平台只认精确 ID。
 String videoProviderType(VideoProtocol protocol) => switch (protocol) {
+  VideoProtocol.new_api_video => 'api88',
   VideoProtocol.ark_video => 'doubao',
   VideoProtocol.minimax_video_v2 => 'minimax',
   VideoProtocol.wan_video => 'qwen',
@@ -18,6 +19,7 @@ String videoProviderType(VideoProtocol protocol) => switch (protocol) {
 };
 
 String audioProviderType(AudioProtocol protocol) => switch (protocol) {
+  AudioProtocol.new_api_speech => 'api88',
   AudioProtocol.seed_audio => 'volcengine',
   AudioProtocol.minimax_music => 'minimax',
   AudioProtocol.openrouter_speech => 'openrouter',
@@ -26,6 +28,7 @@ String audioProviderType(AudioProtocol protocol) => switch (protocol) {
 };
 
 String imageProviderType(ImageProtocol protocol) => switch (protocol) {
+  ImageProtocol.new_api_images => 'api88',
   ImageProtocol.agnes_image => 'agnes',
   ImageProtocol.qwen_image => 'qwen',
   ImageProtocol.ark_image => 'doubao',
