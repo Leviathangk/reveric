@@ -114,6 +114,7 @@ class MinimaxAudioClient extends AudioClient {
         statusCode: 200,
         providerCode: status,
         messageKey: key,
+        providerMessage: providerMessage(json),
         detail: providerErrorDetail('$status', providerMessage(json), apiKey),
       );
     }

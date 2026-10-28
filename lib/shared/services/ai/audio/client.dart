@@ -275,7 +275,9 @@ abstract class AudioClient {
         providerCode: providerCode,
       ),
       (key) => key,
+      preferProviderMessage: false,
     ),
+    providerMessage: message,
     detail: providerErrorDetail(providerCode, message, apiKey),
   );
 }

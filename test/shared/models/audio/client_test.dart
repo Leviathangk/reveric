@@ -45,11 +45,17 @@ void main() {
       await expectLater(
         client.generate(request()),
         throwsA(
-          isA<AudioException>().having(
-            (e) => e.messageKey,
-            'safe key',
-            LocaleKeys.aiInputAudioRejected,
-          ),
+          isA<AudioException>()
+              .having(
+                (e) => e.messageKey,
+                'safe key',
+                LocaleKeys.aiInputAudioRejected,
+              )
+              .having(
+                (e) => e.providerMessage,
+                'original message',
+                'Request failed',
+              ),
         ),
       );
     },

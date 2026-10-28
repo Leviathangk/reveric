@@ -1834,7 +1834,12 @@ class Agent {
     }
     if (isContextLengthExceeded(error)) {
       return LLMErrorAction.abort(
-        AiRunFailure.contextWindowExhausted(providerId: providerId),
+        AiRunFailure(
+          kind: AiRunFailureKind.contextWindowExhausted,
+          providerId: providerId,
+          providerMessage: tryReadProviderMessage(error),
+          providerCode: tryReadProviderErrorCode(error),
+        ),
       );
     }
     final providerMessage = tryReadProviderMessage(error);

@@ -27,6 +27,31 @@ void main() {
     await EasyLocalization.ensureInitialized();
   });
 
+  testWidgets('shows original provider message at mobile and desktop widths', (
+    tester,
+  ) async {
+    const message =
+        'This model does not support audio=false. api_key=example-secret';
+    for (final width in [375.0, 1280.0]) {
+      await tester.binding.setSurfaceSize(Size(width, 800));
+      await tester.pumpWidget(
+        _wrap(
+          const AiModeErrorNotice(
+            title: 'Generation failed',
+            failure: AiRunFailure.http(
+              statusCode: 400,
+              providerMessage: message,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(message), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    }
+    await tester.binding.setSurfaceSize(null);
+  });
+
   testWidgets('maps provider failures safely within mobile and desktop widths', (
     tester,
   ) async {
@@ -111,14 +136,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         find.text('Provider says the account balance is insufficient.'),
-        findsNothing,
+        findsOneWidget,
       );
       expect(
         find.text(
           'The current model service has insufficient balance or requires '
           'payment. Check your account balance and billing with the provider.',
         ),
-        findsOneWidget,
+        findsNothing,
       );
       expect(tester.takeException(), isNull);
     }

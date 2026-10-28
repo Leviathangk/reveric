@@ -541,8 +541,9 @@ class AudioTaskService {
               : GenerationTaskStatus.failed,
         ),
         errorMessage: Value(
-          !hasOutput && error is AudioException && error.messageKey != null
-              ? tr(error.messageKey!)
+          !hasOutput && error is AudioException
+              ? error.providerMessage ??
+                    (error.messageKey == null ? null : tr(error.messageKey!))
               : null,
         ),
         errorDetail: Value(

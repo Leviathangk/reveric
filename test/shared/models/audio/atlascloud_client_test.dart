@@ -175,6 +175,11 @@ void main() {
           isA<AudioException>()
               .having((e) => e.code, 'code', 'rejected')
               .having(
+                (e) => e.providerMessage,
+                'original message',
+                'Provider failed secret',
+              )
+              .having(
                 (e) => e.detail,
                 'detail',
                 allOf(contains('42'), isNot(contains('secret'))),

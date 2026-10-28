@@ -8,8 +8,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/native.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:reveric/shared/localization/locale_keys.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -449,8 +447,8 @@ void main() {
               throwsA(
                 isA<AiImageGenerationException>().having(
                   (e) => e.userMessage,
-                  'safe localized hint',
-                  tr(LocaleKeys.aiInputImagePrivacyRejected),
+                  'original provider message',
+                  'private provider detail',
                 ),
               ),
             );
@@ -474,41 +472,38 @@ void main() {
     );
   }
 
-  test(
-    'generic provider code yields to the specific image message hint',
-    () async {
-      final service = AiImageGenerationService(
-        _provider('doubao'),
-        model: 'doubao-seedream-5-0-pro-260628',
-      );
-      await http.runWithClient(
-        () async {
-          await expectLater(
-            service.generateImage('cover'),
-            throwsA(
-              isA<AiImageGenerationException>().having(
-                (e) => e.userMessage,
-                'userMessage',
-                imageErrorMessage(AiImageErrorCode.size),
-              ),
+  test('generic provider code yields to the specific image message hint', () async {
+    final service = AiImageGenerationService(
+      _provider('doubao'),
+      model: 'doubao-seedream-5-0-pro-260628',
+    );
+    await http.runWithClient(
+      () async {
+        await expectLater(
+          service.generateImage('cover'),
+          throwsA(
+            isA<AiImageGenerationException>().having(
+              (e) => e.userMessage,
+              'userMessage',
+              'The parameter `size` specified in the request is not valid: image size must be at least 3686400 pixels',
             ),
-          );
-        },
-        () => MockClient(
-          (_) async => http.Response(
-            jsonEncode({
-              'error': {
-                'code': 'InvalidParameter',
-                'message':
-                    'The parameter `size` specified in the request is not valid: image size must be at least 3686400 pixels',
-              },
-            }),
-            400,
           ),
+        );
+      },
+      () => MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'error': {
+              'code': 'InvalidParameter',
+              'message':
+                  'The parameter `size` specified in the request is not valid: image size must be at least 3686400 pixels',
+            },
+          }),
+          400,
         ),
-      );
-    },
-  );
+      ),
+    );
+  });
 
   test('provider credit exhaustion shows the payment hint', () {
     expect(
@@ -527,7 +522,7 @@ void main() {
         isA<AiImageGenerationException>().having(
           (e) => e.userMessage,
           'userMessage',
-          tr(LocaleKeys.aiProviderPaymentRequired),
+          'insufficient credit',
         ),
       ),
     );

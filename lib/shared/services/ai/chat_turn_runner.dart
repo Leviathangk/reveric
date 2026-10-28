@@ -352,7 +352,12 @@ String _userFriendlyError(
   }
   if (isContextLengthExceeded(error)) {
     return localizeAiRunFailure(
-      AiRunFailure.contextWindowExhausted(providerId: providerId),
+      AiRunFailure(
+        kind: AiRunFailureKind.contextWindowExhausted,
+        providerId: providerId,
+        providerMessage: tryReadProviderMessage(error),
+        providerCode: tryReadProviderErrorCode(error),
+      ),
       tr,
     );
   }
@@ -370,16 +375,16 @@ String _userFriendlyError(
       tr,
     );
   }
-  final providerFailureKey = localizeAiRunFailure(
+  final providerFailureMessage = localizeAiRunFailure(
     AiRunFailure.requestFailed(
       providerId: providerId,
       providerMessage: providerMessage,
       providerCode: providerCode,
     ),
-    (key) => key,
+    tr,
   );
-  if (providerFailureKey != LocaleKeys.aiRequestFailed) {
-    return tr(providerFailureKey);
+  if (providerMessage != null || providerCode != null) {
+    return providerFailureMessage;
   }
   final raw = error.toString();
   if (raw.contains('API key') ||

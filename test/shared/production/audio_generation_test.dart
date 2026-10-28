@@ -683,6 +683,7 @@ void main() {
           'authentication',
           statusCode: 401,
           messageKey: LocaleKeys.aiApiKeyInvalid,
+          providerMessage: 'Provider rejected this voice: custom-voice',
         );
       });
       final task = await service.requireRun(
@@ -690,7 +691,7 @@ void main() {
       );
       expect(task.status, GenerationTaskStatus.failed);
       expect(task.errorCode, 'authentication');
-      expect(task.errorMessage, isNotEmpty);
+      expect(task.errorMessage, 'Provider rejected this voice: custom-voice');
       await service.recover();
       expect(calls, 1);
     },

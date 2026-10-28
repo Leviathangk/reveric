@@ -30,8 +30,6 @@ import 'dart:io';
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:drift/native.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:reveric/shared/localization/locale_keys.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/foundation.dart';
 import 'package:reveric/shared/database/daos/generation_task_dao.dart';
@@ -962,7 +960,7 @@ void main() {
       final task = (await service.getTask(id))!;
       expect(task.status, GenerationTaskStatus.failed);
       expect(task.errorCode, 'upstream_failed');
-      expect(task.errorMessage, tr(LocaleKeys.aiOutputCopyrightRejected));
+      expect(task.errorMessage, 'private diagnostic');
       expect(
         task.errorDetail,
         'OutputVideoSensitiveContentDetected.PolicyViolation: private diagnostic',
@@ -1681,7 +1679,7 @@ void main() {
       expect(taskLogs.single, contains('[WARN]'));
       expect(lines.join('\n'), isNot(contains('[ERROR]')));
 
-      expect(task.errorMessage, tr(LocaleKeys.aiProviderChannelUnavailable));
+      expect(task.errorMessage, 'No available channel');
       expect(task.providerTaskId, isNull);
       expect(GenerationTaskDao.blocksSource(task), false);
       service.dispose();
@@ -1728,7 +1726,7 @@ void main() {
       final task = (await service.getTask(id))!;
       expect(task.status, GenerationTaskStatus.running);
       expect(task.providerTaskId, 'original');
-      expect(task.errorMessage, tr(LocaleKeys.aiProviderChannelUnavailable));
+      expect(task.errorMessage, 'No available channel');
       expect(
         task.nextPollAt!.difference(before).inSeconds,
         greaterThanOrEqualTo(119),

@@ -14,21 +14,23 @@ import '../../../shared/models/audio/exception.dart';
 
 String narrationErrorText(BuildContext context, Object error) {
   if (error is AudioException) {
-    return context.t(
-      error.messageKey ??
-          switch (error.code) {
-            'narration_empty' => LocaleKeys.narrationEmpty,
-            'narration_character_missing' =>
-              LocaleKeys.narrationMissingCharacter,
-            'narration_location_missing' ||
-            'narration_scene_missing' => LocaleKeys.narrationMissingScene,
-            'invalid_config' => LocaleKeys.narrationInvalidConfig,
-            'audio_voice_required' => LocaleKeys.productionSpeechVoiceRequired,
-            'authentication' => LocaleKeys.narrationAuthentication,
-            'rate_limited' => LocaleKeys.narrationRateLimited,
-            _ => LocaleKeys.narrationFailed,
-          },
-    );
+    return error.providerMessage ??
+        context.t(
+          error.messageKey ??
+              switch (error.code) {
+                'narration_empty' => LocaleKeys.narrationEmpty,
+                'narration_character_missing' =>
+                  LocaleKeys.narrationMissingCharacter,
+                'narration_location_missing' ||
+                'narration_scene_missing' => LocaleKeys.narrationMissingScene,
+                'invalid_config' => LocaleKeys.narrationInvalidConfig,
+                'audio_voice_required' =>
+                  LocaleKeys.productionSpeechVoiceRequired,
+                'authentication' => LocaleKeys.narrationAuthentication,
+                'rate_limited' => LocaleKeys.narrationRateLimited,
+                _ => LocaleKeys.narrationFailed,
+              },
+        );
   }
   return context.t(LocaleKeys.narrationFailed);
 }

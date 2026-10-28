@@ -359,9 +359,9 @@ void main() {
           isA<AiImageGenerationException>()
               .having((e) => e.code, 'code', AiImageErrorCode.auth)
               .having(
-                (e) => e.toString(),
-                'safe message',
-                isNot(contains('test-secret')),
+                (e) => e.userMessage,
+                'original provider message',
+                'test-secret',
               ),
         ),
       );

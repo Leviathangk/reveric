@@ -572,6 +572,10 @@ String? _providerImageMessage(Object? response, String? providerId) {
   if (response == null) {
     return null;
   }
+  final message = tryReadProviderMessage(response);
+  if (message != null) {
+    return message;
+  }
   final code = tryReadProviderErrorCode(response);
   if (code == null) {
     return null;
@@ -629,11 +633,19 @@ String _userMessageFromStatusCode(int statusCode, String? serverMessage) {
 }
 
 String? imageUserMessageFromServerMessage(String? message) {
+  final original = tryReadProviderMessage(message ?? '');
+  if (original != null) {
+    return original;
+  }
   final code = classifyAiImageError(message);
   return code == null ? null : imageErrorMessage(code);
 }
 
 String? extractImageServerMessage(dynamic data) {
+  final original = data == null ? null : tryReadProviderMessage(data);
+  if (original != null) {
+    return original;
+  }
   if (data == null) {
     return null;
   }

@@ -10,6 +10,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 import '../../../logger/app_logger.dart';
+import '../../../utils/ai_error.dart';
 import '../../../localization/locale_keys.dart';
 import '../../../models/audio/channels.dart';
 import '../../../models/audio/exception.dart';
@@ -108,10 +109,7 @@ class AtlasCloudAudioClient extends AudioClient {
 
   @override
   String? providerMessage(Map<String, dynamic> json) =>
-      (json['data'] is Map
-          ? (json['data'] as Map)['error']?.toString()
-          : null) ??
-      super.providerMessage(json);
+      tryReadProviderMessage(json);
 
   @override
   AudioGenerationResult decodeResult(Map<String, dynamic> json) {
@@ -125,6 +123,7 @@ class AtlasCloudAudioClient extends AudioClient {
       throw AudioException(
         'rejected',
         messageKey: LocaleKeys.aiRequestFailed,
+        providerMessage: providerMessage(json),
         detail: providerErrorDetail(
           json['code']?.toString(),
           providerMessage(json),
@@ -172,6 +171,7 @@ class AtlasCloudAudioClient extends AudioClient {
         throw AudioException(
           'rejected',
           messageKey: LocaleKeys.aiRequestFailed,
+          providerMessage: providerMessage(json),
           detail: providerErrorDetail(
             data['error_code']?.toString(),
             data['error']?.toString(),

@@ -84,9 +84,10 @@ class CodexImageGenerationClient extends ImageClient {
           ? LocaleKeys.aiImageNoResult
           : LocaleKeys.aiImageGenerationFailed;
       throw AiImageGenerationException(
-        code != null && code != AiImageErrorCode.auth
-            ? imageErrorMessage(code)
-            : tr(key),
+        error.providerMessage ??
+            (code != null && code != AiImageErrorCode.auth
+                ? imageErrorMessage(code)
+                : tr(key)),
         code: code,
         debugMessage: error.toString(),
       );

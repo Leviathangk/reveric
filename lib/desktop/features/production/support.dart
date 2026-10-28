@@ -87,50 +87,55 @@ Future<void> productionRun(
       await showReferenceStorageDialog(context);
       return;
     }
+    final providerMessage = switch (error) {
+      VideoException(:final providerMessage) ||
+      AudioException(:final providerMessage) => providerMessage,
+      _ => null,
+    };
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            context.t(switch (error) {
-              VideoException(messageKey: final key?) ||
-              AudioException(messageKey: final key?) => key,
-              VideoException(field: 'voice_mode') =>
-                LocaleKeys.productionVoiceMode,
-              VideoException(field: 'draft_expired') =>
-                LocaleKeys.productionDraftExpiredHint,
-              VideoException(field: 'draft_active_task') =>
-                LocaleKeys.productionDraftPendingHint,
-              VideoException(field: 'draft') =>
-                LocaleKeys.productionDraftUnavailable,
-              AudioException(code: 'audio_voice_required') =>
-                LocaleKeys.productionSpeechVoiceRequired,
-              AudioException(code: 'audio_output_unavailable') =>
-                LocaleKeys.productionAudioOutputUnavailable,
-              AudioException(code: 'audio_prompt_length') =>
-                LocaleKeys.productionAudioPromptLength,
-              AudioException(code: 'audio_reference_mixed') =>
-                LocaleKeys.productionAudioReferenceMixed,
-              AudioException(code: 'audio_reference_count') =>
-                LocaleKeys.productionAudioReferenceCount,
-              AudioException(code: 'audio_reference_size') =>
-                LocaleKeys.productionAudioReferenceSize,
-              AudioException(code: 'audio_reference_duration') =>
-                LocaleKeys.productionAudioReferenceDuration,
-              StoryboardException(code: 'audio_reference_format') ||
-              AudioException(
-                code: 'audio_reference_format',
-              ) => LocaleKeys.productionAudioReferenceFormat,
-              StoryboardException(code: 'style_missing') =>
-                LocaleKeys.productionStyleMissing,
-              StoryboardException(code: 'media_missing') =>
-                LocaleKeys.productionFileMissing,
-              MediaException(reason: MediaFailure.no_audio) =>
-                LocaleKeys.productionVideoNoAudio,
-              ProviderAssetException(:final code) => productionCertifyErrorKey(
-                code,
-              ),
-              _ => LocaleKeys.productionFailed,
-            }),
+            providerMessage ??
+                context.t(switch (error) {
+                  VideoException(messageKey: final key?) ||
+                  AudioException(messageKey: final key?) => key,
+                  VideoException(field: 'voice_mode') =>
+                    LocaleKeys.productionVoiceMode,
+                  VideoException(field: 'draft_expired') =>
+                    LocaleKeys.productionDraftExpiredHint,
+                  VideoException(field: 'draft_active_task') =>
+                    LocaleKeys.productionDraftPendingHint,
+                  VideoException(field: 'draft') =>
+                    LocaleKeys.productionDraftUnavailable,
+                  AudioException(code: 'audio_voice_required') =>
+                    LocaleKeys.productionSpeechVoiceRequired,
+                  AudioException(code: 'audio_output_unavailable') =>
+                    LocaleKeys.productionAudioOutputUnavailable,
+                  AudioException(code: 'audio_prompt_length') =>
+                    LocaleKeys.productionAudioPromptLength,
+                  AudioException(code: 'audio_reference_mixed') =>
+                    LocaleKeys.productionAudioReferenceMixed,
+                  AudioException(code: 'audio_reference_count') =>
+                    LocaleKeys.productionAudioReferenceCount,
+                  AudioException(code: 'audio_reference_size') =>
+                    LocaleKeys.productionAudioReferenceSize,
+                  AudioException(code: 'audio_reference_duration') =>
+                    LocaleKeys.productionAudioReferenceDuration,
+                  StoryboardException(code: 'audio_reference_format') ||
+                  AudioException(
+                    code: 'audio_reference_format',
+                  ) => LocaleKeys.productionAudioReferenceFormat,
+                  StoryboardException(code: 'style_missing') =>
+                    LocaleKeys.productionStyleMissing,
+                  StoryboardException(code: 'media_missing') =>
+                    LocaleKeys.productionFileMissing,
+                  MediaException(reason: MediaFailure.no_audio) =>
+                    LocaleKeys.productionVideoNoAudio,
+                  ProviderAssetException(:final code) =>
+                    productionCertifyErrorKey(code),
+                  _ => LocaleKeys.productionFailed,
+                }),
           ),
         ),
       );

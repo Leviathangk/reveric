@@ -13,6 +13,44 @@ import 'package:reveric/shared/models/ai_run_failure.dart';
 void main() {
   String identity(String key) => key;
 
+  test(
+    'all AI failure kinds show provider message verbatim without translation',
+    () {
+      const message =
+          'Unsupported audio=false; api_key=example-secret\nhttps://provider.test/help?q=1';
+      for (final kind in AiRunFailureKind.values) {
+        expect(
+          localizeAiRunFailure(
+            AiRunFailure(kind: kind, providerMessage: message),
+            (_) => throw StateError('Provider messages must not be translated'),
+          ),
+          message,
+        );
+      }
+    },
+  );
+  test('only absent or unusable messages fall back to localized copy', () {
+    for (final message in [null, '', '  ', '<html>Bad gateway</html>']) {
+      expect(
+        localizeAiRunFailure(
+          AiRunFailure.http(statusCode: 400, providerMessage: message),
+          identity,
+        ),
+        LocaleKeys.aiBadRequest,
+      );
+    }
+    expect(
+      localizeAiRunFailure(
+        const AiRunFailure.http(
+          statusCode: 400,
+          providerMessage: '{"error":{"message":"audio is unsupported"}}',
+        ),
+        identity,
+      ),
+      'audio is unsupported',
+    );
+  });
+
   // 历史诊断的最小复现文本；模型名、渠道名、请求 ID 和金额均不保留。
   const samples = <(int, String, String)>[
     (
@@ -225,6 +263,7 @@ void main() {
             providerMessage: message,
           ),
           identity,
+          preferProviderMessage: false,
         ),
         expected,
       );
@@ -237,6 +276,7 @@ void main() {
           localizeAiRunFailure(
             AiRunFailure(kind: kind, providerMessage: message),
             identity,
+            preferProviderMessage: false,
           ),
           expected,
         );
@@ -254,6 +294,7 @@ void main() {
       localizeAiRunFailure(
         AiRunFailure.http(statusCode: 422, providerMessage: message),
         identity,
+        preferProviderMessage: false,
       ),
       LocaleKeys.aiModelNotFound,
     );
@@ -269,6 +310,7 @@ void main() {
             providerMessage: 'insufficient credit',
           ),
           identity,
+          preferProviderMessage: false,
         ),
         LocaleKeys.aiProviderPaymentRequired,
       );
@@ -280,6 +322,7 @@ void main() {
             providerMessage: 'insufficient_quota',
           ),
           identity,
+          preferProviderMessage: false,
         ),
         LocaleKeys.aiProviderQuotaExceeded,
       );
@@ -298,6 +341,7 @@ void main() {
         localizeAiRunFailure(
           AiRunFailure.http(statusCode: 404, providerMessage: message),
           identity,
+          preferProviderMessage: false,
         ),
         LocaleKeys.aiNotFound,
       );
@@ -314,6 +358,7 @@ void main() {
         localizeAiRunFailure(
           AiRunFailure(kind: kind, providerMessage: 'model not found'),
           identity,
+          preferProviderMessage: false,
         ),
         localizeAiRunFailure(AiRunFailure(kind: kind), identity),
       );
@@ -337,10 +382,15 @@ void main() {
           contains('providerMessage:   Provider explanation  '),
         );
         expect(
-          localizeAiRunFailure(restored, identity),
+          localizeAiRunFailure(
+            restored,
+            identity,
+            preferProviderMessage: false,
+          ),
           localizeAiRunFailure(
             AiRunFailure.http(statusCode: code, providerId: 'custom'),
             identity,
+            preferProviderMessage: false,
           ),
         );
       }
@@ -349,6 +399,7 @@ void main() {
           localizeAiRunFailure(
             AiRunFailure(kind: kind, providerMessage: 'Provider explanation'),
             identity,
+            preferProviderMessage: false,
           ),
           localizeAiRunFailure(AiRunFailure(kind: kind), identity),
         );
@@ -362,6 +413,7 @@ void main() {
         localizeAiRunFailure(
           AiRunFailure.http(statusCode: 410, providerMessage: message),
           identity,
+          preferProviderMessage: false,
         ),
         LocaleKeys.aiResourceGone,
       );
@@ -405,6 +457,7 @@ void main() {
       localizeAiRunFailure(
         const AiRunFailure.http(statusCode: 401, providerId: 'custom'),
         identity,
+        preferProviderMessage: false,
       ),
       LocaleKeys.aiApiKeyInvalid,
     );
@@ -412,6 +465,7 @@ void main() {
       localizeAiRunFailure(
         const AiRunFailure.http(statusCode: 401, providerId: 'openai'),
         identity,
+        preferProviderMessage: false,
       ),
       LocaleKeys.aiApiKeyInvalid,
     );
@@ -422,6 +476,7 @@ void main() {
       localizeAiRunFailure(
         const AiRunFailure.http(statusCode: 402, providerId: 'custom'),
         identity,
+        preferProviderMessage: false,
       ),
       LocaleKeys.aiProviderPaymentRequired,
     );
@@ -429,6 +484,7 @@ void main() {
       localizeAiRunFailure(
         const AiRunFailure.http(statusCode: 402, providerId: 'openai'),
         identity,
+        preferProviderMessage: false,
       ),
       LocaleKeys.aiProviderPaymentRequired,
     );
@@ -443,6 +499,7 @@ void main() {
           providerMessage: 'model forbidden for user',
         ),
         identity,
+        preferProviderMessage: false,
       ),
       LocaleKeys.aiModelForbiddenForUser,
     );
@@ -454,6 +511,7 @@ void main() {
         localizeAiRunFailure(
           AiRunFailure.http(statusCode: statusCode),
           identity,
+          preferProviderMessage: false,
         ),
         LocaleKeys.aiBadRequest,
       );
@@ -475,6 +533,7 @@ void main() {
             providerMessage: message,
           ),
           identity,
+          preferProviderMessage: false,
         ),
         LocaleKeys.aiRequestTooLarge,
       );
@@ -491,6 +550,7 @@ void main() {
         localizeAiRunFailure(
           AiRunFailure.http(statusCode: statusCode),
           identity,
+          preferProviderMessage: false,
         ),
         LocaleKeys.aiServiceOverloaded,
       );

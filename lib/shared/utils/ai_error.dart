@@ -27,7 +27,7 @@ int? tryReadStatusCode(Object error) {
 
 String? tryReadProviderErrorCode(Object error) => _read(error, code: true);
 
-/// 返回诊断消息，不代表该消息可以直接展示给用户。
+/// 提取供应商原始 message，排除本地异常、完整 JSON 和 HTML 包装。
 String? tryReadProviderMessage(Object error) => _read(error, code: false);
 
 String? _read(Object error, {required bool code}) {
@@ -89,7 +89,10 @@ String? _extract(Object? value, {required bool code, required int depth}) {
       }
     }
     return _extract(
-      value['message'] ?? value['Message'],
+      value['message'] ??
+          value['Message'] ??
+          value['error_message'] ??
+          value['msg'],
       code: code,
       depth: depth + 1,
     );

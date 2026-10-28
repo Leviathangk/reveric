@@ -1,4 +1,4 @@
-// 职责: 将 AI 失败类型和已识别的服务商错误消息映射为安全的本地化文案。
+// 职责: 优先展示供应商原始消息，无消息时将 AI 失败映射为本地化文案。
 // 关联文件:
 //   lib/shared/models/ai_run_failure.dart
 //   lib/shared/localization/ark_error_localization.dart
@@ -7,14 +7,22 @@
 //   assets/translations/zh-CN/ai.json
 
 import '../models/ai_run_failure.dart';
+import '../utils/ai_error.dart';
 import 'ark_error_localization.dart';
 import 'locale_keys.dart';
 
 String localizeAiRunFailure(
   AiRunFailure failure,
-  String Function(String key) t,
-) {
-  // 只识别 provider 失败；明确的本地/流终态不被附带诊断文本覆盖。
+  String Function(String key) t, {
+  bool preferProviderMessage = true,
+}) {
+  if (preferProviderMessage) {
+    final message = tryReadProviderMessage(failure.providerMessage ?? '');
+    if (message != null) {
+      return message;
+    }
+  }
+  // 本地化兜底只对 provider 失败匹配错误码；本地/流终态保留专用说明。
   if (failure.kind == AiRunFailureKind.http ||
       failure.kind == AiRunFailureKind.streamInterrupted ||
       failure.kind == AiRunFailureKind.requestFailed) {

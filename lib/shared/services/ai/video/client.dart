@@ -163,7 +163,9 @@ abstract class VideoClient {
             providerMessage: providerMessage,
           ),
           (key) => key,
+          preferProviderMessage: false,
         ),
+        providerMessage: providerMessage,
         detail: providerErrorDetail(providerCode, providerMessage, apiKey),
       );
     } catch (error) {
@@ -292,7 +294,9 @@ abstract class VideoClient {
         providerCode: providerCode,
       ),
       (key) => key,
+      preferProviderMessage: false,
     ),
+    providerMessage: message,
     detail: providerErrorDetail(providerCode, message, apiKey),
   );
 

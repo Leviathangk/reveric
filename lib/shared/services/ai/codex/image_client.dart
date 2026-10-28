@@ -12,16 +12,23 @@ import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
 import '../../../logger/app_logger.dart';
+import '../../../utils/ai_error.dart';
 import 'credentials.dart';
 import 'request.dart';
 
 final _log = AppLogger.forModule('CodexImage');
 
 class CodexImageException implements Exception {
-  const CodexImageException(this.reason, {this.statusCode, this.code});
+  const CodexImageException(
+    this.reason, {
+    this.statusCode,
+    this.code,
+    this.providerMessage,
+  });
   final String reason;
   final int? statusCode;
   final String? code;
+  final String? providerMessage;
 
   @override
   String toString() => 'CodexImageException($reason, HTTP $statusCode, $code)';
@@ -150,6 +157,7 @@ class CodexImageClient {
         throw CodexImageException(
           'http_error',
           statusCode: response.statusCode,
+          providerMessage: tryReadProviderMessage(body),
         );
       }
       throw _failure(error, statusCode: response.statusCode);
@@ -210,6 +218,7 @@ class CodexImageClient {
       'upstream_error',
       statusCode: statusCode,
       code: safeCode,
+      providerMessage: body == null ? null : tryReadProviderMessage(body),
     );
   }
 

@@ -488,6 +488,7 @@ void main() {
         );
         expect(received.status, VideoRemoteStatus.failed);
         expect(received.messageKey, LocaleKeys.aiOutputContentRejected);
+        expect(received.providerMessage, 'private diagnostic');
       },
     );
     test(
@@ -650,6 +651,13 @@ void main() {
                   .having((e) => e.code, 'code', VideoErrorCode.unavailable)
                   .having((e) => e.statusCode, 'HTTP status', 503)
                   .having((e) => e.messageKey, 'safe message key', expected)
+                  .having(
+                    (e) => e.providerMessage,
+                    'original message',
+                    body.contains('private unknown upstream failure')
+                        ? 'private unknown upstream failure'
+                        : anything,
+                  )
                   .having(
                     (e) => e.toString().contains('private'),
                     'no raw response',

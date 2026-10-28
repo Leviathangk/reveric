@@ -785,7 +785,9 @@ class VideoTaskService {
             task,
             GenerationTaskStatus.failed,
             error: 'upstream_failed',
-            message: result.messageKey == null ? null : tr(result.messageKey!),
+            message:
+                result.providerMessage ??
+                (result.messageKey == null ? null : tr(result.messageKey!)),
             detail: result.detail,
           );
         case VideoRemoteStatus.cancelled:
@@ -1116,7 +1118,9 @@ class VideoTaskService {
     final code = error is VideoException
         ? error.code
         : VideoErrorCode.unavailable;
-    final message = error is VideoException && error.messageKey != null
+    final message = error is VideoException && error.providerMessage != null
+        ? error.providerMessage
+        : error is VideoException && error.messageKey != null
         ? tr(error.messageKey!)
         : error is VideoException && error.field == 'draft_expired'
         ? tr(LocaleKeys.productionDraftExpiredHint)

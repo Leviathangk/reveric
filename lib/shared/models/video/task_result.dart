@@ -32,6 +32,7 @@ class VideoException implements Exception {
     this.statusCode,
     this.retryAfter,
     this.messageKey,
+    this.providerMessage,
     this.detail,
   });
   final VideoErrorCode code;
@@ -42,8 +43,10 @@ class VideoException implements Exception {
   final Duration? retryAfter;
 
   /// Fixed localization key selected by the shared provider error matcher.
-  /// Raw provider messages must never reach UI.
   final String? messageKey;
+
+  /// 供应商原始 message，界面优先展示，不作为本地化 key。
+  final String? providerMessage;
 
   /// Sanitized provider code and message, persisted for the Agent only.
   final String? detail;
@@ -70,6 +73,7 @@ class VideoTaskResult {
     required this.status,
     this.videoUrl,
     this.messageKey,
+    this.providerMessage,
     this.detail,
   });
   final VideoRemoteStatus status;
@@ -77,6 +81,9 @@ class VideoTaskResult {
 
   /// 已识别的安全本地化键，用于 HTTP 成功但生成任务失败的终态。
   final String? messageKey;
+
+  /// 供应商原始 message，界面优先展示，不作为本地化 key。
+  final String? providerMessage;
 
   /// 脱敏后的供应商错误码和原文，只返回给 Agent。
   final String? detail;

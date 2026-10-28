@@ -105,6 +105,11 @@ void main() {
               .having((e) => e.statusCode, 'HTTP', 200)
               .having((e) => e.messageKey, 'message', key)
               .having(
+                (e) => e.providerMessage,
+                'original message',
+                'private upstream error',
+              )
+              .having(
                 (e) => e.detail,
                 'agent detail',
                 '$status: private upstream error',
