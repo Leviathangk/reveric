@@ -4,14 +4,17 @@
 //   lib/shared/agent/agent_tool_dispatcher.dart
 import 'dart:convert';
 
-/// Source and tool names are encoded as data; source is compiled as an async
-/// function body, never interpolated into the trusted wrapper's syntax.
+/// Source and tool names are encoded as data; source is compiled inside an inner
+/// async function, never interpolated into the trusted host wrapper's syntax.
 String codemodePrelude(
   String source,
   List<String> toolNames, {
   required int inputBytes,
   required int outputBytes,
 }) {
+  // Keep API parameters outside the script's lexical scope, so local names can
+  // shadow them. A fresh function also preserves script-level strict directives.
+  final scriptBody = 'return (async function () {\n$source\n})();';
   return '''
 (async () => {
   const parse = JSON.parse.bind(JSON);
@@ -126,7 +129,7 @@ String codemodePrelude(
     pendingOutput.push(delivery.catch((error) => { terminal ??= error.error_code; }));
   };
   try {
-    const run = new AsyncFunction('tools', 'text', 'listMcpServers', 'listTools', 'searchTool', 'describeTool', ${jsonEncode(source)});
+    const run = new AsyncFunction('tools', 'text', 'listMcpServers', 'listTools', 'searchTool', 'describeTool', ${jsonEncode(scriptBody)});
     const value = await run(tools, text, listMcpServers, listTools, searchTool, describeTool);
     const json = encode(value, $outputBytes, 'return_value');
     const hasReturn = json !== undefined;

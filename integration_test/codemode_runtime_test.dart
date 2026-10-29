@@ -30,6 +30,74 @@ Future<Map<String, dynamic>> _echo(
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  testWidgets('script locals may shadow injected API names', (tester) async {
+    await tester.runAsync(() async {
+      final discoveries = <String>[];
+      const catalog = {
+        'tools': [
+          {'name': 'mcp__search1api__search'},
+        ],
+      };
+      final result = await FjsRuntime().run(
+        code: '''
+const tools = await listTools({ mcpServer: "search1api" });
+text(tools);
+''',
+        tools: const [],
+        executeTool: (_, _) async => throw StateError('No tool should execute'),
+        discover: (method, input) async {
+          discoveries.add(method);
+          expect(input, {'mcpServer': 'search1api'});
+          return catalog;
+        },
+      );
+      expect(result.ok, isTrue, reason: '${result.toJson()}');
+      expect(result.output, [catalog]);
+      expect(result.hasReturn, isFalse);
+      expect(result.callCount, 0);
+      expect(discoveries, ['listTools']);
+
+      for (final name in [
+        'tools',
+        'text',
+        'listMcpServers',
+        'listTools',
+        'searchTool',
+        'describeTool',
+      ]) {
+        for (final declaration in ['const', 'let', 'var']) {
+          final shadowed = await FjsRuntime().run(
+            code: '$declaration $name = "local"; return $name;',
+            tools: const [],
+            executeTool: _echo,
+          );
+          expect(
+            shadowed.ok,
+            isTrue,
+            reason: '$declaration $name: ${shadowed.toJson()}',
+          );
+          expect(shadowed.returnValue, 'local');
+        }
+      }
+      final strict = await FjsRuntime().run(
+        code: '"use strict"; accidentalGlobal = 1;',
+        tools: const [],
+        executeTool: _echo,
+      );
+      expect(strict.errorCode, 'codemode_script_error');
+      expect(strict.jsErrorMessage, startsWith('ReferenceError:'));
+      final trailingComment = await FjsRuntime().run(
+        code: 'return await tools.Read({value: 1}); // trailing comment',
+        tools: [_read],
+        executeTool: _echo,
+      );
+      expect(trailingComment.ok, isTrue);
+      expect(trailingComment.returnValue, {
+        'ok': true,
+        'input': {'value': 1},
+      });
+    });
+  }, timeout: const Timeout(Duration(seconds: 30)));
   testWidgets('reports concrete JavaScript diagnostics from real FJS', (
     tester,
   ) async {
