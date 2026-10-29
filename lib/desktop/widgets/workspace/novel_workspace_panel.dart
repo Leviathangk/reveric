@@ -533,8 +533,6 @@ class NovelWorkspacePanel extends ConsumerWidget {
         return _buildNovelDescriptionEditor(context);
       case NovelWorkspaceSection.memory:
         return NovelMemoryPanel(novelId: novel.id);
-      case NovelWorkspaceSection.search:
-        return const SizedBox.shrink();
       case NovelWorkspaceSection.story_progress:
         return StoryProgressPanel(
           databasePath: databasePath,
@@ -954,7 +952,6 @@ class NovelWorkspacePanel extends ConsumerWidget {
         dbPath != null &&
         selection.section != NovelWorkspaceSection.overview &&
         selection.section != NovelWorkspaceSection.novel_description &&
-        selection.section != NovelWorkspaceSection.search &&
         selection.section != NovelWorkspaceSection.outlines &&
         selection.section != NovelWorkspaceSection.chapters &&
         selection.section != NovelWorkspaceSection.canvas;
@@ -1134,7 +1131,6 @@ class NovelWorkspacePanel extends ConsumerWidget {
             : AiShortcutActionLocation.foreshadowing;
       case NovelWorkspaceSection.overview:
       case NovelWorkspaceSection.maps:
-      case NovelWorkspaceSection.search:
       case NovelWorkspaceSection.memory:
       case NovelWorkspaceSection.entity_graph:
       case NovelWorkspaceSection.story_progress:
@@ -1202,7 +1198,6 @@ class NovelWorkspacePanel extends ConsumerWidget {
       case NovelWorkspaceSection.creatures:
       case NovelWorkspaceSection.foreshadowings:
         return true;
-      case NovelWorkspaceSection.search:
       case NovelWorkspaceSection.memory:
       case NovelWorkspaceSection.entity_graph:
       case NovelWorkspaceSection.story_progress:
@@ -1337,8 +1332,6 @@ class NovelWorkspacePanel extends ConsumerWidget {
 
   List<dynamic> _currentEntries() {
     switch (selection.section) {
-      case NovelWorkspaceSection.search:
-        return const <dynamic>[];
       case NovelWorkspaceSection.memory:
         return const <dynamic>[];
       case NovelWorkspaceSection.novel_description:
@@ -1424,8 +1417,6 @@ class NovelWorkspacePanel extends ConsumerWidget {
     switch (selection.section) {
       case NovelWorkspaceSection.novel_description:
         return context.t(LocaleKeys.workspaceNovelDescription);
-      case NovelWorkspaceSection.search:
-        return context.t(LocaleKeys.workspaceSearch);
       case NovelWorkspaceSection.entity_graph:
         return _entityGraphSelectedLabel(context, itemId);
       case NovelWorkspaceSection.maps:

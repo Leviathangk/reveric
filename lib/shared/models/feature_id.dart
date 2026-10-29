@@ -28,7 +28,6 @@ enum FeatureId {
   skills,
   memory,
   entity_graph,
-  search,
   ai_chat,
   ai_council,
   ai_monologue,
@@ -72,7 +71,6 @@ extension NovelWorkspaceSectionFeatureIdX on NovelWorkspaceSection {
     NovelWorkspaceSection.entity_graph => FeatureId.entity_graph,
     // 当前进展是快照的只读视图，不单独做 feature 追踪与发现推荐。
     NovelWorkspaceSection.story_progress => null,
-    NovelWorkspaceSection.search => FeatureId.search,
     NovelWorkspaceSection.canvas => null,
     NovelWorkspaceSection.screenplay_script ||
     NovelWorkspaceSection.screenplay_outline ||

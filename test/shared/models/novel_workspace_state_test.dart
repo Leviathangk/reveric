@@ -59,6 +59,22 @@ void main() {
       });
     });
 
+    test('restores an obsolete search selection to overview', () {
+      final state = NovelWorkspaceStateData.fromJson(<String, dynamic>{
+        'selection': <String, dynamic>{'section': 'search'},
+        'expandedNodes': <String, dynamic>{
+          'search': <String>['stale_node'],
+          'chapters': <String>['volume_1'],
+        },
+      });
+
+      expect(state.selection, const WorkspaceSelection.overview());
+      expect(state.expandedNodeIdsFor(NovelWorkspaceSection.chapters), {
+        'volume_1',
+      });
+      expect(state.toJson()['expandedNodes'], isNot(contains('search')));
+    });
+
     test('falls back field by field for malformed data', () {
       final state = NovelWorkspaceStateData.fromJson(<String, dynamic>{
         'selection': <String, dynamic>{

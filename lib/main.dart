@@ -67,7 +67,6 @@ import 'shared/services/system_tray_service.dart';
 import 'shared/services/window_state_service.dart';
 import 'shared/theme/theme.dart';
 import 'shared/utils/storage_paths.dart';
-import 'shared/widgets/global_floating_chat.dart';
 import 'shared/logger/app_logger.dart';
 import 'third/form/flutter_hook_form.dart';
 
@@ -626,7 +625,6 @@ class MyApp extends ConsumerWidget {
                     children: [
                       ?child,
                       const AppLifecycleWatcher(),
-                      if (_isDesktopPlatform) const GlobalFloatingChat(),
                       if (home is MobileApp || home is NovelHomePage)
                         UpdateReminder(
                           mobile: _isMobilePlatform,

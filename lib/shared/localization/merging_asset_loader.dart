@@ -38,7 +38,6 @@ class MergingAssetLoader extends AssetLoader {
     'entity',
     'entity_graph',
     'entity_search',
-    'floating_chat',
     'form',
     'heuristic',
     'history',

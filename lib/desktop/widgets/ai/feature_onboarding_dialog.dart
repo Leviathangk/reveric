@@ -9,8 +9,6 @@
 //   lib/shared/localization/locale_keys.dart
 //   assets/translations/en/ai.json
 //   assets/translations/zh-CN/ai.json
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -75,7 +73,7 @@ enum FeatureOnboardingType {
     introKey: LocaleKeys.aiFeatureOnboardingFeatureUsageIntro,
     howToKey: LocaleKeys.aiFeatureOnboardingFeatureUsageHowTo,
     icon: RevericIcons.lightbulb_outline,
-    featureIcon: RevericIcons.search,
+    featureIcon: RevericIcons.lightbulb_outline,
   );
 
   const FeatureOnboardingType({
@@ -93,13 +91,6 @@ enum FeatureOnboardingType {
   final String featureIcon;
 
   String get storageKey => 'feature_onboarding.$name';
-}
-
-String _globalSearchShortcutLabel() {
-  if (Platform.isMacOS) {
-    return 'Cmd + Shift + F';
-  }
-  return 'Ctrl + Shift + F';
 }
 
 Future<void> showFeatureOnboardingDialog(
@@ -197,10 +188,7 @@ Future<void> showFeatureOnboardingDialog(
                     _FeatureCard(
                       icon: type.featureIcon,
                       title: dialogContext.t(type.titleKey),
-                      description: dialogContext.t(
-                        type.howToKey,
-                        namedArgs: {'shortcut': _globalSearchShortcutLabel()},
-                      ),
+                      description: dialogContext.t(type.howToKey),
                     ),
                     const SizedBox(height: RevericSpacing.x2l),
                     Row(

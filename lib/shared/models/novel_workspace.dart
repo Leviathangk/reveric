@@ -9,7 +9,6 @@
 extension NovelWorkspaceSectionX on NovelWorkspaceSection {
   bool get isReadOnly => switch (this) {
     NovelWorkspaceSection.overview ||
-    NovelWorkspaceSection.search ||
     NovelWorkspaceSection.memory ||
     NovelWorkspaceSection.entity_graph ||
     NovelWorkspaceSection.story_progress ||
@@ -29,7 +28,6 @@ extension NovelWorkspaceSectionX on NovelWorkspaceSection {
     NovelWorkspaceSection.foreshadowings => 'foreshadowing',
     NovelWorkspaceSection.novel_description => 'novel',
     NovelWorkspaceSection.overview => 'overview',
-    NovelWorkspaceSection.search => 'search',
     NovelWorkspaceSection.maps => 'maps',
     NovelWorkspaceSection.canvas => 'canvas',
     NovelWorkspaceSection.memory => 'memory',
@@ -150,7 +148,6 @@ enum NovelWorkspaceSection {
   maps,
   canvas,
   novel_description,
-  search,
   memory,
   // lore = 世界观设定文档区；DB 的 Documents.type 与 AI 工具路径（/lore）同名。
   lore,

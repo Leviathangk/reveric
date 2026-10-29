@@ -74,10 +74,6 @@ final Map<FeatureId, FeatureMetadata> featureMetadata = {
     nameKey: LocaleKeys.heuristicFeatureEntityGraph,
     descriptionKey: LocaleKeys.heuristicFeatureEntityGraphDesc,
   ),
-  FeatureId.search: const FeatureMetadata(
-    nameKey: LocaleKeys.heuristicFeatureSearch,
-    descriptionKey: LocaleKeys.heuristicFeatureSearchDesc,
-  ),
   FeatureId.ai_chat: const FeatureMetadata(
     nameKey: LocaleKeys.heuristicFeatureAiChat,
     descriptionKey: LocaleKeys.heuristicFeatureAiChatDesc,

@@ -43,8 +43,6 @@
   "heuristic.feature.memory_desc": "Save key facts and decisions the AI should remember about your story.",
   "heuristic.feature.entity_graph": "Entity Graph",
   "heuristic.feature.entity_graph_desc": "Visualize how characters, factions, and locations connect.",
-  "heuristic.feature.search": "Search",
-  "heuristic.feature.search_desc": "Find anything in your novel by searching across all content.",
   "heuristic.feature.ai_chat": "AI Chat",
   "heuristic.feature.ai_chat_desc": "Talk with an AI assistant about your writing.",
   "heuristic.feature.ai_council": "AI Council",

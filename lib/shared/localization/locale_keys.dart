@@ -2254,6 +2254,7 @@ abstract final class LocaleKeys {
   static const commonNone = 'common.none';
   static const commonSelectedCountFmt = 'common.selected_count_fmt';
   static const commonSelectImage = 'common.select_image';
+  static const commonSend = 'common.send';
   static const commonSetup = 'common.setup';
   static const commonStatus = 'common.status';
   static const commonStop = 'common.stop';
@@ -2778,19 +2779,6 @@ abstract final class LocaleKeys {
   static const entityGraphSearchEmpty = 'entity_search.empty';
   static const entitySearchHint = 'entity_search.hint';
   static const entitySearchLoadFailed = 'entity_search.load_failed';
-  // ── floating_chat ────────────────────────────────────────
-  static const floatingChatClear = 'floating_chat.clear';
-  static const floatingChatClearConfirm = 'floating_chat.clear_confirm';
-  static const floatingChatEmptyHint = 'floating_chat.empty_hint';
-  static const floatingChatEmptySubHint = 'floating_chat.empty_sub_hint';
-  static const floatingChatInitError = 'floating_chat.init_error';
-  static const floatingChatInitializing = 'floating_chat.initializing';
-  static const floatingChatMinimize = 'floating_chat.minimize';
-  static const floatingChatNoProvider = 'floating_chat.no_provider';
-  static const floatingChatPlaceholder = 'floating_chat.placeholder';
-  static const floatingChatSend = 'floating_chat.send';
-  static const floatingChatStop = 'floating_chat.stop';
-  static const floatingChatTitle = 'floating_chat.title';
   // ── form ────────────────────────────────────────
   static const formDateAfter = 'form.date_after';
   static const formDateBefore = 'form.date_before';
@@ -2849,8 +2837,6 @@ abstract final class LocaleKeys {
   static const heuristicFeatureEntityGraph = 'heuristic.feature.entity_graph';
   static const heuristicFeatureEntityGraphDesc =
       'heuristic.feature.entity_graph_desc';
-  static const heuristicFeatureSearch = 'heuristic.feature.search';
-  static const heuristicFeatureSearchDesc = 'heuristic.feature.search_desc';
   static const heuristicFeatureAiChat = 'heuristic.feature.ai_chat';
   static const heuristicFeatureAiChatDesc = 'heuristic.feature.ai_chat_desc';
   static const heuristicFeatureAiCouncil = 'heuristic.feature.ai_council';
@@ -5581,16 +5567,6 @@ abstract final class LocaleKeys {
   static const workspaceSaveChapter = 'workspace.save_chapter';
   static const workspaceSaveEntry = 'workspace.save_entry';
   static const workspaceSearch = 'workspace.search';
-  static const workspaceSearchEmpty = 'workspace.search_empty';
-  static const workspaceSearchHint = 'workspace.search_hint';
-  static const workspaceSearchIdle = 'workspace.search_idle';
-  static const workspaceSearchInputLabel = 'workspace.search_input_label';
-  static const workspaceSearchLoading = 'workspace.search_loading';
-  static const workspaceSearchResults = 'workspace.search_results';
-  static const workspaceSearchResultsCount = 'workspace.search_results_count';
-  static const workspaceSearchScopeTitle = 'workspace.search_scope_title';
-  static const workspaceSearchScopeTooltip = 'workspace.search_scope_tooltip';
-  static const workspaceSearchTitle = 'workspace.search_title';
   static const workspaceChapterPickerEmpty = 'workspace.chapter_picker_empty';
   static const workspaceSearchChapters = 'workspace.search_chapters';
   static const workspaceSelectChapter = 'workspace.select_chapter';

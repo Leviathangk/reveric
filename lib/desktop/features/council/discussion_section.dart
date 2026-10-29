@@ -462,7 +462,7 @@ class _InterjectionInput extends StatelessWidget {
             final accent = hasText ? colors.accent : colors.textSubtle;
             return IconButton(
               onPressed: hasText ? run.sendUserMessage : null,
-              tooltip: context.t(LocaleKeys.floatingChatSend),
+              tooltip: context.t(LocaleKeys.commonSend),
               icon: RevericIcon(
                 RevericIcons.arrow_upward_rounded,
                 color: accent,

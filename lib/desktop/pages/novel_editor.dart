@@ -137,7 +137,6 @@ import 'dart:io';
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -234,7 +233,6 @@ import '../../shared/providers/canvas_providers.dart'
 import '../../shared/providers/monologue_providers.dart';
 import '../../shared/providers/roleplay_providers.dart';
 import '../../shared/providers/theater_providers.dart';
-import '../widgets/workspace/novel_global_search_overlay.dart';
 import '../widgets/workspace/chapter_outline_window.dart';
 import '../features/reading/reading_window.dart';
 import '../widgets/workspace/character_profile_editor_region.dart';
@@ -870,7 +868,6 @@ class NovelEditorPage extends HookConsumerWidget {
             ];
           case NovelWorkspaceSection.overview:
           case NovelWorkspaceSection.novel_description:
-          case NovelWorkspaceSection.search:
           case NovelWorkspaceSection.memory:
           case NovelWorkspaceSection.entity_graph:
           case NovelWorkspaceSection.story_progress:
@@ -1321,7 +1318,6 @@ class NovelEditorPage extends HookConsumerWidget {
         case NovelWorkspaceSection.overview:
         case NovelWorkspaceSection.maps:
         case NovelWorkspaceSection.novel_description:
-        case NovelWorkspaceSection.search:
         case NovelWorkspaceSection.memory:
         case NovelWorkspaceSection.entity_graph:
         case NovelWorkspaceSection.story_progress:
@@ -2892,7 +2888,6 @@ class NovelEditorPage extends HookConsumerWidget {
           );
         case NovelWorkspaceSection.overview:
         case NovelWorkspaceSection.maps:
-        case NovelWorkspaceSection.search:
         case NovelWorkspaceSection.memory:
         case NovelWorkspaceSection.entity_graph:
         case NovelWorkspaceSection.story_progress:
@@ -3591,52 +3586,6 @@ class NovelEditorPage extends HookConsumerWidget {
       }
       contentSelection.value = const _EditorWorkspaceContentSelection();
     }
-
-    Future<void> activateGlobalSearch() async {
-      final path = databasePath;
-      if (path == null || !context.mounted) {
-        return;
-      }
-      final result = await showNovelGlobalSearchOverlay(
-        context,
-        databasePath: path,
-      );
-      if (result == null || !context.mounted) {
-        return;
-      }
-      final canSwitch = await prepareWorkspaceTransition();
-      if (!canSwitch) {
-        return;
-      }
-      showWorkspaceContent();
-      selection.value = result;
-      triggerWorkspaceOnboarding(result);
-    }
-
-    useEffect(() {
-      bool handleKeyEvent(KeyEvent event) {
-        if (event is! KeyDownEvent ||
-            event.logicalKey != LogicalKeyboardKey.keyF) {
-          return false;
-        }
-        final isMetaPressed =
-            event.logicalKey == LogicalKeyboardKey.meta ||
-            HardwareKeyboard.instance.isMetaPressed;
-        final isPrimaryModifierPressed = Platform.isMacOS
-            ? isMetaPressed
-            : HardwareKeyboard.instance.isControlPressed;
-        if (!isPrimaryModifierPressed ||
-            !HardwareKeyboard.instance.isShiftPressed ||
-            HardwareKeyboard.instance.isAltPressed) {
-          return false;
-        }
-        unawaited(activateGlobalSearch());
-        return true;
-      }
-
-      HardwareKeyboard.instance.addHandler(handleKeyEvent);
-      return () => HardwareKeyboard.instance.removeHandler(handleKeyEvent);
-    }, [databasePath]);
 
     void openExpandedChat() {
       contentSelection.value = const _EditorAiChatExpandedSelection();

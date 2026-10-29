@@ -381,7 +381,6 @@ class _LeftSidebarState extends ConsumerState<LeftSidebar> {
       // 不再展开中栏。
       case NovelWorkspaceSection.maps:
       case NovelWorkspaceSection.overview:
-      case NovelWorkspaceSection.search:
       case NovelWorkspaceSection.memory:
       // 当前进展没有二级列表，和 overview / memory 同类。
       case NovelWorkspaceSection.story_progress:

@@ -2,7 +2,6 @@
 // 关联文件:
 //   lib/shared/components/reveric_spinner.dart
 //   lib/shared/widgets/ai/chat/typing_indicator.dart
-//   lib/shared/widgets/global_floating_chat.dart
 // 遵循的 Rules:
 //   .agents/rules/performance.md
 
