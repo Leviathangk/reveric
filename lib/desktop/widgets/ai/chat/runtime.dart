@@ -28,23 +28,28 @@ extension _AiChatPanelRuntime on AiChatPanel {
       promptBuilder: promptBuilder,
     );
     final pendingModelSelection = state.pendingModelSelection.value;
-    await runChatSendWithMountedCompletion(
-      context: context,
-      send: () => controller.send(
-        text,
-        draft: state.composerController.snapshot(text),
-        pendingModelSelection: pendingModelSelection,
+    await state.composerController.submit(
+      () => runChatSendWithMountedCompletion(
+        context: context,
+        send: () => controller.send(
+          text,
+          draft: state.composerController.snapshot(text),
+          pendingModelSelection: pendingModelSelection,
+        ),
+        onMounted: () {
+          if (pendingModelSelection == null) {
+            return;
+          }
+          final session = container.read(
+            aiChatSessionProvider(activeSessionId),
+          );
+          if (pendingModelSelection.hasSameModelAs(session) &&
+              pendingModelSelection.reasoningEffort ==
+                  session.reasoningEffort) {
+            state.pendingModelSelection.value = null;
+          }
+        },
       ),
-      onMounted: () {
-        if (pendingModelSelection == null) {
-          return;
-        }
-        final session = container.read(aiChatSessionProvider(activeSessionId));
-        if (pendingModelSelection.hasSameModelAs(session) &&
-            pendingModelSelection.reasoningEffort == session.reasoningEffort) {
-          state.pendingModelSelection.value = null;
-        }
-      },
     );
   }
 

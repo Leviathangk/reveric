@@ -1,4 +1,4 @@
-// 职责: 管理文字与原子文件块混排的聊天草稿、选择、移动及剪贴板快照。
+// 职责: 管理混排聊天草稿、剪贴板快照及草稿消费前的提交防重入。
 // 关联文件:
 //   lib/shared/services/ai/chat_attachments.dart
 //   lib/shared/models/ai_message_block.dart
@@ -41,8 +41,38 @@ class ChatComposerController extends TextEditingController {
   int _nextToken = 0xe000;
   int _nextImageNumber = 1;
 
+  Object? _submission;
+
+  /// 同一份草稿只提交一次；编辑或消费草稿后即可提交下一条，无需等待模型回复。
+  /// 初始化失败保留草稿，并在本次调用结束后允许重试。
+  Future<void> submit(Future<void> Function() send) async {
+    if (_submission != null) {
+      return;
+    }
+    final submission = Object();
+    _submission = submission;
+    try {
+      await send();
+    } finally {
+      // 上一轮完成时，不能释放下一份草稿正在使用的提交锁。
+      if (identical(_submission, submission)) {
+        _submission = null;
+      }
+    }
+  }
+
+  @override
+  set value(TextEditingValue next) {
+    // 光标、选区或 IME composing 变化不是新草稿；实际改字后才释放旧提交。
+    if (next.text != text) {
+      _submission = null;
+    }
+    super.value = next;
+  }
+
   @override
   void clear() {
+    _submission = null;
     _attachments.clear();
     _nextImageNumber = 1;
     super.clear();

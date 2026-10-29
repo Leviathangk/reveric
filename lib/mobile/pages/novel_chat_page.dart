@@ -1219,23 +1219,25 @@ class _MobileNovelChatBody extends HookConsumerWidget {
     Future<void> send() async {
       composerWarning.value = null;
       final selection = pendingModelSelection.value;
-      await runChatSendWithMountedCompletion(
-        context: context,
-        send: () => buildController().send(
-          composerController.text,
-          draft: composerController.snapshot(),
-          pendingModelSelection: selection,
+      await composerController.submit(
+        () => runChatSendWithMountedCompletion(
+          context: context,
+          send: () => buildController().send(
+            composerController.text,
+            draft: composerController.snapshot(),
+            pendingModelSelection: selection,
+          ),
+          onMounted: () {
+            final session = ref.read(
+              aiChatSessionProvider(activeSessionIdRef.value),
+            );
+            if (selection != null &&
+                selection.hasSameModelAs(session) &&
+                selection.reasoningEffort == session.reasoningEffort) {
+              pendingModelSelection.value = null;
+            }
+          },
         ),
-        onMounted: () {
-          final session = ref.read(
-            aiChatSessionProvider(activeSessionIdRef.value),
-          );
-          if (selection != null &&
-              selection.hasSameModelAs(session) &&
-              selection.reasoningEffort == session.reasoningEffort) {
-            pendingModelSelection.value = null;
-          }
-        },
       );
     }
 
@@ -1248,9 +1250,11 @@ class _MobileNovelChatBody extends HookConsumerWidget {
           return;
         }
         pendingAutoSend.value = false;
-        await buildController().send(
-          composerController.text,
-          draft: composerController.snapshot(),
+        await composerController.submit(
+          () => buildController().send(
+            composerController.text,
+            draft: composerController.snapshot(),
+          ),
         );
       });
       return null;

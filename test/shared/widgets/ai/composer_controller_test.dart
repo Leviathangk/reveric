@@ -1,6 +1,7 @@
-// 职责: 验证内嵌文件块的光标插入、原子删除、移动及复制后的独立草稿快照。
+// 职责: 验证聊天草稿的文件块编辑、快照与提交防重入生命周期。
 // 关联文件:
 //   lib/shared/widgets/ai/chat/composer_controller.dart
+import 'dart:async';
 import 'dart:typed_data';
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,105 @@ import 'package:reveric/shared/widgets/ai/chat/composer_controller.dart';
 import 'package:reveric/shared/services/ai/chat_attachments.dart';
 
 void main() {
+  test('rapid submissions consume a draft only once while preparing', () async {
+    final controller = ChatComposerController()..text = 'same draft';
+    addTearDown(controller.dispose);
+    final preparation = Completer<void>();
+    final submissions = <String>[];
+    Future<void> send() async {
+      submissions.add(controller.text);
+      await preparation.future;
+      controller.clear();
+    }
+
+    final first = controller.submit(send);
+    final second = controller.submit(send);
+    try {
+      expect(submissions, ['same draft']);
+      expect(controller.text, 'same draft');
+    } finally {
+      preparation.complete();
+      await Future.wait([first, second]);
+    }
+    expect(controller.text, isEmpty);
+  });
+
+  test(
+    'consumed draft permits queuing; older turn cannot unlock new submission',
+    () async {
+      final controller = ChatComposerController()..text = 'same text';
+      addTearDown(controller.dispose);
+      final firstTurn = Completer<void>();
+      final queuePreparation = Completer<void>();
+      var sends = 0;
+      final first = controller.submit(() async {
+        sends++;
+        controller.clear();
+        await firstTurn.future;
+      });
+      // Even identical content is a new draft after the first one was consumed.
+      controller.text = 'same text';
+      final queued = controller.submit(() async {
+        sends++;
+        await queuePreparation.future;
+        controller.clear();
+      });
+      expect(sends, 2);
+      firstTurn.complete();
+      await first;
+      await controller.submit(() async => sends++);
+      expect(sends, 2);
+      queuePreparation.complete();
+      await queued;
+      controller.text = 'third';
+      await controller.submit(() async => sends++);
+      expect(sends, 3);
+    },
+  );
+
+  test(
+    'failed or declined submission preserves draft and allows retry',
+    () async {
+      final controller = ChatComposerController()..text = 'retry';
+      addTearDown(controller.dispose);
+      await expectLater(
+        controller.submit(() async => throw StateError('preparation failed')),
+        throwsStateError,
+      );
+      expect(controller.text, 'retry');
+      var sends = 0;
+      await controller.submit(() async => sends++);
+      await controller.submit(() async => sends++);
+      expect(sends, 2);
+      expect(controller.text, 'retry');
+    },
+  );
+
+  test(
+    'selection changes keep the guard; edited drafts can queue during preparation',
+    () async {
+      final controller = ChatComposerController()..text = 'first';
+      addTearDown(controller.dispose);
+      final preparation = Completer<void>();
+      final submissions = <String>[];
+      Future<void> send() async {
+        submissions.add(controller.text);
+        await preparation.future;
+      }
+
+      final first = controller.submit(send);
+      controller.selection = const TextSelection.collapsed(offset: 1);
+      await controller.submit(send);
+      expect(submissions, ['first']);
+      controller.text = 'next';
+      final second = controller.submit(send);
+      expect(submissions, ['first', 'next']);
+      preparation.complete();
+      await Future.wait([first, second]);
+      expect(controller.text, 'next');
+    },
+  );
+
   XFile file(String name) =>
       NamedChatFile.data(Uint8List.fromList([1]), name: name);
   test(

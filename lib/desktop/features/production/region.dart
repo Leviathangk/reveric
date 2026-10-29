@@ -111,57 +111,63 @@ class ProductionRegion extends HookConsumerWidget {
         novel.contentDatabasePath!,
       ),
     );
-    if (workspace.episodeId == null) {
-      if (!workspace.isHydrated) {
-        return const ScreenplayLoading();
-      }
-      return Center(child: Text(context.t(LocaleKeys.storyboardNoEpisode)));
-    }
-    final path = novel.contentDatabasePath!;
-    final episodeId = workspace.episodeId!;
-    final ask = onAsk;
-    Future<void> recognize(
-      BuildContext context, {
-      required Future<void> Function() reset,
-    }) async {
-      final service = ProductionCanvasService(
-        ref.read(storyboardServiceProvider(path)),
-        ref.read(mediaLibraryServiceProvider),
-        novel.id,
-      );
-      final canvas = await service.ensureCanvas(episodeId);
-      if (!context.mounted) {
-        return;
-      }
-      final choice = await showSceneRecognitionDialog(
-        context,
-        service: service,
-        canvasId: canvas.id,
-      );
-      if (choice == null) {
-        return;
-      }
-      final asset = await service.requireAsset(choice.assetId, type: 'image');
-      if (choice.overwrite) {
-        await reset();
-      }
-      final file = service.library.resolve(asset);
-      ask!(
-        sceneRecognitionPrompt(overwrite: choice.overwrite),
-        files: [NamedChatFile.path(file, name: p.basename(file))],
-      );
-    }
+    final askRef = useRef(onAsk)..value = onAsk;
+    final flushRef = useRef(registerFlush)..value = registerFlush;
+    // 聊天状态只更新浮层；制作内容按作品与导航目标更新，自身的数据订阅仍照常重建。
+    // 宿主每次 build 都会创建回调，通过 ref 转发以免缓存旧闭包。
+    final content = useMemoized(
+      () {
+        if (workspace.episodeId == null) {
+          return const SizedBox.shrink();
+        }
+        final path = novel.contentDatabasePath!;
+        final episodeId = workspace.episodeId!;
+        final ask = onAsk == null
+            ? null
+            : (String prompt, {List<XFile> files = const []}) =>
+                  askRef.value?.call(prompt, files: files);
+        Future<void> recognize(
+          BuildContext context, {
+          required Future<void> Function() reset,
+        }) async {
+          final service = ProductionCanvasService(
+            ref.read(storyboardServiceProvider(path)),
+            ref.read(mediaLibraryServiceProvider),
+            novel.id,
+          );
+          final canvas = await service.ensureCanvas(episodeId);
+          if (!context.mounted) {
+            return;
+          }
+          final choice = await showSceneRecognitionDialog(
+            context,
+            service: service,
+            canvasId: canvas.id,
+          );
+          if (choice == null) {
+            return;
+          }
+          final asset = await service.requireAsset(
+            choice.assetId,
+            type: 'image',
+          );
+          if (choice.overwrite) {
+            await reset();
+          }
+          final file = service.library.resolve(asset);
+          ask!(
+            sceneRecognitionPrompt(overwrite: choice.overwrite),
+            files: [NamedChatFile.path(file, name: p.basename(file))],
+          );
+        }
 
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        EditingShell(
+        return EditingShell(
           novelId: novel.id,
           identity: (
             path: novel.contentDatabasePath!,
             episodeId: workspace.episodeId!,
           ),
-          registerFlush: registerFlush,
+          registerFlush: (flush) => flushRef.value(flush),
           builder: (openEditing, registerEditing) => ScreenplayDirectorShell(
             novelId: novel.id,
             databasePath: novel.contentDatabasePath!,
@@ -179,13 +185,32 @@ class ProductionRegion extends HookConsumerWidget {
               registerFlush: register,
               selectedClipId: selectedClipId,
               sceneActions: ProductionSceneActions(
-                ask: onAsk,
+                ask: ask,
                 openDirector: open,
                 openEditing: openEditing,
               ),
             ),
           ),
-        ),
+        );
+      },
+      [
+        novel,
+        workspace.episodeId,
+        workspace.sceneId,
+        selectedClipId,
+        onAsk != null,
+      ],
+    );
+    if (workspace.episodeId == null) {
+      if (!workspace.isHydrated) {
+        return const ScreenplayLoading();
+      }
+      return Center(child: Text(context.t(LocaleKeys.storyboardNoEpisode)));
+    }
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        content,
         // 放在两个子页面外，打开剪辑或导演台时不会随底层画布一起隐藏。
         if (chat != null)
           Positioned.fill(
