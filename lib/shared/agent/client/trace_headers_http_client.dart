@@ -56,10 +56,9 @@ class TraceHeadersHttpClient extends http.BaseClient {
   final TraceHeadersProvider _headersProvider;
 
   TraceHeadersHttpClient({
-    required http.Client inner,
-    required TraceHeadersProvider headersProvider,
-  }) : _inner = inner,
-       _headersProvider = headersProvider;
+    required this._inner,
+    required this._headersProvider,
+  });
 
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {

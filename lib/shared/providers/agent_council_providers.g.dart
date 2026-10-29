@@ -267,7 +267,7 @@ final class AgentCouncilRuntimeProvider
 }
 
 String _$agentCouncilRuntimeHash() =>
-    r'bc15d722434466a38ea30a2160f0a00c4f8c07bc';
+    r'fc7d7385a4e680ac29cdf7e89a652256b712c1bb';
 
 final class AgentCouncilRuntimeFamily extends $Family
     with

@@ -44,10 +44,9 @@ class AnthropicClient implements ProviderClient {
     http.Client? httpClient,
     http.Client Function()? streamHttpClientFactory,
     TraceHeadersProvider? traceHeadersProvider,
-    String? cacheKeyUserId,
+    this._cacheKeyUserId,
     Map<String, String>? defaultHeaders,
-  }) : _cacheKeyUserId = cacheKeyUserId,
-       _client = anthropic.AnthropicClient(
+  }) : _client = anthropic.AnthropicClient(
          config: anthropic.AnthropicConfig(
            authProvider: anthropic.ApiKeyProvider(apiKey),
            baseUrl: _normalizeBaseUrl(baseUrl),

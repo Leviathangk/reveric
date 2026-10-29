@@ -171,11 +171,13 @@ class AgentToolCallStart extends AgentEvent {
     required this.toolName,
     required this.arguments,
     this.thoughtSignature,
+    this.metadata,
   });
   final String callId;
   final String toolName;
   final Map<String, dynamic> arguments;
   final List<int>? thoughtSignature;
+  final Map<String, dynamic>? metadata;
 }
 
 /// 工具调用结束(成功或失败)。
@@ -370,4 +372,20 @@ class AgentCompactionEnd extends AgentEvent {
 
   /// 失败原因（仅 [ok] 为 false 时有值，仅日志用）。
   final String? reason;
+}
+
+/// Bounded presentation-only progress; does not add history or execute hooks.
+class AgentToolCallProgress extends AgentEvent {
+  const AgentToolCallProgress({
+    required this.callId,
+    required this.toolName,
+    required this.arguments,
+    required this.progress,
+    this.metadata,
+  });
+  final String callId;
+  final String toolName;
+  final Map<String, dynamic> arguments;
+  final Map<String, dynamic> progress;
+  final Map<String, dynamic>? metadata;
 }

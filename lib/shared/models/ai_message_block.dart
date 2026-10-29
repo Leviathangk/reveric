@@ -190,6 +190,10 @@ class AiToolCallBlock extends AiMessageBlock {
   final String? thoughtSignature;
   final List<AiNestedToolCall> nestedCalls;
 
+  String get source => metadata?['tool_source'] as String? ?? 'builtin';
+  String? get mcpServer => metadata?['mcp_server'] as String?;
+  String? get executionState => result?['executionState'] as String?;
+
   bool get isEdit => toolName == 'Edit';
   bool get isWrite => toolName == 'Write';
   bool get isRead => toolName == 'Read';

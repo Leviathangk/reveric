@@ -146,6 +146,9 @@ Map<String, dynamic> normalizeToolFailureResult(
   Map<String, dynamic> result, {
   Map<String, dynamic>? input,
 }) {
+  if (result['executionState'] is String && result['contentComplete'] is bool) {
+    return result;
+  }
   if (toolResultIsSuccess(result)) {
     return result['ok'] == true ? result : {...result, 'ok': true};
   }

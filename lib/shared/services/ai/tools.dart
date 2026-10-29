@@ -19,6 +19,7 @@
 // ignore_for_file: use_null_aware_elements, unused_element
 
 import 'tool_operations.dart';
+import 'mcp/run_command_handler.dart';
 import 'files/attachments.dart';
 import 'files/command_paths.dart';
 import 'files/management.dart';
@@ -3859,6 +3860,8 @@ abstract class _AiToolManagerBase {
   AiSubagentsCommandCallback? get subagentsCommandCallback;
   AiSessionsCommandCallback? get sessionsCommandCallback;
   ToolOperationHost? get operationHost;
+  McpRunCommandHandler? get mcpRunHandler;
+  bool Function()? get mcpAllowed;
   Future<ProductionCanvasService> Function()? get productionStyleServiceBuilder;
 
   /// 画布工具放行。
@@ -4134,7 +4137,7 @@ class AiToolManager extends _AiToolManagerBase
         _AiToolManagerRemoveMixin,
         _AiToolManagerTodoMixin,
         _AiToolManagerSuggestNextActionMixin
-    implements AgentToolDispatcher {
+    implements AgentToolDispatcher, McpRunCommandHost {
   AiToolManager(
     this._primaryContentService, {
     required this.workingOverlayService,
@@ -4263,6 +4266,10 @@ class AiToolManager extends _AiToolManagerBase
 
   @override
   ToolOperationHost? operationHost;
+  @override
+  McpRunCommandHandler? mcpRunHandler;
+  @override
+  bool Function()? mcpAllowed;
 
   /// 风格查询与选择仅需作品数据，在移动端也可用。
   @override

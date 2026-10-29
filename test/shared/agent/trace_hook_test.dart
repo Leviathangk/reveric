@@ -31,6 +31,44 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   test(
+    'MCP anonymous errors contain neither service identity nor business payload',
+    () async {
+      final fixture = await _TraceFixture.create();
+      addTearDown(fixture.dispose);
+      final hook = fixture.hook();
+      await hook.afterToolCall(
+        const AfterToolCallContext(
+          source: AgentToolSource.mcp,
+          call: ToolCall(
+            callId: 'external',
+            toolName: 'mcp__private_notes__secret_search',
+            arguments: {'query': 'private-manuscript', 'token': 'secret-token'},
+          ),
+          result: {
+            'ok': false,
+            'error_code': 'mcp_connection_lost',
+            'error': 'private-manuscript',
+            'structuredContent': {'secret': 'secret-token'},
+          },
+        ),
+      );
+      final rows = await fixture.database
+          .select(fixture.database.anonymousOutboxEvents)
+          .get();
+      final payload = rows.map((row) => row.payloadJson).join();
+      expect(payload, contains('mcp_connection_lost'));
+      for (final value in [
+        'private_notes',
+        'secret_search',
+        'private-manuscript',
+        'secret-token',
+      ]) {
+        expect(payload, isNot(contains(value)));
+      }
+    },
+  );
+
+  test(
     'handled context exhaustion does not emit anonymous error events',
     () async {
       final fixture = await _TraceFixture.create();

@@ -23,6 +23,7 @@ import '../diff/diff_view.dart';
 import 'create_tool_card_body.dart';
 import 'edit_tool_card_body.dart';
 import 'generic_tool_card_body.dart';
+import 'mcp_tool_card_body.dart';
 import 'glob_grep_tool_card_body.dart';
 import 'graph_search_tool_card_body.dart';
 import 'read_tool_card_body.dart';
@@ -42,6 +43,9 @@ Widget? aiToolBodyFor(
   String? novelId,
   String? databasePath,
 }) {
+  if (block.source == 'mcp') {
+    return McpToolCardBody(block: block);
+  }
   final toolName = block.toolName;
   if (toolName == 'Read') {
     return ReadToolCardBody(block: block, resource: resource);
@@ -138,6 +142,7 @@ class AiToolDetailBody extends ConsumerWidget {
           };
     final showErrorDetails =
         hasError &&
+        block.source != 'mcp' &&
         (debugMode ||
             isIncompleteToolCall ||
             aiToolOperationResult(block) != null);
@@ -194,9 +199,7 @@ class AiToolDetailBody extends ConsumerWidget {
                     color: colors.surface.withValues(alpha: 0.85),
                     borderRadius: BorderRadius.circular(RevericRadius.medium),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(
-                        RevericRadius.medium,
-                      ),
+                      borderRadius: BorderRadius.circular(RevericRadius.medium),
                       onTap: () => DiffDetailDialog.show(
                         context,
                         oldText: block.diffOldText ?? '',

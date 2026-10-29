@@ -13,12 +13,14 @@
 //   lib/desktop/pages/settings/usage_page.dart
 //   lib/desktop/widgets/settings/settings_storage_section.dart
 //   lib/shared/widgets/settings/backup_settings_section.dart
+//   lib/shared/widgets/settings/leave_guard.dart
 //   lib/shared/localization/locale_keys.dart
 //   assets/translations/en/settings.json
 //   assets/translations/zh-CN/settings.json
 // 遵循的 Rules:
 //   .agents/rules/hooks.md
 //   .agents/rules/directory-structure.md
+import 'settings_mcp_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -37,6 +39,7 @@ import '../../../shared/widgets/settings/editor_settings_section.dart';
 import '../../../shared/widgets/reading/reading_settings_controls.dart';
 import '../../../shared/widgets/settings/reading_settings_section.dart';
 import '../../../shared/widgets/settings/general_settings_section.dart';
+import '../../../shared/widgets/settings/leave_guard.dart';
 import '../../../shared/widgets/settings/backup_settings_section.dart';
 import '../../../shared/widgets/settings/remote_bridge_settings_section.dart';
 import '../../../shared/widgets/settings/usage_settings_section.dart';
@@ -126,6 +129,11 @@ class SettingsDialog extends HookConsumerWidget {
       icon: RevericIcons.bar_chart_outlined,
     ),
     _SettingsNavItem(
+      id: 'mcp',
+      labelKey: LocaleKeys.settingsMcp,
+      icon: RevericIcons.hub_outlined,
+    ),
+    _SettingsNavItem(
       id: 'remote',
       labelKey: LocaleKeys.settingsRemote,
       icon: RevericIcons.qr_code,
@@ -163,6 +171,7 @@ class SettingsDialog extends HookConsumerWidget {
     final debugUnlocked = useState(
       debugMode || debugPageUnlocked || initialNavId == 'debug',
     );
+    final leave = useMemoized(SettingsLeaveController.new);
     final navItems = [
       ..._baseNavItems,
       if (debugUnlocked.value || debugMode) _debugNavItem,
@@ -189,45 +198,63 @@ class SettingsDialog extends HookConsumerWidget {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(RevericRadius.x2l),
-          child: DialogFeedback(
-            builder: (context) => Row(
-              children: [
-                _buildSidebar(context, colors, navItems, selectedNavId.value, (
-                  id,
-                ) {
-                  if (id == 'about') {
-                    aboutTapCount.value++;
-                    if (aboutTapCount.value >= 10) {
-                      debugUnlocked.value = true;
-                      ref
-                          .read(appSettingsProvider.notifier)
-                          .setDebugPageUnlocked(true);
-                      selectedNavId.value = 'debug';
-                      return;
-                    }
-                  } else {
-                    aboutTapCount.value = 0;
-                  }
-                  selectedNavId.value = id;
-                }),
-                Container(
-                  width: RevericSizes.dividerThickness,
-                  color: colors.border,
-                ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      _buildHeader(context, colors),
-                      Expanded(
-                        child: _buildContent(context, selectedNavId.value, () {
-                          debugUnlocked.value = false;
-                          selectedNavId.value = 'general';
-                        }),
-                      ),
-                    ],
+          child: SettingsLeaveScope(
+            controller: leave,
+            child: DialogFeedback(
+              builder: (context) => Row(
+                children: [
+                  _buildSidebar(
+                    context,
+                    colors,
+                    navItems,
+                    selectedNavId.value,
+                    (id) async {
+                      if (id != selectedNavId.value &&
+                          !await leave.confirmLeave()) {
+                        return;
+                      }
+                      if (!context.mounted) {
+                        return;
+                      }
+                      if (id == 'about') {
+                        aboutTapCount.value++;
+                        if (aboutTapCount.value >= 10) {
+                          debugUnlocked.value = true;
+                          ref
+                              .read(appSettingsProvider.notifier)
+                              .setDebugPageUnlocked(true);
+                          selectedNavId.value = 'debug';
+                          return;
+                        }
+                      } else {
+                        aboutTapCount.value = 0;
+                      }
+                      selectedNavId.value = id;
+                    },
                   ),
-                ),
-              ],
+                  Container(
+                    width: RevericSizes.dividerThickness,
+                    color: colors.border,
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        _buildHeader(context, colors, leave),
+                        Expanded(
+                          child: _buildContent(
+                            context,
+                            selectedNavId.value,
+                            () {
+                              debugUnlocked.value = false;
+                              selectedNavId.value = 'general';
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -235,7 +262,11 @@ class SettingsDialog extends HookConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, RevericColors colors) {
+  Widget _buildHeader(
+    BuildContext context,
+    RevericColors colors,
+    SettingsLeaveController leave,
+  ) {
     final typo = RevericTheme.typographyOf(context);
 
     return Container(
@@ -254,7 +285,11 @@ class SettingsDialog extends HookConsumerWidget {
           ),
           const Spacer(),
           IconButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () async {
+              if (await leave.confirmLeave() && context.mounted) {
+                Navigator.of(context).pop();
+              }
+            },
             icon: RevericIcon(RevericIcons.close, color: colors.textSubtle),
             hoverColor: colors.hover,
           ),
@@ -354,6 +389,7 @@ class SettingsDialog extends HookConsumerWidget {
       'providers' => _AiProvidersSection(),
       'ai_agents' => const _AiAgentSettingsSection(),
       'remote' => _RemoteSettingsSection(),
+      'mcp' => const McpDesktopSettingsSection(),
       'usage' => _UsageSettingsSection(initialSessionId: initialUsageSessionId),
       'editor' => const _EditorSettingsSection(),
       'reading' => const _ReadingSettingsSection(),

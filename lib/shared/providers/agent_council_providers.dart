@@ -4,6 +4,7 @@
 //   lib/shared/models/agent_run_state.dart
 //   lib/shared/services/ai/agent_council_orchestrator.dart
 //   lib/shared/services/ai/council_session_codec.dart
+import 'mcp_providers.dart';
 import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -148,7 +149,9 @@ class AgentCouncilRuntime extends _$AgentCouncilRuntime {
       orchestrator?.cancel();
       orchestrator = AgentCouncilOrchestrator();
     }
-    return orchestrator ??= AgentCouncilOrchestrator();
+    final current = orchestrator ??= AgentCouncilOrchestrator();
+    current.mcpService = ref.read(mcpSettingsServiceProvider);
+    return current;
   }
 
   void setProcessing(bool processing, {bool notifyOnComplete = true}) {

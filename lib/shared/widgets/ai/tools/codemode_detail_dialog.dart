@@ -84,6 +84,16 @@ List<AiToolCallBlock> codemodeNestedBlocks(AiToolCallBlock block) => [
         AiNestedToolStatus.rejected => AiToolCallStatus.rejected,
       },
       targetPath: call.targetPath,
+      metadata: call.source == 'mcp'
+          ? {
+              'tool_source': 'mcp',
+              'mcp_server': call.server,
+              'mcp_tool': call.remoteToolName,
+              'execution_state': call.executionState,
+              'source_session_id': call.sourceSessionId,
+              'parent_call_id': call.parentCallId,
+            }
+          : null,
       result: codemodeRowResult(call),
     ),
 ];

@@ -34,14 +34,12 @@ class CodexClient implements ProviderClient {
   CodexClient({
     required this.model,
     Future<CodexCredentials> Function()? credentials,
-    String? Function()? sessionIdProvider,
+    this._sessionIdProvider,
     http.Client? httpClient,
-    http.Client Function()? streamHttpClientFactory,
+    this._streamHttpClientFactory,
   }) : _credentials =
            credentials ?? (() => CodexCredentials.load(client: httpClient)),
-       _sessionIdProvider = sessionIdProvider,
-       _httpClient = httpClient,
-       _streamHttpClientFactory = streamHttpClientFactory;
+       _httpClient = httpClient;
 
   final String model;
   final Future<CodexCredentials> Function() _credentials;

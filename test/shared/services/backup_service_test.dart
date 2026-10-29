@@ -18,6 +18,7 @@ import 'package:archive/archive_io.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reveric/shared/services/backup_service.dart';
+import 'package:reveric/shared/models/mcp/config.dart';
 import 'package:reveric/shared/utils/storage_paths.dart';
 import 'package:reveric/shared/services/director/storage.dart';
 import 'package:reveric/shared/database/type_converters.dart';
@@ -98,6 +99,56 @@ void main() {
     return File(p.join(outputDir.path, 'source.zip'))
       ..writeAsBytesSync(ZipEncoder().encode(archive));
   }
+
+  test('full restore disables MCP without rewriting credentials', () async {
+    final source = await Directory(p.join(tempRoot.path, 'source')).create();
+    final original = McpSettings([
+      McpServerConfig(
+        name: 'notes',
+        enabled: true,
+        connection: McpHttpConfig(
+          url: 'https://example.test/mcp',
+          bearerToken: '${source.path}/opaque-token',
+          headers: {'X-Key': '${source.path}/opaque-header'},
+        ),
+      ),
+    ]);
+    final sourceDb = _databases.writeMain(
+      p.join(source.path, 'reveric.sqlite'),
+    );
+    insertBackupRow(sourceDb, 'app_settings', {
+      'key': McpSettings.key,
+      'value': original.encode(),
+    });
+    sourceDb.close();
+    final current = _databases.writeMain(
+      p.join(appSupportDir.path, 'reveric.sqlite'),
+    );
+    current.close();
+    final result = await BackupService().restoreFromZip(
+      packSource(source).path,
+      mode: RestoreMode.fullReplacement,
+    );
+    expect(result.success, true, reason: '${result.failureReason}');
+    final restoredDb = sqlite3.open(
+      p.join(appSupportDir.path, 'reveric.sqlite'),
+    );
+    try {
+      final value =
+          restoredDb.select('SELECT value FROM app_settings WHERE key = ?', [
+                McpSettings.key,
+              ]).single['value']
+              as String;
+      final restored = McpSettings.decode(value).servers.single;
+      expect(restored.enabled, false);
+      expect(
+        restored.connection.toJson(),
+        original.servers.single.connection.toJson(),
+      );
+    } finally {
+      restoredDb.close();
+    }
+  });
 
   for (final parentName in [
     'Media.staging',

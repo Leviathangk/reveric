@@ -298,6 +298,7 @@ class AssistantTurnRunner {
             break;
           case AgentTextComplete(:final text):
             _log.info('AgentTextComplete chars=${text.length}');
+          case AgentToolCallProgress():
           case AgentToolCallDelta():
           case AgentToolCallComplete():
           case AgentToolCallIncomplete():

@@ -13,6 +13,9 @@
 //   lib/shared/models/agent_skill.dart
 
 import 'dart:async';
+import '../mcp/settings_service.dart';
+import 'mcp/agent_dispatcher.dart';
+import 'mcp/run_command_handler.dart';
 import 'dart:math';
 
 import '../../agent/agent.dart';
@@ -77,6 +80,7 @@ class SpawnAgentHandler {
     required this.resourcesResolver,
     required this.codemodeScheduler,
     this.codemodeRuntimeFactory,
+    this.mcpService,
     this.onRunFinished,
     this.hooks = const [],
     this.defaultAllowedToolNames = defaultSubAgentToolNames,
@@ -97,6 +101,7 @@ class SpawnAgentHandler {
   final SpawnAgentResourcesResolver resourcesResolver;
   final CodemodeScheduler codemodeScheduler;
   final FjsRuntime Function()? codemodeRuntimeFactory;
+  final McpSettingsService? mcpService;
   final void Function(SpawnAgentRun)? onRunFinished;
   final List<AgentHook> hooks;
   final List<String> Function() defaultAllowedToolNames;
@@ -342,14 +347,17 @@ class SpawnAgentHandler {
     late final Agent subAgent;
     final innerTools = execution._resources!.toolManager;
     bool codemodeAllowed() => allowed.contains(codemodeToolName);
-    final subTools = CodemodeToolDispatcher(
+    late final AgentToolDispatcher subTools;
+    McpAgentToolDispatcher? mcpTools;
+    final codemodeTools = CodemodeToolDispatcher(
       inner: innerTools,
       isAllowed: codemodeAllowed,
       runCodemode: (input, callId, context) => CodemodeOrchestrator().execute(
         input: input,
         context: context,
         parentToolCallId: callId,
-        tools: innerTools,
+        tools: subTools,
+        catalog: mcpTools?.catalog,
         runTool: (call, context) =>
             subAgent.runToolCall(call, context: context),
         onRecord: (record) =>
@@ -360,6 +368,19 @@ class SpawnAgentHandler {
         runtimeFactory: codemodeRuntimeFactory,
       ),
     );
+    final sharedMcp = mcpService;
+    if (sharedMcp != null) {
+      mcpTools = McpAgentToolDispatcher(
+        inner: codemodeTools,
+        runTools: innerTools as McpRunCommandHost,
+        service: sharedMcp,
+        sourceSessionId: subSessionId,
+        allowedBuiltins: () => allowed,
+        client: modelResolution.client,
+        isEnabled: () => true,
+      );
+    }
+    subTools = mcpTools ?? codemodeTools;
     subCtxMgr.summarizer = buildDefaultContextSummarizer(
       agentId: sub.id,
       systemPrompt: systemPrompt,

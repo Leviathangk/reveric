@@ -99,5 +99,6 @@
   "common.move_down": "Move down",
   "common.done": "Done",
   "common.generate": "Generate",
-  "common.clear": "Clear"
+  "common.clear": "Clear",
+  "common.open_link_failed": "Unable to open link."
 }

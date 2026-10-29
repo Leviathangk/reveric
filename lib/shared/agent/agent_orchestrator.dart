@@ -10,6 +10,7 @@ import '../models/ai_message_block.dart';
 import '../models/ai_run_failure.dart';
 import 'agent_run_state.dart';
 import 'agent.dart';
+import 'agent_tool_dispatcher.dart';
 import 'agent_event.dart';
 
 /// 为指定参与者构建对应的 [Agent](async,以便支持 per-participant 自定义模型)。
@@ -77,6 +78,8 @@ class AgentOrchestrator {
     required AgentRoundTaskBuilder<P> buildRoundTask,
     required AgentOutputParser<P, T> parseOutput,
     AgentRoundOutputCallback<P, T>? onAgentOutput,
+    ToolExecutionContext Function(P participant, int round)?
+    toolExecutionContext,
     void Function(P participant, int round)? onRoundBegin,
     void Function(P participant, int round, String text)? onTextDelta,
     void Function(P participant, int round, String thinking)? onThinkingDelta,
@@ -117,7 +120,10 @@ class AgentOrchestrator {
 
           String raw = '';
           try {
-            final stream = agent.process(task);
+            final stream = agent.process(
+              task,
+              toolExecutionContext: toolExecutionContext?.call(p, round),
+            );
             await for (final ev in stream) {
               switch (ev) {
                 case AgentTextDelta(:final text):
@@ -129,6 +135,7 @@ class AgentOrchestrator {
                   :final callId,
                   :final toolName,
                   :final arguments,
+                  :final metadata,
                 ):
                   onToolCall?.call(
                     p,
@@ -137,7 +144,25 @@ class AgentOrchestrator {
                       callId: callId,
                       toolName: toolName,
                       arguments: arguments,
+                      metadata: metadata,
                     ),
+                  );
+                case AgentToolCallProgress(
+                  :final callId,
+                  :final toolName,
+                  :final arguments,
+                  :final progress,
+                  :final metadata,
+                ):
+                  onToolCall?.call(
+                    p,
+                    round,
+                    agentToolCallStartBlock(
+                      callId: callId,
+                      toolName: toolName,
+                      arguments: arguments,
+                      metadata: metadata,
+                    ).copyWith(result: {'mcp_progress': progress}),
                   );
                 case AgentToolCallResult(
                   :final callId,

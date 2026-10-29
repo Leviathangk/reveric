@@ -71,6 +71,9 @@ class RevericSizes {
   /// 通用确认与简短表单弹窗的首选宽度；窄屏保留安全留白。
   static const double dialogWidth = 420;
 
+  /// MCP 编辑表单中分段选择的最大宽度；两三个短选项铺满整行会显得过宽。
+  static const double mcpEditorSegmentWidth = 320;
+
   /// 媒体预览弹窗中画面的最大宽高；画面按素材比例缩放，不加黑边。
   static const double mediaPreviewMaxWidth = 880;
   static const double mediaPreviewMaxHeight = 560;

@@ -312,7 +312,7 @@ abstract class ProviderClient {
 /// 使用方法：在 [provider_initializer.dart:54] 把 `FlakyDecorator` 包在
 /// `RetryDecorator` 内层即可激活。删除`FlakyDecorator`类和注入行即恢复。
 class FlakyDecorator implements ProviderClient {
-  FlakyDecorator({required ProviderClient inner}) : _inner = inner;
+  FlakyDecorator({required this._inner});
   final ProviderClient _inner;
   int _callCount = 0;
 
@@ -491,13 +491,13 @@ const Duration defaultNonStreamingRequestTimeout = Duration(minutes: 10);
 
 class RetryDecorator implements ProviderClient {
   RetryDecorator({
-    required ProviderClient inner,
+    required this._inner,
     this.maxRetries = 2,
     this.retryRateLimits = false,
     this.baseDelay = const Duration(milliseconds: 600),
     this.maxDelay = const Duration(seconds: 5),
     this.requestTimeout = defaultNonStreamingRequestTimeout,
-  }) : _inner = inner;
+  });
 
   final ProviderClient _inner;
   final int maxRetries;

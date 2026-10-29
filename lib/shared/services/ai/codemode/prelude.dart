@@ -35,7 +35,7 @@ String codemodePrelude(
     const error = new Error(code);
     error.error_code = code;
     if (details) {
-      for (const key of ['error', 'hint', 'recovery']) {
+      for (const key of ['error', 'hint', 'recovery', 'result']) {
         if (descriptor(details, key)) error[key] = details[key];
       }
     }
@@ -110,9 +110,14 @@ String codemodePrelude(
   const tools = new Proxy(freeze(toolFunctions), {
     get(target, name) {
       if (typeof name !== 'string') return undefined;
-      return target[name] || ((input) => request({kind: 'tool', tool: name, input: encode(input, $inputBytes, 'tool_input') ?? 'null'}));
+      return target[name] || ((input, options) => request({kind: 'tool', tool: name, input: encode(input, $inputBytes, 'tool_input') ?? 'null', options: encode(options ?? {}, $inputBytes, 'tool_input')}));
     },
   });
+  const discover = (method, input) => request({kind: 'discover', method, input: encode(input, $inputBytes, 'tool_input')});
+  const listMcpServers = (options = {}) => discover('listMcpServers', options);
+  const listTools = (options = {}) => discover('listTools', options);
+  const searchTool = (query, options = {}) => discover('searchTool', {...options, query});
+  const describeTool = (name) => discover('describeTool', {name});
   const text = (value) => {
     const json = encode(value, $outputBytes, 'output') ?? encode(String(value), $outputBytes, 'output');
     const delivery = request({kind: 'output', sequence: ++sequence, text: json});
@@ -121,8 +126,8 @@ String codemodePrelude(
     pendingOutput.push(delivery.catch((error) => { terminal ??= error.error_code; }));
   };
   try {
-    const run = new AsyncFunction('tools', 'text', ${jsonEncode(source)});
-    const value = await run(tools, text);
+    const run = new AsyncFunction('tools', 'text', 'listMcpServers', 'listTools', 'searchTool', 'describeTool', ${jsonEncode(source)});
+    const value = await run(tools, text, listMcpServers, listTools, searchTool, describeTool);
     const json = encode(value, $outputBytes, 'return_value');
     const hasReturn = json !== undefined;
     const result = hasReturn ? parse(json) : null;

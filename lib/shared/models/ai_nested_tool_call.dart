@@ -29,6 +29,12 @@ class AiNestedToolCall {
     this.hasMultipleWorkingChanges = false,
     this.effectStatus = AiToolEffectStatus.none,
     this.errorCode,
+    this.source = 'builtin',
+    this.server,
+    this.remoteToolName,
+    this.sourceSessionId,
+    this.parentCallId,
+    this.executionState,
   });
 
   final String callId;
@@ -44,6 +50,12 @@ class AiNestedToolCall {
   final bool hasMultipleWorkingChanges;
   final AiToolEffectStatus effectStatus;
   final String? errorCode;
+  final String source;
+  final String? server;
+  final String? remoteToolName;
+  final String? sourceSessionId;
+  final String? parentCallId;
+  final String? executionState;
 
   AiNestedToolCall copyWith({
     String? targetPath,
@@ -57,9 +69,16 @@ class AiNestedToolCall {
     bool? hasMultipleWorkingChanges,
     AiToolEffectStatus? effectStatus,
     String? errorCode,
+    String? executionState,
   }) => AiNestedToolCall(
     callId: callId,
     toolName: toolName,
+    source: source,
+    server: server,
+    remoteToolName: remoteToolName,
+    sourceSessionId: sourceSessionId,
+    parentCallId: parentCallId,
+    executionState: executionState ?? this.executionState,
     targetPath: targetPath ?? this.targetPath,
     argumentsPreview: argumentsPreview ?? this.argumentsPreview,
     resultPreview: resultPreview ?? this.resultPreview,

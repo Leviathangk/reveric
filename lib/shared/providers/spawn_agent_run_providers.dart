@@ -489,6 +489,7 @@ class SpawnAgentActiveRun extends _$SpawnAgentActiveRun {
         callId: final toolCallId,
         :final toolName,
         :final arguments,
+        :final metadata,
       ):
         _update(
           _ensureRun().withToolCall(
@@ -496,9 +497,27 @@ class SpawnAgentActiveRun extends _$SpawnAgentActiveRun {
               callId: toolCallId,
               toolName: toolName,
               arguments: arguments,
+              metadata: metadata,
             ),
           ),
           immediate: true,
+        );
+      case AgentToolCallProgress(
+        :final callId,
+        :final toolName,
+        :final arguments,
+        :final progress,
+        :final metadata,
+      ):
+        _update(
+          _ensureRun().withToolCall(
+            agentToolCallStartBlock(
+              callId: callId,
+              toolName: toolName,
+              arguments: arguments,
+              metadata: metadata,
+            ).copyWith(result: {'mcp_progress': progress}),
+          ),
         );
       case AgentToolCallResult(
         callId: final toolCallId,

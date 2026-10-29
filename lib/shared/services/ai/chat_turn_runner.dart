@@ -21,6 +21,8 @@
 //   assets/translations/en/ai.json
 //   assets/translations/zh-CN/ai.json
 import 'chat_attachments.dart';
+import '../../providers/mcp_providers.dart';
+import 'mcp/agent_dispatcher.dart';
 import 'package:reveric/shared/utils/ai_error.dart';
 import 'dart:async';
 import '../../providers/editing.dart';
@@ -100,7 +102,6 @@ import 'chat_turn_outcome.dart';
 import 'context_summarizer.dart';
 import 'usage_hook.dart';
 import 'prompts/ai_prompt_service.dart';
-import 'prompts/prompt_fragments.dart';
 import 'prompts/use_cases/chat_prompt_use_case.dart';
 import 'run_command_parser.dart';
 import 'spawn_agent_handler.dart';
@@ -230,6 +231,7 @@ void _syncRunToolCallBlock(
   required Map<String, dynamic> args,
   required int? requestId,
   String? thoughtSignature,
+  Map<String, dynamic>? metadata,
 }) {
   if (toolName != 'Run') {
     sessionNotifier.upsertToolCallBlock(
@@ -238,6 +240,7 @@ void _syncRunToolCallBlock(
         callId: callId,
         toolName: toolName,
         arguments: args,
+        metadata: metadata,
         requestId: requestId,
         status: AiToolCallStatus.running,
         thoughtSignature: thoughtSignature,
@@ -267,6 +270,7 @@ void _syncRunToolCallBlock(
       callId: callId,
       toolName: toolName,
       arguments: args,
+      metadata: metadata,
       requestId: requestId,
       status: AiToolCallStatus.running,
       thoughtSignature: thoughtSignature,
@@ -440,12 +444,6 @@ String _userFriendlyError(
     return tr(LocaleKeys.aiBadRequest);
   }
   return fallback;
-}
-
-bool _isComposerNoticeError(Object error, String message) {
-  return (error is AgentProcessException && error.failure.isPaymentRequired) ||
-      tryReadStatusCode(error) == 402 ||
-      message == tr(LocaleKeys.aiProviderPaymentRequired);
 }
 
 class _ChatSkillContext {
@@ -1622,7 +1620,9 @@ class ChatTurnRunner {
     final currentNovelDb = currentDatabasePath == null
         ? null
         : container.read(novelContentDatabaseProvider(currentDatabasePath));
+    final mcpService = container.read(mcpSettingsServiceProvider);
     final spawnAgentHandler = SpawnAgentHandler(
+      mcpService: mcpService,
       workContext: promptContext,
       availableSubAgents: availableSubAgents,
       availableSkills: skillContext.summaries,
@@ -1656,6 +1656,7 @@ class ChatTurnRunner {
     bool codemodeAllowed() =>
         container.read(aiChatSessionProvider(sessionId)).sessionMode ==
         AiSessionMode.chat;
+    late final McpAgentToolDispatcher mcpDispatcher;
     final chatToolDispatcher = ChatAgentToolDispatcher(
       inner: tm,
       codemodeAllowed: codemodeAllowed,
@@ -1663,7 +1664,8 @@ class ChatTurnRunner {
         input: input,
         context: context,
         parentToolCallId: callId,
-        tools: tm,
+        tools: mcpDispatcher,
+        catalog: mcpDispatcher.catalog,
         runTool: (call, context) =>
             runtime.agent!.runToolCall(call, context: context),
         onRecord: (record) => container
@@ -1692,6 +1694,15 @@ class ChatTurnRunner {
             background: background,
           ),
     );
+    mcpDispatcher = McpAgentToolDispatcher(
+      inner: chatToolDispatcher,
+      runTools: tm,
+      service: mcpService,
+      sourceSessionId: sessionId,
+      allowedBuiltins: () => runtime.agent?.allowedTools ?? tm.allToolNames(),
+      client: client.providerClient,
+      isEnabled: codemodeAllowed,
+    );
     final allowedTools = _resolveOrchestratorAllowedTools(
       chatToolDispatcher,
       mode,
@@ -1703,7 +1714,7 @@ class ChatTurnRunner {
       client: client.providerClient,
       providerId: client.providerId,
       config: client.agentConfig,
-      toolManager: chatToolDispatcher,
+      toolManager: mcpDispatcher,
       contextSupplement: () async => ctxMgr.contextSupplementMessages,
       hooks: _usageHooks(sessionId: sessionId, source: 'chat'),
     );
@@ -1714,7 +1725,7 @@ class ChatTurnRunner {
       client: client.providerClient,
       providerId: client.providerId,
       config: client.agentConfig,
-      toolManager: chatToolDispatcher,
+      toolManager: mcpDispatcher,
       contextManager: ctxMgr,
       allowedTools: allowedTools,
       // Todo 续跑 enabled: false：只上报结束时未完成 Todo 的快照，不追加续跑。
@@ -2285,9 +2296,10 @@ class ChatTurnRunner {
             :final toolName,
             :final arguments,
             :final thoughtSignature,
+            :final metadata,
           ):
             _log.info(
-              'requestId=$requestId AgentToolCallStart tool=$toolName callId=$callId',
+              'requestId=$requestId AgentToolCallStart tool=${toolName.startsWith('mcp__') ? 'MCP' : toolName} callId=$callId',
             );
             sessionNotifier.setWaitingForResponse(false);
             receivedVisibleBlock = true;
@@ -2298,10 +2310,16 @@ class ChatTurnRunner {
               callId: callId,
               toolName: toolName,
               args: arguments,
+              metadata: metadata,
               requestId: requestId,
               thoughtSignature: thoughtSignature != null
                   ? encodeBase64(thoughtSignature)
                   : null,
+            );
+          case AgentToolCallProgress(:final callId, :final progress):
+            sessionNotifier.patchToolCallByCallId(
+              callId,
+              result: {'mcp_progress': progress},
             );
           case AgentToolCallResult(
             :final callId,
@@ -2314,7 +2332,7 @@ class ChatTurnRunner {
             currentMessageHasVisibleBlock = true;
             currentMessageHasToolCall = true;
             _log.info(
-              'requestId=$requestId AgentToolCallResult tool=$toolName callId=$callId hasOutput=${output != null}',
+              'requestId=$requestId AgentToolCallResult tool=${toolName.startsWith('mcp__') ? 'MCP' : toolName} callId=$callId hasOutput=${output != null}',
             );
             if (toolName == codemodeToolName &&
                 sessionNotifier.findToolCallByCallId(callId)?.$2.requestId !=
@@ -2351,7 +2369,7 @@ class ChatTurnRunner {
             receivedVisibleBlock = true;
             currentMessageHasVisibleBlock = true;
             _log.info(
-              'requestId=$requestId AgentToolSkipped callId=$callId reason=$reason',
+              'requestId=$requestId AgentToolSkipped callId=$callId reason=${metadata?['tool_source'] == 'mcp' ? 'mcp_cancelled' : reason}',
             );
             final isCodemode = toolName == codemodeToolName;
             if (isCodemode &&
@@ -2363,8 +2381,12 @@ class ChatTurnRunner {
             sessionNotifier.patchToolCallByCallId(
               callId,
               status: AiToolCallStatus.cancelled,
-              result: isCodemode ? output : null,
-              metadata: isCodemode ? metadata : null,
+              result: isCodemode || metadata?['tool_source'] == 'mcp'
+                  ? output
+                  : null,
+              metadata: isCodemode || metadata?['tool_source'] == 'mcp'
+                  ? metadata
+                  : null,
               errorMessage: reason,
             );
             await finishUiAssistantRoundIfSettled('AgentToolSkipped');
@@ -2832,105 +2854,5 @@ class ChatTurnRunner {
       }
     }
     return '';
-  }
-
-  /// 跑 slash command（原 `_runSlashCommand`）。仅聊天面板使用；后台会话不走 slash。
-  Future<void> runSlashCommand(
-    AiClient aiService,
-    String input,
-    SubAgent agent, {
-    required int requestId,
-    required String? sessionId,
-  }) async {
-    final toolNotInitializedText = tr(LocaleKeys.aiToolNotInitialized);
-    final commandFailedText = tr(LocaleKeys.aiCommandFailed);
-    final sessionNotifier = container.read(
-      aiChatSessionProvider(sessionId).notifier,
-    );
-    sessionNotifier.startStreamingMessage(type: AiMessageType.text);
-    try {
-      final toolManager = aiService.toolManager;
-      if (toolManager == null) {
-        sessionNotifier.endStreamingMessage();
-        sessionNotifier.addAssistantMessage(toolNotInitializedText);
-        return;
-      }
-      if (toolManager.workId != promptContext.workId ||
-          toolManager.contentKind != promptContext.contentKind) {
-        throw StateError(
-          'Slash command work context does not match tool scope.',
-        );
-      }
-      final prompt = aiPromptService.agent.buildSubAgentPrompt(
-        agent,
-        input,
-        agentProfile: null,
-        context: promptContext,
-      );
-      final skillContext = await _loadCurrentSkillContext(
-        promptContext.contentKind,
-      );
-      toolManager.skillLoader = skillContext.loader;
-      toolManager.skillNamesProvider = () =>
-          skillContext.summaries.map((skill) => skill.name).toList();
-      final configured = defaultSubAgentToolNames();
-      const alwaysExcluded = {'SpawnAgent', 'ForkAgent'};
-      final allowed = configured
-          .where((n) => !alwaysExcluded.contains(n))
-          .toList();
-      // Slash 子代理同样有工具：补齐 pathSchema 与工具使用准则，与 SpawnAgent 行为一致。
-      final slashSystemPrompt = [
-        aiPromptService.agent.renderPromptTemplate(
-          agent.prompt,
-          context: promptContext,
-        ),
-        PromptFragments.workContext(promptContext),
-        if (allowed.isNotEmpty) ...[
-          PromptFragments.pathSchemaBlock(kind: promptContext.contentKind),
-          PromptFragments.toolUseGuidelines(),
-        ],
-        PromptFragments.userRulesSection(promptContext.userRules),
-        PromptFragments.availableSkills(skillContext.summaries),
-      ].where((section) => section.isNotEmpty).join('\n\n');
-      final subAgent = Agent.custom(
-        id: agent.id,
-        systemPrompt: slashSystemPrompt,
-        client: aiService.providerClient,
-        providerId: aiService.providerId,
-        config: aiService.agentConfig,
-        toolManager: toolManager,
-        allowedTools: allowed,
-        hooks: [
-          ..._usageHooks(sessionId: sessionId, source: 'chat'),
-          ..._traceHooks(sessionId: sessionId),
-        ],
-      );
-      final result = await subAgent.processText(prompt);
-      if (container
-          .read(aiChatRuntimeProvider(sessionId).notifier)
-          .cancelledRequestIds
-          .contains(requestId)) {
-        sessionNotifier.endStreamingMessage();
-        return;
-      }
-      sessionNotifier.updateStreamingMessage(result);
-      sessionNotifier.endStreamingMessage();
-    } catch (error) {
-      _log.error('command error: $error', error: error);
-      sessionNotifier.endStreamingMessage();
-      final friendlyError = _userFriendlyError(
-        error,
-        fallback: commandFailedText,
-        providerId: aiService.providerId,
-      );
-      if (_isComposerNoticeError(error, friendlyError)) {
-        onComposerWarning?.call(friendlyError);
-        sessionNotifier.removeLastAssistantMessageIfInvisible(
-          removableText: friendlyError,
-        );
-        return;
-      }
-      sessionNotifier.addAssistantMessage(friendlyError);
-    }
   }
 }

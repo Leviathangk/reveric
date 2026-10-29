@@ -74,7 +74,7 @@ final class SpawnAgentActiveRunProvider
 }
 
 String _$spawnAgentActiveRunHash() =>
-    r'8184ebd04afcf243198d326887c3659e09e4f24a';
+    r'27bc36161b9d899086fb2d9457b9d0533ee0fbae';
 
 /// 一次 SpawnAgent 调用期间子 Agent 的实时运行状态，key 为父会话里的 tool callId。
 ///

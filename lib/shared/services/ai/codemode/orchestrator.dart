@@ -14,6 +14,9 @@ import '../../../models/ai_nested_tool_call.dart';
 import '../../../utils/random_id.dart';
 import '../tool_error_normalize.dart';
 import '../tool_result_payloads.dart';
+import '../tool_catalog.dart';
+import '../../../models/mcp/call_result.dart';
+import '../../mcp/result_adapter.dart';
 import 'runtime.dart';
 import 'scheduler.dart';
 import 'tool.dart';
@@ -29,6 +32,7 @@ class CodemodeOrchestrator {
     required CodemodeScheduler scheduler,
     required bool Function() isAllowed,
     required Iterable<String> Function() allowedToolNames,
+    AgentToolCatalog? catalog,
     FjsRuntime Function()? runtimeFactory,
     CodemodeRuntimeLimits limits = const CodemodeRuntimeLimits(),
   }) async {
@@ -61,11 +65,13 @@ class CodemodeOrchestrator {
     CodemodeRuntimeResult? runtimeResult;
     String? admissionError;
 
+    bool external(String name) => catalog != null && name.startsWith('mcp__');
     bool permitted(String name) =>
         isAllowed() &&
-        codemodeToolNames.contains(name) &&
-        allowedToolNames().contains(name) &&
-        tools.allToolNames().contains(name);
+        (external(name) ||
+            (codemodeToolNames.contains(name) &&
+                allowedToolNames().contains(name) &&
+                tools.allToolNames().contains(name)));
 
     void publish(_Operation operation) {
       if (sealed) {
@@ -79,8 +85,15 @@ class CodemodeOrchestrator {
         AiNestedToolCall(
           callId: buildRandomId('tool'),
           toolName: name,
+          source: external(name) ? 'mcp' : 'builtin',
+          server: catalog?.runtime.knownTools[name]?.server,
+          remoteToolName: catalog?.runtime.knownTools[name]?.rawName,
+          sourceSessionId: external(name)
+              ? context.sessionId ?? sourceSessionId
+              : sourceSessionId,
+          parentCallId: parentToolCallId,
           argumentsPreview: jsonEncode(args),
-          targetPath: args['path'] is String
+          targetPath: !external(name) && args['path'] is String
               ? (args['path'] as String).trim().replaceFirst(RegExp(r'^/+'), '')
               : null,
         ),
@@ -136,7 +149,8 @@ class CodemodeOrchestrator {
                 ),
                 // 等待已进入的写入和 Run 收口，避免取消竞速丢失提交结果或后台回执。
                 waitOnCancel: () =>
-                    operation.entered && (operation.write || name == 'Run'),
+                    operation.entered &&
+                    (operation.write || name == 'Run' || external(name)),
                 context: ToolExecutionContext(
                   sessionId: context.sessionId,
                   operationOwnerSessionId: context.operationOwnerSessionId,
@@ -147,6 +161,15 @@ class CodemodeOrchestrator {
                   cancellationToken: scope.token,
                   parentToolCallId: parentToolCallId,
                   lifecycleObserver: ToolLifecycleObserver(
+                    onProgress: (progress) {
+                      if (operation.finished) {
+                        return;
+                      }
+                      operation.record = operation.record.copyWith(
+                        resultPreview: jsonEncode({'mcp_progress': progress}),
+                      );
+                      publish(operation);
+                    },
                     onStarted: (preview) {
                       if (name == 'Run') {
                         if (preview?['codemode_effect_started'] is bool) {
@@ -188,7 +211,9 @@ class CodemodeOrchestrator {
                       publish(operation);
                     },
                     onFinished: (raw, error) {
-                      if ((operation.write || name == 'Run') &&
+                      if ((operation.write ||
+                              name == 'Run' ||
+                              external(name)) &&
                           !operation.finished) {
                         operation.rawResult = raw;
                       }
@@ -206,7 +231,7 @@ class CodemodeOrchestrator {
             }
             // 取消竞速返回的 payload 不能抹掉写入真实返回的事实。
             final business =
-                (operation.write || name == 'Run') &&
+                (operation.write || name == 'Run' || external(name)) &&
                     operation.rawResult != null
                 ? operation.rawResult!
                 : result;
@@ -309,6 +334,14 @@ class CodemodeOrchestrator {
                 publish(prior);
               }
             }
+            final externalCall = external(name);
+            final preview = externalCall && business['executionState'] is String
+                ? McpResultAdapter.limit(
+                    McpCallResult.fromJson(business),
+                    McpResultAdapter.modelBudget,
+                    issue: 'output_budget_exceeded',
+                  ).toJson()
+                : (Map<String, dynamic>.from(business)..remove('_metadata'));
             operation.finished = true;
             operation.record = operation.record.copyWith(
               status: business['cancelled'] == true
@@ -316,12 +349,19 @@ class CodemodeOrchestrator {
                   : success
                   ? AiNestedToolStatus.success
                   : AiNestedToolStatus.error,
-              effectStatus: operation.uncertain
+              executionState: externalCall
+                  ? business['executionState'] as String?
+                  : null,
+              effectStatus: externalCall
+                  ? (business['executionState'] == 'not_started'
+                        ? AiToolEffectStatus.none
+                        : AiToolEffectStatus.unknown)
+                  : operation.uncertain
                   ? AiToolEffectStatus.unknown
                   : operation.confirmed
                   ? AiToolEffectStatus.confirmed
                   : AiToolEffectStatus.none,
-              resultPreview: jsonEncode(business),
+              resultPreview: jsonEncode(preview),
               errorCode: business['error_code'] is String
                   ? business['error_code'] as String
                   : null,
@@ -379,6 +419,35 @@ class CodemodeOrchestrator {
         code: source,
         tools: contracts,
         executeTool: enqueue,
+        isDynamicTool: external,
+        discover: catalog == null
+            ? null
+            : (method, args) async {
+                final Map<String, dynamic> result;
+                switch (method) {
+                  case 'listMcpServers':
+                    result = catalog.listMcpServers(
+                      cursor: args['cursor'] as String?,
+                    );
+                  case 'listTools':
+                    result = await catalog.listTools(
+                      mcpServer: args['mcpServer'] as String?,
+                      cursor: args['cursor'] as String?,
+                    );
+                  case 'searchTool':
+                    result = await catalog.searchTool(
+                      args['query'] as String,
+                      mcpServer: args['mcpServer'] as String?,
+                      source: args['source'] as String?,
+                      limit: args['limit'] as int? ?? 8,
+                    );
+                  case 'describeTool':
+                    result = await catalog.describeTool(args['name'] as String);
+                  default:
+                    throw ArgumentError('Unknown discovery method');
+                }
+                return result;
+              },
         limits: limits,
         cancellationToken: scope.token,
         cancellationErrorCode: () => scope.errorCode ?? 'user_cancelled',

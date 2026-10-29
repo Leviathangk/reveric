@@ -12,15 +12,19 @@ AiToolCallBlock agentToolCallStartBlock({
   required String callId,
   required String toolName,
   required Map<String, dynamic> arguments,
+  Map<String, dynamic>? metadata,
 }) {
   return AiToolCallBlock(
     id: 'block_$callId',
     callId: callId,
     toolName: toolName,
     arguments: arguments,
+    metadata: metadata,
     status: AiToolCallStatus.running,
-    targetPath:
-        (arguments['path'] as String?) ?? (arguments['targetPath'] as String?),
+    targetPath: metadata?['tool_source'] == 'mcp'
+        ? null
+        : (arguments['path'] as String?) ??
+              (arguments['targetPath'] as String?),
   );
 }
 

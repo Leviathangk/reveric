@@ -7,6 +7,9 @@
 //   lib/shared/services/ai/chat.dart
 //   lib/shared/providers/agent_council_providers.dart
 import 'dart:async';
+import '../mcp/settings_service.dart';
+import 'mcp/agent_dispatcher.dart';
+import '../../agent/agent_tool_dispatcher.dart';
 import 'dart:math';
 
 import '../../logger/app_logger.dart';
@@ -68,6 +71,8 @@ final _log = AppLogger.forModule('AgentCouncil');
 const _titleTimeout = Duration(seconds: 20);
 
 class AgentCouncilOrchestrator {
+  McpSettingsService? mcpService;
+
   /// 由运行资源提供独立标题客户端；不捕获 UI，也不借用正文的租约。
   Future<String> Function(Future<String> Function(AiClient))? titleClientRunner;
 
@@ -357,6 +362,7 @@ class AgentCouncilOrchestrator {
     final runAgents = <String, Agent>{};
     // 对话里已带着前文的成员：本轮任务只需给他上次发言之后的新内容。
     final remembers = <String>{};
+    final sharedMcp = mcpService;
 
     Future<Agent> buildAgent(CouncilParticipant p) async {
       final svc =
@@ -393,7 +399,18 @@ class AgentCouncilOrchestrator {
         client: subClient ?? svc.providerClient,
         providerId: svc.providerId,
         config: svc.agentConfig,
-        toolManager: tm,
+        toolManager: sharedMcp == null
+            ? tm
+            : McpAgentToolDispatcher(
+                inner: tm,
+                runTools: tm,
+                service: sharedMcp,
+                sourceSessionId: session.id,
+                allowedBuiltins: () => _councilToolNames(svc) ?? const [],
+                client: subClient ?? svc.providerClient,
+                isEnabled: () => true,
+                mcpOnlyRun: true,
+              ),
         allowedTools: _councilToolNames(svc),
         // 沿用上一轮的上下文（含已读到的工具结果）；首轮为空。
         initialMessages: _transcriptsByParticipantId[p.id],
@@ -421,6 +438,13 @@ class AgentCouncilOrchestrator {
       await orchestrator.runRounds<CouncilParticipant, CouncilMessage>(
         participants: participants,
         buildAgent: buildAgent,
+        toolExecutionContext: (p, _) => ToolExecutionContext(
+          sessionId: buildTraceSubSessionId(
+            parentSessionId: session.id,
+            participantId: p.id,
+          ),
+          sourceSessionId: session.id,
+        ),
         maxRounds: maxRounds,
         startRound: startRound,
         stopOnAgentError: true,

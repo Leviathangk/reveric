@@ -22,6 +22,12 @@ import 'package:reveric/shared/services/novel_actions.dart';
 import 'package:reveric/shared/services/novel_content.dart';
 import 'package:reveric/shared/services/working_overlay.dart';
 
+import 'package:reveric/shared/agent/message.dart';
+import 'package:reveric/shared/agent/client/trace_headers_http_client.dart';
+import 'package:reveric/shared/models/mcp/config.dart';
+import 'package:reveric/shared/services/mcp/settings_service.dart';
+import '../../services/mcp/execution_test.dart' show ExecutionConnection;
+
 const _context = AiSessionContext(workId: 'novel', contentKind: 'novel');
 
 class _CouncilAiClient extends AiClient {
@@ -128,6 +134,97 @@ void main() {
     for (final r in session.rounds)
       for (final m in r.messages) m.participantName,
   ];
+
+  for (final failing in [false, true]) {
+    test(
+      'council shares MCP state with participant attribution failing=$failing',
+      () async {
+        await appDb.appSettingsDao.set(
+          key: McpSettings.key,
+          value: McpSettings([
+            McpServerConfig(
+              name: 'notes',
+              enabled: true,
+              exposure: McpExposure.direct,
+              connection: McpHttpConfig(url: 'https://example.test'),
+            ),
+          ]).encode(),
+        );
+        var attempts = 0;
+        final connection = ExecutionConnection();
+        final service = McpSettingsService(
+          appDb,
+          supportsStdio: true,
+          connector: (_) async {
+            attempts++;
+            if (failing) {
+              throw StateError('connection refused');
+            }
+            return connection;
+          },
+        );
+        addTearDown(service.close);
+        final fake = FakeProviderClient(
+          responses: [
+            for (final member in [_alice, _bob]) ...[
+              FakeProviderClientResponse.toolCalls([
+                ToolCall(
+                  callId: member.id,
+                  toolName: 'Run',
+                  arguments: {
+                    'command': 'mcp',
+                    'subcommand': 'call',
+                    'options': {
+                      'name': 'mcp__notes__write',
+                      'arguments': {'number': 1},
+                    },
+                  },
+                ),
+              ]),
+              FakeProviderClientResponse.text('${member.name} done'),
+            ],
+          ],
+        );
+        final records = <String, Map<String, dynamic>>{};
+        final sources = <String, String?>{};
+        final orchestrator = AgentCouncilOrchestrator()..mcpService = service;
+        await orchestrator.startDiscussion(
+          novelId: 'novel',
+          sessionId: 'shared-council',
+          context: _context,
+          topic: 'discuss',
+          participants: [_alice, _bob],
+          aiService: _CouncilAiClient(fake, toolManager),
+          config: const AgentCouncilConfig(maxRounds: 1, autoSummarize: false),
+          onToolCall: (member, _, block) {
+            if (block.result != null) {
+              records[member] = block.result!;
+              sources[member] = block.metadata?['source_session_id'] as String?;
+            }
+          },
+        );
+        expect(attempts, 1);
+        expect(connection.calls, failing ? 0 : 2);
+        expect(toolManager.mcpRunHandler!.sourceSessionId, 'shared-council');
+        expect(
+          toolManager.mcpRunHandler!.catalog.session,
+          same(service.session('shared-council')),
+        );
+        expect(records.keys, unorderedEquals(['alice', 'bob']));
+        for (final member in [_alice, _bob]) {
+          final result = records[member.id]!;
+          expect(result['ok'], !failing);
+          expect(
+            sources[member.id],
+            buildTraceSubSessionId(
+              parentSessionId: 'shared-council',
+              participantId: member.id,
+            ),
+          );
+        }
+      },
+    );
+  }
 
   test('a member named at the end of a turn speaks next, tag hidden', () async {
     final fake = client(

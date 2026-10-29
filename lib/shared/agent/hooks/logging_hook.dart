@@ -41,7 +41,7 @@ class LoggingHook extends AgentHook {
     BeforeToolCallContext ctx,
   ) {
     AppLogger.debug(
-      '[$tag] tool start name=${ctx.call.toolName} callId=${ctx.call.callId}',
+      '[$tag] tool start name=${ctx.source == AgentToolSource.mcp ? 'MCP' : ctx.call.toolName} callId=${ctx.call.callId}',
     );
     return const HookAction.proceed();
   }
@@ -52,7 +52,7 @@ class LoggingHook extends AgentHook {
   ) {
     final ok = toolResultIsSuccess(ctx.result);
     AppLogger.debug(
-      '[$tag] tool result name=${ctx.call.toolName} callId=${ctx.call.callId} '
+      '[$tag] tool result name=${ctx.source == AgentToolSource.mcp ? 'MCP' : ctx.call.toolName} callId=${ctx.call.callId} '
       'ok=$ok keys=${ctx.result.keys.join(',')}',
     );
     return const HookAction.proceed();

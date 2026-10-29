@@ -19,7 +19,7 @@ class CodemodeRuntimeLimits {
     this.sourceBytes = 64 * 1024,
     this.heapBytes = 64 * 1024 * 1024,
     this.stackBytes = 1024 * 1024,
-    this.executionTime = const Duration(seconds: 120),
+    this.executionTime = const Duration(seconds: 180),
     this.inputBytes = 256 * 1024,
     this.outputBytes = 128 * 1024,
     this.outputFrames = 1024,
@@ -146,6 +146,12 @@ class FjsRuntime {
       Map<String, dynamic> input,
     )
     executeTool,
+    Future<Map<String, dynamic>> Function(
+      String method,
+      Map<String, dynamic> input,
+    )?
+    discover,
+    bool Function(String name)? isDynamicTool,
     AgentCancellationToken? cancellationToken,
     String Function()? cancellationErrorCode,
     void Function(String? errorCode)? onTerminate,
@@ -317,14 +323,57 @@ class FjsRuntime {
           stage = 'script';
           return reply({'ok': true, 'result': null});
         }
+        if (kind == 'discover' && discover != null) {
+          if (!_hasKeys(message, {'kind', 'method', 'input'}) ||
+              message['method'] is! String ||
+              message['input'] is! String) {
+            return terminate('codemode_invalid_input');
+          }
+          final encoded = message['input'] as String;
+          if (utf8.encode(encoded).length > limits.inputBytes) {
+            return terminate('codemode_resource_limit');
+          }
+          final arguments = jsonDecode(encoded);
+          if (arguments is! Map<String, dynamic>) {
+            return terminate('codemode_invalid_input');
+          }
+          try {
+            final result = await discover(
+              message['method'] as String,
+              arguments,
+            );
+            if (utf8.encode(jsonEncode(result)).length > 512 * 1024) {
+              return reply({
+                'ok': false,
+                'error_code': 'mcp_definition_too_large',
+                'error': 'Discovery result exceeds bridge budget.',
+              });
+            }
+            return reply({'ok': true, 'result': result});
+          } catch (error) {
+            return reply({
+              'ok': false,
+              'error_code': 'mcp_discovery_error',
+              'error': error.toString(),
+            });
+          }
+        }
         if (kind != 'tool') {
           return terminate('codemode_tool_forbidden');
         }
         stage = 'tool_input';
         calls++;
-        if (!_hasKeys(message, {'kind', 'tool', 'input'}) ||
+        final dynamicTool =
+            message['tool'] is String &&
+            isDynamicTool?.call(message['tool'] as String) == true;
+        if (!_hasKeys(message, {
+              'kind',
+              'tool',
+              'input',
+              if (dynamicTool) 'options',
+            }) ||
             message['tool'] is! String ||
-            !allowed.contains(message['tool'])) {
+            (!dynamicTool && !allowed.contains(message['tool']))) {
           failed++;
           return terminate('codemode_tool_forbidden');
         }
@@ -357,6 +406,12 @@ class FjsRuntime {
         pendingToolCalls++;
         late Map<String, dynamic> result;
         try {
+          if (dynamicTool) {
+            final options = jsonDecode(message['options'] as String);
+            if (options is! Map<String, dynamic> || options.isNotEmpty) {
+              return reject('codemode_invalid_input');
+            }
+          }
           result = await executeTool(message['tool'] as String, decoded);
         } finally {
           pendingToolCalls--;
@@ -379,8 +434,9 @@ class FjsRuntime {
             'error_code': error is String ? error : 'tool_failed',
             if (public && result['error'] is String) 'error': result['error'],
             if (public && result['hint'] is String) 'hint': result['hint'],
-            if (public && result['recovery'] is Map)
+            if (public && result['recovery'] != null)
               'recovery': result['recovery'],
+            if (dynamicTool) 'result': result,
           });
         }
         completed++;

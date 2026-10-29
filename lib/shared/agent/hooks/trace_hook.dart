@@ -44,18 +44,13 @@ class TraceHook extends AgentHook {
   _TraceTurnOutcome _turnOutcome = _TraceTurnOutcome.unknown;
 
   TraceHook({
-    required TraceReporterService reporter,
-    required String? Function() sessionId,
-    required String? Function() model,
-    String? Function()? providerId,
-    required String Function() sessionMode,
-    String? Function()? cancelSource,
-  }) : _reporter = reporter,
-       _sessionId = sessionId,
-       _model = model,
-       _providerId = providerId,
-       _sessionMode = sessionMode,
-       _cancelSource = cancelSource;
+    required this._reporter,
+    required this._sessionId,
+    required this._model,
+    this._providerId,
+    required this._sessionMode,
+    this._cancelSource,
+  });
 
   TraceHook copyWith({
     String? Function()? sessionId,
@@ -133,6 +128,27 @@ class TraceHook extends AgentHook {
     }
     final model = _model();
     final sessionMode = _sessionMode();
+    if (ctx.source == AgentToolSource.mcp) {
+      if (sid != null && model != null) {
+        final code = ctx.result['error_code'];
+        await _reporter.onToolCallError(
+          sid,
+          model,
+          'MCP',
+          sessionMode: sessionMode,
+          providerId: _providerId?.call(),
+          result: {
+            'ok': false,
+            'error_code':
+                code is String && RegExp(r'^mcp_[a-z_]+$').hasMatch(code)
+                ? code
+                : 'mcp_error',
+          },
+          toolInput: const {},
+        );
+      }
+      return const HookAction.proceed();
+    }
     _log.debug(
       'afterToolCall failed tool=${ctx.call.toolName} '
       'code=${ctx.result['error_code']} collection=${ctx.result['collection']}',

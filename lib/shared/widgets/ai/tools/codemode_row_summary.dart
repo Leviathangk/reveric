@@ -32,7 +32,14 @@ Map<String, dynamic> codemodeRowArguments(AiNestedToolCall call) {
 }
 
 Map<String, dynamic>? codemodeRowResult(AiNestedToolCall call) =>
-    call.toolName == 'Replace'
+    call.source == 'mcp'
+    ? _select(call.resultPreview, const {
+        'mcp_progress',
+        'executionState',
+        'contentComplete',
+        'ok',
+      })
+    : call.toolName == 'Replace'
     ? _select(call.resultPreview, const {'matched_fields', 'applied_fields'})
     : null;
 
@@ -76,7 +83,9 @@ class _SummaryReader {
       final key = jsonDecode(source.substring(start, offset)) as String;
       _expect(58);
       _whitespace();
-      if (keys.contains(key) && key == 'fields' && _at(123)) {
+      if (keys.contains(key) && key == 'mcp_progress' && _at(123)) {
+        result[key] = _object(const {'progress', 'total', 'message'});
+      } else if (keys.contains(key) && key == 'fields' && _at(123)) {
         result[key] = _object(const {
           'title',
           'name',

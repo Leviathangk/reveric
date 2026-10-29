@@ -770,6 +770,12 @@ class _Runtime extends FjsRuntime {
     required List<ToolDef> tools,
     required Future<Map<String, dynamic>> Function(String, Map<String, dynamic>)
     executeTool,
+    Future<Map<String, dynamic>> Function(
+      String method,
+      Map<String, dynamic> input,
+    )?
+    discover,
+    bool Function(String name)? isDynamicTool,
     AgentCancellationToken? cancellationToken,
     String Function()? cancellationErrorCode,
     void Function(String?)? onTerminate,

@@ -15,7 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reveric/shared/database/app_database.dart' show AppDatabase;
 import 'package:reveric/shared/localization/merging_asset_loader.dart';
-import 'package:reveric/shared/models/ai_provider.dart';
 import 'package:reveric/shared/providers/settings_providers.dart';
 import 'package:reveric/shared/theme/theme.dart';
 import 'package:reveric/shared/widgets/settings/appearance_settings_section.dart';
@@ -28,53 +27,58 @@ void main() {
   });
   setUp(() => rootBundle.clear());
 
-  testWidgets('appearance section switches ui text scale presets immediately', (
-    tester,
-  ) async {
-    await tester.binding.setSurfaceSize(const Size(800, 1400));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    final db = AppDatabase.forTest(NativeDatabase.memory());
-    final container = ProviderContainer(
-      overrides: [appSettingsDatabaseProvider.overrideWithValue(db)],
-    );
-    addTearDown(() async {
-      container.dispose();
-      await db.close();
-    });
-    await tester.runAsync(() => container.read(appSettingsProvider.future));
-    final themeData = container
-        .read(appSettingsProvider)
-        .requireValue
-        .themeData;
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: EasyLocalization(
-          supportedLocales: const [Locale('en')],
-          startLocale: const Locale('en'),
-          path: 'assets/translations',
-          assetLoader: const MergingAssetLoader(),
-          child: Builder(
-            builder: (context) => MaterialApp(
-              localizationsDelegates: context.localizationDelegates,
-              supportedLocales: context.supportedLocales,
-              locale: context.locale,
-              home: RevericTheme(
-                data: themeData,
-                child: const Scaffold(body: AppearanceSettingsSection()),
+  testWidgets(
+    'appearance section switches ui text scale presets immediately',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final db = AppDatabase.forTest(NativeDatabase.memory());
+      final container = ProviderContainer(
+        overrides: [appSettingsDatabaseProvider.overrideWithValue(db)],
+      );
+      addTearDown(() async {
+        container.dispose();
+        await db.close();
+      });
+      await tester.runAsync(() => container.read(appSettingsProvider.future));
+      final themeData = container
+          .read(appSettingsProvider)
+          .requireValue
+          .themeData;
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: EasyLocalization(
+            supportedLocales: const [Locale('en')],
+            startLocale: const Locale('en'),
+            path: 'assets/translations',
+            assetLoader: const MergingAssetLoader(),
+            child: Builder(
+              builder: (context) => MaterialApp(
+                localizationsDelegates: context.localizationDelegates,
+                supportedLocales: context.supportedLocales,
+                locale: context.locale,
+                home: RevericTheme(
+                  data: themeData,
+                  child: const Scaffold(body: AppearanceSettingsSection()),
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    expect(container.read(appSettingsProvider).requireValue.uiTextScale, 1.0);
-    await tester.ensureVisible(find.text('Large'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Large'));
-    await tester.pumpAndSettle();
-    expect(container.read(appSettingsProvider).requireValue.uiTextScale, 1.15);
-  }, timeout: const Timeout(Duration(minutes: 2)));
+      expect(container.read(appSettingsProvider).requireValue.uiTextScale, 1.0);
+      await tester.ensureVisible(find.text('Large'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Large'));
+      await tester.pumpAndSettle();
+      expect(
+        container.read(appSettingsProvider).requireValue.uiTextScale,
+        1.15,
+      );
+    },
+    timeout: const Timeout(Duration(minutes: 2)),
+  );
 }

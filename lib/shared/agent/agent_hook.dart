@@ -86,16 +86,27 @@ class BeforeLLMContext {
 }
 
 /// Tool 执行前的上下文——供 hook 跳过或替换参数。
+enum AgentToolSource { builtin, mcp }
+
 class BeforeToolCallContext {
   final ToolCall call;
-  const BeforeToolCallContext(this.call);
+  final AgentToolSource source;
+  const BeforeToolCallContext(
+    this.call, {
+    this.source = AgentToolSource.builtin,
+  });
 }
 
 /// Tool 执行后的上下文——供 hook 修改结果。
 class AfterToolCallContext {
   final ToolCall call;
   final Map<String, dynamic> result;
-  const AfterToolCallContext({required this.call, required this.result});
+  final AgentToolSource source;
+  const AfterToolCallContext({
+    required this.call,
+    required this.result,
+    this.source = AgentToolSource.builtin,
+  });
 }
 
 /// 每轮结束后的只读上下文。
@@ -125,8 +136,8 @@ class BeforeDoneContext {
   const BeforeDoneContext({
     required this.finalText,
     required this.currentMessages,
-    required void Function(AgentMessage message) followUp,
-  }) : _followUp = followUp;
+    required this._followUp,
+  });
 
   void followUp(AgentMessage message) {
     _followUp(message);

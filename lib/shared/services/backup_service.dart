@@ -19,6 +19,7 @@ import 'package:sqlite3/sqlite3.dart';
 
 import 'production/backup_media.dart';
 import '../logger/app_logger.dart';
+import '../models/mcp/config.dart';
 import '../utils/storage_paths.dart';
 import '../utils/windows_safe_path.dart';
 
@@ -697,6 +698,7 @@ Future<void> _replaceAllBackupEntries({
         );
       }
     }
+    _disableRestoredMcpServers(p.join(appSupportDir.path, 'reveric.sqlite'));
     await ledger.discard();
   } catch (error, stackTrace) {
     AppLogger.error(
@@ -715,6 +717,46 @@ Future<void> _replaceAllBackupEntries({
       throw _RestoreApplyFailure(error, rollbackFailed: true);
     }
     throw _RestoreApplyFailure(error);
+  }
+}
+
+void _disableRestoredMcpServers(String databasePath) {
+  final database = sqlite3.open(databasePath);
+  String? rawConfiguration;
+  try {
+    final table = database.select(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='app_settings'",
+    );
+    if (table.isEmpty) {
+      return;
+    }
+    final rows = database.select(
+      'SELECT value FROM app_settings WHERE key = ?',
+      [McpSettings.key],
+    );
+    if (rows.isEmpty) {
+      return;
+    }
+    rawConfiguration = rows.single['value'] as String;
+    final restored = McpSettings.decode(rawConfiguration).disabledForRestore();
+    database.execute('UPDATE app_settings SET value = ? WHERE key = ?', [
+      restored.encode(),
+      McpSettings.key,
+    ]);
+  } catch (error, stackTrace) {
+    AppLogger.error(
+      '[DB] app_settings UPDATE id=mcp_servers during restore failed',
+      error: rawConfiguration == null
+          ? error.toString()
+          : error.toString().replaceAll(
+              rawConfiguration,
+              '[MCP configuration]',
+            ),
+      stackTrace: stackTrace,
+    );
+    rethrow;
+  } finally {
+    database.close();
   }
 }
 

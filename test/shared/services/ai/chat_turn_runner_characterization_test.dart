@@ -1,4 +1,4 @@
-// 职责: 验证聊天执行、技能作用域及子任务完成通知的模型输入、持久化和写入归属。
+// 职责: 验证聊天执行及子任务完成通知的模型输入、持久化和写入归属。
 // 关联文件:
 //   lib/shared/services/ai/chat_turn_runner.dart
 //   lib/shared/services/ai/chat.dart
@@ -7,7 +7,6 @@
 //   lib/shared/agent/agent_context_manager.dart
 //   lib/shared/providers/ai_providers.dart
 //   lib/shared/models/queued_chat_message.dart
-//   lib/shared/providers/novel_agent_skill_providers.dart
 //   lib/shared/providers/novel_providers.dart
 //   lib/shared/providers/settings_providers.dart
 // 遵循的 Rules:
@@ -34,16 +33,13 @@ import 'package:reveric/shared/database/novel_content_database.dart';
 import 'package:reveric/shared/models/ai_chat_models.dart';
 import 'package:reveric/shared/models/ai_provider.dart';
 import 'package:reveric/shared/models/content_kind.dart';
-import 'package:reveric/shared/models/novel_agent_skill.dart';
 import 'package:reveric/shared/models/queued_chat_message.dart';
 import 'package:reveric/shared/models/subagent.dart';
 import 'package:reveric/shared/providers/ai_providers.dart';
-import 'package:reveric/shared/providers/novel_agent_skill_providers.dart';
 import 'package:reveric/shared/providers/novel_providers.dart';
 import 'package:reveric/shared/providers/settings_providers.dart';
 import 'package:reveric/shared/providers/subagent_providers.dart';
 import 'package:reveric/shared/providers/spawn_agent_run_providers.dart';
-import 'package:reveric/shared/services/ai/chat.dart';
 import 'package:reveric/shared/services/ai/agent_message_mapping.dart';
 import 'package:reveric/shared/services/ai/chat_turn_outcome.dart';
 import 'package:reveric/shared/services/ai/chat_turn_runner.dart';
@@ -145,26 +141,6 @@ class _TurnIdCapturingDispatcher implements AgentToolDispatcher {
       _defs.where((def) => names.contains(def.name)).toList();
 }
 
-/// 测试用 DeviceIdService 替身 — 避免触达 SharedPreferences / path_provider。
-
-/// 暴露可控 toolManager / providerClient / agentConfig 的 AiClient 测试替身。
-/// 用于 runSlashCommand 路径：runner 会读取 aiService.toolManager 并写入 skillLoader。
-class _ScopedSkillAiClient extends AiClient {
-  _ScopedSkillAiClient({
-    required this.toolManager,
-    required this.providerClient,
-  }) : super(aiProviderBuiltinDefaults.first, chatModel: 'test-model');
-
-  @override
-  final AiToolManager? toolManager;
-
-  @override
-  final ProviderClient providerClient;
-
-  @override
-  AgentConfig get agentConfig => const AgentConfig();
-}
-
 class _DelayedGlobalSubAgents extends GlobalSubAgents {
   static late Completer<List<SubAgent>> pending;
 
@@ -236,8 +212,6 @@ void main() {
   }
 
   /// 构造一个真实但无副作用的 AiToolManager（in-memory DB + 关闭回调）。
-  /// runSlashCommand 仅写入 toolManager.skillLoader，不会触发工具分发，
-  /// 因此无需 registerAllTools，_resourceHandlers 也不会被求值。
   AiToolManager buildTestToolManager({
     AiAskUserCallback? askUserCallback,
     String workId = 'test_work',
@@ -301,7 +275,6 @@ void main() {
       novel: novel ?? testWork(novelId, contentKind),
       databasePath: databasePath,
       // runTurn 不调用 aiPromptService（仅被绕过的 getOrCreateChatAgent 用），任意实例即可。
-      // runSlashCommand 调用 aiPromptService.agent.buildSubAgentPrompt — 同样无外部依赖。
       aiPromptService: AiPromptService(),
       promptContext: AiSessionContext(
         userRules: userRules,
@@ -599,128 +572,6 @@ void main() {
     ).copyWith(deletedAt: DateTime(2026, 9, 10));
     expect(() => buildRunner(container, novel: deleted), throwsStateError);
   });
-
-  for (final kind in [contentKindNovel, contentKindScreenplay]) {
-    for (final malformed in [false, true]) {
-      test(
-        'slash $kind malformed=$malformed request receives current work, source, rules and chosen skill',
-        () async {
-          final now = DateTime(2026);
-          final novel = Novel(
-            id: 'current',
-            title: 'Current work',
-            authorName: '',
-            description: '',
-            status: 'draft',
-            type: 'adaptation',
-            contentKind: kind,
-            sourceNovelId: 'source_other_kind',
-            wordCount: 0,
-            category: '',
-            tags: const [],
-            draft: false,
-            createdAt: now,
-            updatedAt: now,
-            deletedAt: notDeletedSentinel,
-          );
-          final toolManager = buildTestToolManager(
-            workId: novel.id,
-            contentKind: kind,
-          )..registerAllTools();
-          final client = FakeProviderClient(
-            responses: const [FakeProviderClientResponse.text('完成')],
-          );
-          final container = buildTestContainer(
-            overrides: [
-              installedAgentSkillsProvider.overrideWith(
-                () => _FakeInstalledAgentSkillsNotifier([
-                  NovelAgentSkillModel(
-                    id: 'chosen',
-                    sourceKind: AgentSkillSourceKind.novelLocal,
-                    name: '我的写法',
-                    description: '本次写作',
-                    prompt: '保留长句',
-                    enabled: true,
-                  ),
-                ]),
-              ),
-            ],
-          );
-          addTearDown(container.dispose);
-          final session = seedSession(
-            container,
-            sessionId: 'slash_$kind',
-            agent: FakeAgent.create(),
-          );
-          final runner = buildRunner(
-            container,
-            novelId: novel.id,
-            novel: novel,
-            userRules: '遵守我的表达习惯',
-          );
-          const invalidPrompt =
-              '自定义专家：{{novel_title}}\n{{#screenplay_workspace}}未闭合条件';
-          final expert = SubAgent(
-            id: 'writer',
-            slug: 'writer',
-            name: '写手',
-            description: '',
-            prompt: malformed
-                ? invalidPrompt
-                : '自定义专家：{{novel_title}}\n'
-                      '{{#screenplay_workspace}}场次规则{{/screenplay_workspace}}'
-                      '{{^screenplay_workspace}}章节规则{{/screenplay_workspace}}',
-            useCustomPrompt: true,
-            scope: SubAgentScope.global,
-            sortOrder: 0,
-          );
-          await runner.runSlashCommand(
-            _ScopedSkillAiClient(
-              toolManager: toolManager,
-              providerClient: client,
-            ),
-            '/写手 使用「我的写法」，只改指定资源，验收事实不变',
-            expert,
-            requestId: session.requestId,
-            sessionId: session.sessionId,
-          );
-          final request = client.capturedStreamRequests.single;
-          final system = request.messages.first.content;
-          final renderedPersona = malformed
-              ? invalidPrompt
-              : '自定义专家：Current work\n${kind == contentKindScreenplay ? '场次规则' : '章节规则'}';
-          expect(system, startsWith(renderedPersona));
-          expect(request.messages.last.content, contains(renderedPersona));
-          for (final text in [system, request.messages.last.content]) {
-            if (malformed) {
-              expect(text, contains(invalidPrompt));
-              continue;
-            }
-            expect(
-              text,
-              isNot(contains(kind == contentKindScreenplay ? '章节规则' : '场次规则')),
-            );
-            expect(text, isNot(contains('{{')));
-          }
-          expect(system, contains('当前作品工作路径：/works/current'));
-          expect(system, contains('原作工作路径：/works/source_other_kind'));
-          expect(system, contains('<user_rule>遵守我的表达习惯</user_rule>'));
-          expect(system, contains('<name>我的写法</name>'));
-          for (final rule in [
-            'Read /_schema/{collection}',
-            'not_found 后禁止原样重试',
-            '从工具结果原样复制，不得自行构造或修改',
-            'Create、Write、Edit、Replace、Remove 只能修改当前作品',
-          ]) {
-            expect(rule.allMatches(system), hasLength(1));
-          }
-          expect(system, isNot(contains('canvas/{name}')));
-          expect(system, isNot(contains('relations/{relation_id}')));
-          expect(request.messages.last.content, contains('只改指定资源，验收事实不变'));
-        },
-      );
-    }
-  }
 
   test(
     'late answer and old cancellation cannot resolve a replacement AskUser',
@@ -2614,254 +2465,4 @@ void main() {
       },
     );
   });
-
-  // 已绑定作品的聊天仍从应用全局技能中，只加载可执行的技能。
-  group('runSlashCommand skill scope', () {
-    test(
-      'skillLoader filters app-global skills by isExecutable for the current work',
-      () async {
-        // 锁定行为:_loadCurrentSkillContext 只读全局 installedAgentSkillsProvider,
-        // 且只对 enabled && executionBlockedReason == null 的 skill 返回 prompt。
-        final enabledSkill = NovelAgentSkillModel(
-          id: 'skill_enabled',
-          sourceKind: AgentSkillSourceKind.novelLocal,
-          name: 'enabled_skill',
-          description: 'desc',
-          prompt: 'prompt_enabled',
-          enabled: true,
-          executionBlockedReason: null,
-        );
-        final disabledSkill = NovelAgentSkillModel(
-          id: 'skill_disabled',
-          sourceKind: AgentSkillSourceKind.novelLocal,
-          name: 'disabled_skill',
-          description: 'desc',
-          prompt: 'prompt_disabled',
-          enabled: false,
-          executionBlockedReason: null,
-        );
-        final blockedSkill = NovelAgentSkillModel(
-          id: 'skill_blocked',
-          sourceKind: AgentSkillSourceKind.marketplace,
-          name: 'blocked_skill',
-          description: 'desc',
-          prompt: 'prompt_blocked',
-          enabled: true,
-          executionBlockedReason: 'revoked_by_marketplace',
-        );
-
-        final toolManager = buildTestToolManager();
-        // _FlakyStreamClient 没有 script —— subAgent.processText 会抛 RangeError,
-        // 但 toolManager.skillLoader 在 processText 之前就已写入,catch 块仅做兜底。
-        final aiClient = _ScopedSkillAiClient(
-          toolManager: toolManager,
-          providerClient: _FlakyStreamClient(const []),
-        );
-
-        final container = buildTestContainer(
-          overrides: [
-            // 单点 override:直接替换 installedAgentSkillsProvider 的 build(),
-            // 跳过 DB 链路。技能应用全局,不再按 novelId 过滤。
-            installedAgentSkillsProvider.overrideWith(
-              () => _FakeInstalledAgentSkillsNotifier([
-                enabledSkill,
-                disabledSkill,
-                blockedSkill,
-              ]),
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
-
-        // seedSession 只为满足 runSlashCommand 对 aiChatRuntimeProvider 的依赖;
-        // runtime.agent 在 runSlashCommand 路径中不会被使用。
-        final seeded = seedSession(
-          container,
-          sessionId: 'sess_skill_scope',
-          agent: FakeAgent.create(responses: const []),
-        );
-
-        final runner = buildRunner(container);
-
-        await runner.runSlashCommand(
-          aiClient,
-          'do something',
-          SubAgent(
-            id: 'sa_skill_scope',
-            slug: 'skill_scope',
-            name: 'Skill Scope',
-            description: 'desc',
-            prompt: 'system',
-            scope: SubAgentScope.novel,
-            sortOrder: 0,
-          ),
-          requestId: seeded.requestId,
-          sessionId: seeded.sessionId,
-        );
-
-        // 关键断言:loader 必须按 isExecutable 过滤,而非简单返回所有 skill。
-        // 若回归成"返回任意匹配 name 的 skill",disabled/blocked 会泄漏到运行时。
-        expect(
-          toolManager.skillLoader,
-          isNotNull,
-          reason: 'runSlashCommand 必须设置 skillLoader',
-        );
-        expect(
-          (await toolManager.skillLoader!('enabled_skill'))?.instructions,
-          'prompt_enabled',
-        );
-        expect(
-          await toolManager.skillLoader!('disabled_skill'),
-          isNull,
-          reason: 'enabled=false 的 skill 不能被运行时执行',
-        );
-        expect(
-          await toolManager.skillLoader!('blocked_skill'),
-          isNull,
-          reason: 'executionBlockedReason 非 null 的 skill(被撤销)不能被运行时执行',
-        );
-        expect(
-          await toolManager.skillLoader!('unknown_skill'),
-          isNull,
-          reason: '未安装的 name 应返回 null',
-        );
-      },
-    );
-
-    for (final kind in [contentKindNovel, contentKindScreenplay]) {
-      test(
-        'screenplay tool guide coexists with custom writing skills in $kind',
-        () async {
-          final writingSkills = [
-            for (final name in ['剧本创作', '剧本写作指南'])
-              NovelAgentSkillModel(
-                id: 'custom_$name',
-                sourceKind: AgentSkillSourceKind.novelLocal,
-                name: name,
-                description: 'User writing skill',
-                prompt: 'User instructions for $name',
-                enabled: true,
-              ),
-          ];
-          final toolManager = buildTestToolManager(contentKind: kind);
-          final aiClient = _ScopedSkillAiClient(
-            toolManager: toolManager,
-            providerClient: _FlakyStreamClient(const []),
-          );
-          final container = buildTestContainer(
-            overrides: [
-              installedAgentSkillsProvider.overrideWith(
-                () => _FakeInstalledAgentSkillsNotifier(writingSkills),
-              ),
-            ],
-          );
-          addTearDown(container.dispose);
-
-          final seeded = seedSession(
-            container,
-            sessionId: 'sess_screenplay_skills_$kind',
-            agent: FakeAgent.create(responses: const []),
-          );
-          final runner = buildRunner(container, contentKind: kind);
-          await runner.runSlashCommand(
-            aiClient,
-            'load writing tools',
-            SubAgent(
-              id: 'sa_screenplay_skills',
-              slug: 'screenplay_skills',
-              name: 'Screenplay Skills',
-              description: 'desc',
-              prompt: 'system',
-              scope: SubAgentScope.novel,
-              sortOrder: 0,
-            ),
-            requestId: seeded.requestId,
-            sessionId: seeded.sessionId,
-          );
-
-          final names = toolManager.skillNamesProvider!();
-          for (final skill in writingSkills) {
-            expect(names, contains(skill.name));
-            expect(
-              (await toolManager.skillLoader!(skill.name))?.instructions,
-              skill.prompt,
-            );
-          }
-          if (kind == contentKindScreenplay) {
-            expect(names, contains('剧本工具使用规范'));
-            final guide = await toolManager.skillLoader!('剧本工具使用规范');
-            expect(guide, isNotNull);
-            expect(guide!.instructions, isNotEmpty);
-            expect(
-              writingSkills.map((skill) => skill.prompt),
-              isNot(contains(guide.instructions)),
-            );
-          } else {
-            expect(names, isNot(contains('剧本工具使用规范')));
-          }
-        },
-      );
-    }
-
-    test(
-      'bundled 创作向导 exposes its reference descriptors to the Agent',
-      () async {
-        final toolManager = buildTestToolManager();
-        final aiClient = _ScopedSkillAiClient(
-          toolManager: toolManager,
-          providerClient: _FlakyStreamClient(const []),
-        );
-        final container = buildTestContainer(
-          overrides: [
-            installedAgentSkillsProvider.overrideWith(
-              () => _FakeInstalledAgentSkillsNotifier(const []),
-            ),
-          ],
-        );
-        addTearDown(container.dispose);
-
-        final seeded = seedSession(
-          container,
-          sessionId: 'sess_bundled_setup_references',
-          agent: FakeAgent.create(responses: const []),
-        );
-        final runner = buildRunner(container);
-
-        await runner.runSlashCommand(
-          aiClient,
-          'open setup',
-          SubAgent(
-            id: 'sa_bundled_setup_references',
-            slug: 'bundled_setup_references',
-            name: 'Bundled Setup References',
-            description: 'desc',
-            prompt: 'system',
-            scope: SubAgentScope.novel,
-            sortOrder: 0,
-          ),
-          requestId: seeded.requestId,
-          sessionId: seeded.sessionId,
-        );
-
-        final loaded = await toolManager.skillLoader!('创作向导');
-        expect(loaded, isNotNull);
-        expect(loaded!.references.map((reference) => reference.path), [
-          'references/fanfic.md',
-          'references/imitation.md',
-          'references/original.md',
-          'references/sequel.md',
-        ]);
-      },
-    );
-  });
-}
-
-/// 测试用 [InstalledAgentSkillsNotifier] fake —— 固定返回给定列表,跳过 DB 链路。
-class _FakeInstalledAgentSkillsNotifier extends InstalledAgentSkillsNotifier {
-  _FakeInstalledAgentSkillsNotifier(this._skills);
-
-  final List<NovelAgentSkillModel> _skills;
-
-  @override
-  Future<List<NovelAgentSkillModel>> build() async => _skills;
 }

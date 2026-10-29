@@ -12,6 +12,7 @@
 //   lib/shared/logger/app_logger.dart
 //   lib/shared/logger/flutter_error_logger.dart
 //   lib/shared/logger/startup_failure_reporter.dart
+import 'shared/providers/mcp_providers.dart';
 import 'dart:async';
 import 'shared/providers/depth.dart';
 import 'dart:io';
@@ -692,6 +693,18 @@ class _AppLifecycleWatcherState extends ConsumerState<AppLifecycleWatcher>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    unawaited(
+      ref.read(mcpSettingsServiceProvider).initialized.catchError((
+        Object error,
+        StackTrace stack,
+      ) {
+        AppLogger.error(
+          '[MCP] Configuration initialization failed',
+          error: error,
+          stackTrace: stack,
+        );
+      }),
+    );
     // 异步投递待发送的匿名诊断事件，不阻塞 UI。
     _flushPendingReports();
   }
@@ -713,6 +726,7 @@ class _AppLifecycleWatcherState extends ConsumerState<AppLifecycleWatcher>
 
   @override
   Future<AppExitResponse> didRequestAppExit() async {
+    await ref.read(mcpSettingsServiceProvider).close();
     if (Platform.isMacOS || Platform.isWindows) {
       await ref.read(depthTaskProvider).stop();
     }
@@ -721,6 +735,23 @@ class _AppLifecycleWatcherState extends ConsumerState<AppLifecycleWatcher>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (Platform.isAndroid &&
+        (state == AppLifecycleState.paused ||
+            state == AppLifecycleState.resumed)) {
+      unawaited(
+        ref
+            .read(mcpSettingsServiceProvider)
+            .setForeground(state == AppLifecycleState.resumed)
+            .catchError((Object error, StackTrace stack) {
+              AppLogger.error(
+                '[MCP] Lifecycle update failed',
+                error: error,
+                stackTrace: stack,
+              );
+            }),
+      );
+    }
+
     if (state == AppLifecycleState.detached &&
         (Platform.isMacOS || Platform.isWindows)) {
       unawaited(ref.read(depthTaskProvider).stop());

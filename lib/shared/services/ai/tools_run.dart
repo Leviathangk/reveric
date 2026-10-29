@@ -140,6 +140,26 @@ mixin _AiToolManagerRunMixin
   bool get _sessionOperations => operationHost != null;
 
   Map<String, _RunCommandDefinition> get _runCommands => {
+    if (mcpRunHandler != null && mcpAllowed?.call() == true)
+      'mcp': _RunCommandDefinition(
+        (spec, options, _) => mcpRunHandler!.execute(
+          spec.subcommand,
+          options,
+          _currentToolExecutionContext,
+        ),
+        subcommands: const {
+          'list': RunPermission.none(),
+          'search': RunPermission.none(),
+          'describe': RunPermission.none(),
+          'call': RunPermission.none(),
+        },
+        codemode: const {
+          'list': _RunCodemodeAccess.denied('Use listMcpServers or listTools.'),
+          'search': _RunCodemodeAccess.denied('Use searchTool.'),
+          'describe': _RunCodemodeAccess.denied('Use describeTool.'),
+          'call': _RunCodemodeAccess.denied('Use tools[name](arguments).'),
+        },
+      ),
     'assets': _RunCommandDefinition(
       codemode: const {
         'list': _RunCodemodeAccess.read(),
@@ -578,12 +598,13 @@ mixin _AiToolManagerRunMixin
   }
 
   String _runContextHelp(String? command) {
+    if (mcpRunHandler != null &&
+        mcpAllowed?.call() == true &&
+        command == 'mcp') {
+      return mcpRunHelp;
+    }
     if (_currentToolExecutionContext?.parentToolCallId == null) {
-      return _helpFor(
-        command,
-        operations: _mediaOperations,
-        sessionOperations: _sessionOperations,
-      );
+      return '${mcpRunHandler != null && mcpAllowed?.call() == true && (command == null || command.isEmpty) ? 'mcp: discover and call enabled MCP tools. Use Run help mcp.\n' : ''}${_helpFor(command, operations: _mediaOperations, sessionOperations: _sessionOperations)}';
     }
     final lines = <String>[];
     for (final entry in _runCommands.entries) {

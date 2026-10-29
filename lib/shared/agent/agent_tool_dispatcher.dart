@@ -156,10 +156,12 @@ class ToolLifecycleObserver {
     this.onStarted,
     this.onFinished,
     this.onWorkingChange,
+    this.onProgress,
   });
   final void Function(Map<String, dynamic>? preview)? onStarted;
   final void Function(Map<String, dynamic>? result, String? error)? onFinished;
   final void Function(ToolWorkingChange change)? onWorkingChange;
+  final void Function(Map<String, dynamic> progress)? onProgress;
 }
 
 /// 工具调度接口 — Agent 运行时通过此接口执行工具，不关心具体注册/回调实现。
@@ -179,3 +181,16 @@ abstract interface class AgentToolDispatcher {
 }
 
 // AgentToolCallRequest 已合并为 message.dart 中的 ToolCall
+
+/// 可选的请求级动态能力；普通 Agent 调度器保持静态契约。
+abstract interface class AgentRequestToolDispatcher {
+  Future<void> prepareRequest();
+  String get requestSystemPrompt;
+  bool isExternalCall(String name, Map<String, dynamic> input);
+  Map<String, dynamic>? callMetadata(
+    String name,
+    Map<String, dynamic> input,
+    ToolExecutionContext? context,
+  );
+  String externalErrorDiagnostic(Object error);
+}

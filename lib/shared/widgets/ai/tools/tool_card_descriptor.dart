@@ -89,6 +89,7 @@ String localizedToolCallTitle(BuildContext context, AiToolCallBlock block) {
   }
   return switch (parsed?.topLevel) {
     'assets' => context.t(LocaleKeys.aiToolRunAssets),
+    'mcp' => context.t(LocaleKeys.aiToolRunMcp),
     'providers' => context.t(LocaleKeys.aiToolRunProviders),
     'stagings' => context.t(LocaleKeys.aiToolRunDirector),
     'agent-skills' => context.t(LocaleKeys.aiToolRunAgentSkills),
@@ -141,6 +142,10 @@ const _runActionKeys = <(String, String), String>{
   ('assets', 'list'): LocaleKeys.aiToolRunAssetsList,
   ('assets', 'read'): LocaleKeys.aiToolRunAssetsRead,
   ('assets', 'view-image'): LocaleKeys.aiToolRunViewImage,
+  ('mcp', 'list'): LocaleKeys.aiToolRunMcpList,
+  ('mcp', 'search'): LocaleKeys.aiToolRunMcpSearch,
+  ('mcp', 'describe'): LocaleKeys.aiToolRunMcpDescribe,
+  ('mcp', 'call'): LocaleKeys.aiToolRunMcpCall,
   ('providers', 'list'): LocaleKeys.aiToolRunProvidersList,
   ('providers', 'read'): LocaleKeys.aiToolRunProvidersRead,
   ('providers', 'models'): LocaleKeys.aiToolRunProvidersModels,
@@ -295,6 +300,9 @@ String relationCreateArg(AiToolCallBlock block, String key) {
 }
 
 String? toolPrimaryPath(AiToolCallBlock block) {
+  if (block.source == 'mcp') {
+    return null;
+  }
   final rawArgPath = block.arguments['path'];
   final argPath = rawArgPath is String ? rawArgPath.trim() : null;
   if (block.toolName == 'Read' &&
@@ -318,6 +326,9 @@ String? toolPrimaryPath(AiToolCallBlock block) {
 }
 
 bool shouldUseResolvedResourceForToolCard(AiToolCallBlock block) {
+  if (block.source == 'mcp') {
+    return false;
+  }
   // old_text 不匹配等可恢复失败不会让资源失效，仍应显示用户可读名称。
   // 只有目标确实不存在时才禁用解析结果，避免删除后短暂显示陈旧名称。
   final errorCode = block.result?['error_code']?.toString().trim();
@@ -793,6 +804,14 @@ String? _runReferenceTarget(AiToolCallBlock block, ParsedRunCommand parsed) {
 String? _runRowTarget(BuildContext context, AiToolCallBlock block) {
   final parsed = ParsedRunCommand.fromBlock(block);
   final topLevel = parsed?.topLevel;
+  if (topLevel == 'mcp') {
+    return switch (parsed?.subcommand) {
+      'list' => parsed?.option('server'),
+      'search' => parsed?.option('query'),
+      'describe' || 'call' => parsed?.option('name'),
+      _ => null,
+    };
+  }
   if (topLevel == 'files') {
     return parsed?.option('path');
   }
@@ -1120,6 +1139,7 @@ String? localizedRunHelpTopic(BuildContext context, String? topic) {
     return null;
   }
   return switch (value) {
+    'mcp' => context.t(LocaleKeys.aiToolRunMcp),
     'providers' => context.t(LocaleKeys.aiToolRunProviders),
     'agent-skills' => context.t(LocaleKeys.aiToolRunAgentSkills),
     'themes' => context.t(LocaleKeys.aiToolRunThemes),

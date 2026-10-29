@@ -127,17 +127,12 @@ class FakeProviderClientResponse {
 
 class FakeProviderClient implements ProviderClient {
   FakeProviderClient({
-    List<FakeProviderClientResponse> responses = const [
-      FakeProviderClientResponse.text('fake response'),
-    ],
-    FakeProviderClientResponder? responder,
-    List<double> embedding = const [],
-    Map<String, List<double>> embeddingsByText = const {},
+    this._responses = const [FakeProviderClientResponse.text('fake response')],
+    this._responder,
+    this._embedding = const [],
+    this._embeddingsByText = const {},
     this.repeatLastResponse = true,
-  }) : _responses = responses,
-       _responder = responder,
-       _embedding = embedding,
-       _embeddingsByText = embeddingsByText;
+  });
 
   final List<FakeProviderClientResponse> _responses;
   final FakeProviderClientResponder? _responder;
@@ -262,10 +257,9 @@ class FakeAgentToolCall {
 
 class FakeAgentToolDispatcher implements AgentToolDispatcher {
   FakeAgentToolDispatcher({
-    Map<String, FakeAgentTool> tools = const {},
-    Map<String, dynamic> defaultResult = const {'ok': true},
-  }) : _tools = tools,
-       _defaultResult = defaultResult;
+    this._tools = const {},
+    this._defaultResult = const {'ok': true},
+  });
 
   factory FakeAgentToolDispatcher.withResults({
     required Map<String, Map<String, dynamic>> results,

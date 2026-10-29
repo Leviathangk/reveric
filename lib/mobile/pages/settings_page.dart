@@ -27,6 +27,7 @@
 //   .agents/rules/hooks.md
 //   .agents/rules/design-system.md
 
+import '../../shared/widgets/settings/mcp/section.dart';
 import '../../shared/widgets/user_profile_edit_dialog.dart';
 import 'dart:io';
 
@@ -135,6 +136,11 @@ class SettingsPage extends HookConsumerWidget {
     id: 'usage',
     labelKey: LocaleKeys.settingsUsage,
     icon: RevericIcons.bar_chart_outlined,
+  );
+  static const _mcpItem = _SettingsNavItem(
+    id: 'mcp',
+    labelKey: LocaleKeys.settingsMcp,
+    icon: RevericIcons.hub_outlined,
   );
   static const _backupItem = _SettingsNavItem(
     id: 'backup',
@@ -305,6 +311,15 @@ class SettingsPage extends HookConsumerWidget {
             ),
             const SizedBox(height: RevericSpacing.x2l),
             _buildGroup(context, colors, typo, LocaleKeys.settingsGroupAi, [
+              _valueRow(
+                context,
+                colors,
+                typo,
+                icon: _mcpItem.icon,
+                tint: colors.accentWarm,
+                label: context.t(_mcpItem.labelKey),
+                onTap: () => handleTap(_mcpItem),
+              ),
               _valueRow(
                 context,
                 colors,
@@ -673,6 +688,7 @@ class _SettingsDetailPage extends StatelessWidget {
           bodyBuilder: () => const UsageView(showHeader: false),
         ),
         'backup' => const BackupSettingsSection(compact: true),
+        'mcp' => const McpSettingsSection(),
         'about' => const AboutSettingsSection(compact: true),
         'debug' => DebugSettingsSection(
           onClose: () => Navigator.of(context).pop(),

@@ -72,23 +72,31 @@ class SettingsSection extends StatelessWidget {
 
 /// 设置卡片容器：带边框的圆角面板，纵向排列 children。
 class SettingsCard extends StatelessWidget {
-  const SettingsCard({super.key, required this.children});
+  const SettingsCard({
+    super.key,
+    required this.children,
+    this.padding = const EdgeInsets.symmetric(
+      horizontal: RevericSpacing.lg,
+      vertical: RevericSpacing.md,
+    ),
+  });
 
   final List<Widget> children;
+
+  /// 整行可点击的列表传 [EdgeInsets.zero]，由行自身留白，悬停底色才能铺满卡片。
+  final EdgeInsetsGeometry padding;
 
   @override
   Widget build(BuildContext context) {
     final colors = RevericTheme.colorsOf(context);
     return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: colors.canvas,
         borderRadius: BorderRadius.circular(RevericRadius.large),
         border: Border.all(color: colors.borderInput),
       ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: RevericSpacing.lg,
-        vertical: RevericSpacing.md,
-      ),
+      padding: padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: children,

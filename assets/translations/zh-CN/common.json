@@ -99,5 +99,6 @@
   "common.move_down": "下移",
   "common.done": "完成",
   "common.generate": "生成",
-  "common.clear": "清空"
+  "common.clear": "清空",
+  "common.open_link_failed": "无法打开链接。"
 }

@@ -156,9 +156,9 @@ class Agent {
     required this.id,
     required this.systemPrompt,
     required this.allowedTools,
-    required ProviderClient client,
-    required AgentConfig config,
-    required AgentToolDispatcher toolManager,
+    required this._client,
+    required this._config,
+    required this._toolManager,
     AgentContextManager? contextManager,
     List<AgentMessage>? initialMessages,
     int initialRoundIndex = 0,
@@ -166,13 +166,9 @@ class Agent {
     this.providerId,
     this.hooks = const [],
     this.streamInactivityTimeout = defaultAgentStreamInactivityTimeout,
-    bool emitToolEvents = true,
+    this._emitToolEvents = true,
     this.rejectToolCalls = false,
-  }) : _client = client,
-       _config = config,
-       _toolManager = toolManager,
-       _emitToolEvents = emitToolEvents,
-       _contextManager = contextManager ?? SimpleAgentContextManager() {
+  }) : _contextManager = contextManager ?? SimpleAgentContextManager() {
     if (initialMessages != null && initialMessages.isNotEmpty) {
       _contextManager.addMessages(initialMessages);
     }
@@ -398,6 +394,13 @@ class Agent {
   Future<List<AgentMessage>> _buildMessages() async {
     final systemContent = StringBuffer();
     systemContent.write(systemPrompt);
+    final requestTools = _toolManager is AgentRequestToolDispatcher
+        ? _toolManager as AgentRequestToolDispatcher
+        : null;
+    if (requestTools != null && requestTools.requestSystemPrompt.isNotEmpty) {
+      systemContent.writeln();
+      systemContent.write(requestTools.requestSystemPrompt);
+    }
     if (memoryBlock != null && memoryBlock!.isNotEmpty) {
       systemContent.writeln();
       systemContent.writeln();
@@ -623,12 +626,18 @@ class Agent {
           attempt += 1;
           var streamReceivedFirstEvent = false;
           try {
+            final requestTools = _toolManager is AgentRequestToolDispatcher
+                ? _toolManager as AgentRequestToolDispatcher
+                : null;
+            if (requestTools != null) {
+              await requestTools.prepareRequest();
+            }
             final toolNames = allowedTools;
             final tools = toolNames != null
                 ? _toolManager.toolDefsForNames(toolNames)
                 : _toolManager.allToolDefs();
             final systemPromptTokens = estimateTextTokens(
-              '$systemPrompt\n${memoryBlock ?? ''}',
+              '$systemPrompt\n${requestTools?.requestSystemPrompt ?? ''}\n${memoryBlock ?? ''}',
             );
             late List<AgentMessage> msgs;
             var hookTools = tools;
@@ -1321,7 +1330,7 @@ class Agent {
           // );
           {
             final action = await _runBeforeToolCall(
-              BeforeToolCallContext(call),
+              BeforeToolCallContext(call, source: _toolSource(call)),
             );
             switch (action) {
               case HookAbort<BeforeToolCallContext>(
@@ -1424,18 +1433,64 @@ class Agent {
             toolName: call.toolName,
             arguments: call.arguments,
             thoughtSignature: call.thoughtSignature,
+            metadata: _callMetadata(call, toolExecutionContext),
           );
 
-          var result = await _dispatchTool(
-            call,
-            toolExecutionContext: toolExecutionContext,
-          );
+          Map<String, dynamic> result;
+          if (_toolSource(call) == AgentToolSource.mcp) {
+            final progressEvents = StreamController<Map<String, dynamic>>();
+            final originalObserver = toolExecutionContext?.lifecycleObserver;
+            final callContext = ToolExecutionContext(
+              sessionId: toolExecutionContext?.sessionId,
+              sourceSessionId: toolExecutionContext?.sourceSessionId,
+              sourceTurnId: toolExecutionContext?.sourceTurnId,
+              cancellationToken:
+                  toolExecutionContext?.cancellationToken ??
+                  cancellationController.token,
+              parentToolCallId: toolExecutionContext?.parentToolCallId,
+              operationOwnerSessionId:
+                  toolExecutionContext?.operationOwnerSessionId,
+              approvalHostCallId: toolExecutionContext?.approvalHostCallId,
+              lifecycleObserver: ToolLifecycleObserver(
+                onStarted: originalObserver?.onStarted,
+                onFinished: originalObserver?.onFinished,
+                onWorkingChange: originalObserver?.onWorkingChange,
+                onProgress: (progress) {
+                  originalObserver?.onProgress?.call(progress);
+                  if (!progressEvents.isClosed) {
+                    progressEvents.add(progress);
+                  }
+                },
+              ),
+            );
+            final pendingResult = _dispatchTool(
+              call,
+              toolExecutionContext: callContext,
+            );
+            unawaited(pendingResult.then<void>((_) => progressEvents.close()));
+            await for (final progress in progressEvents.stream) {
+              yield AgentToolCallProgress(
+                callId: call.callId,
+                toolName: call.toolName,
+                arguments: call.arguments,
+                progress: progress,
+                metadata: _callMetadata(call, toolExecutionContext),
+              );
+            }
+            result = await pendingResult;
+          } else {
+            result = await _dispatchTool(
+              call,
+              toolExecutionContext: toolExecutionContext,
+            );
+          }
           // 取消后的失败多半由中断本身造成（如请求被 abort），统一报告为取消；
           // 成功或工具自报取消的结果照原样保留：已发生的副作用不会撤销，
           // 覆盖成取消 payload 会让模型以为什么都没做。
           if (_cancelled &&
               !toolResultIsSuccess(result) &&
-              result['cancelled'] != true) {
+              result['cancelled'] != true &&
+              result['executionState'] == null) {
             result = _userCancelledToolResult();
           }
           result = normalizeToolFailureResult(result, input: call.arguments);
@@ -1453,7 +1508,11 @@ class Agent {
 
           {
             final action = await _runAfterToolCall(
-              AfterToolCallContext(call: call, result: result),
+              AfterToolCallContext(
+                call: call,
+                result: result,
+                source: _toolSource(call),
+              ),
             );
             switch (action) {
               case HookAbort<AfterToolCallContext>(
@@ -1529,7 +1588,9 @@ class Agent {
     ToolCall call, {
     ToolExecutionContext? context,
   }) async {
-    final before = await _runBeforeToolCall(BeforeToolCallContext(call));
+    final before = await _runBeforeToolCall(
+      BeforeToolCallContext(call, source: _toolSource(call)),
+    );
     if (before is HookAbort<BeforeToolCallContext>) {
       return {
         'ok': false,
@@ -1539,8 +1600,36 @@ class Agent {
     }
     var result = await _dispatchTool(call, toolExecutionContext: context);
     result = normalizeToolFailureResult(result, input: call.arguments);
-    await _runAfterToolCall(AfterToolCallContext(call: call, result: result));
+    await _runAfterToolCall(
+      AfterToolCallContext(
+        call: call,
+        result: result,
+        source: _toolSource(call),
+      ),
+    );
     return result;
+  }
+
+  Map<String, dynamic>? _callMetadata(
+    ToolCall call,
+    ToolExecutionContext? context,
+  ) => _toolManager is AgentRequestToolDispatcher
+      ? (_toolManager as AgentRequestToolDispatcher).callMetadata(
+          call.toolName,
+          call.arguments,
+          context,
+        )
+      : null;
+
+  AgentToolSource _toolSource(ToolCall call) {
+    final dispatcher = _toolManager;
+    return dispatcher is AgentRequestToolDispatcher &&
+            (dispatcher as AgentRequestToolDispatcher).isExternalCall(
+              call.toolName,
+              call.arguments,
+            )
+        ? AgentToolSource.mcp
+        : AgentToolSource.builtin;
   }
 
   Future<Map<String, dynamic>> _dispatchTool(
@@ -1556,6 +1645,15 @@ class Agent {
         context: toolExecutionContext,
       );
     } catch (e, st) {
+      if (_toolSource(call) == AgentToolSource.mcp) {
+        return {
+          'ok': false,
+          'error_code': 'mcp_dispatch_error',
+          'error': (_toolManager as AgentRequestToolDispatcher)
+              .externalErrorDiagnostic(e),
+          '_metadata': _callMetadata(call, toolExecutionContext),
+        };
+      }
       if (_cancelled) {
         return _userCancelledToolResult();
       }

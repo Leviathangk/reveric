@@ -25,14 +25,15 @@ const codemodeToolDef = ToolDef(
   name: codemodeToolName,
   // 128 KiB 与 CodemodeRuntimeLimits.outputBytes 默认值一致，调整时同步修改。
   description:
-      '运行 JavaScript，在脚本中组合调用工具，只把需要的结果带回对话。'
-      '脚本不能直接访问网络或加载模块。\n'
-      '- await tools.<名称>(参数) 的参数与同名工具相同，成功时返回结果对象；'
-      '失败时 reject，Error 带 error_code，可能带 error、hint、recovery。'
+      '运行 JavaScript，组合调用内置工具和已启用的 MCP 工具。脚本不能直接访问网络、文件或加载模块。\n'
+      '- 发现工具：await listMcpServers() 查看 MCP 服务；await listTools({mcpServer: "服务名称"}) 列出服务工具；'
+      'await searchTool(query, options) 搜索；await describeTool(name) 查看定义。\n'
+      '- 调用：await tools[name](参数)，name 使用发现结果，参数与同名工具相同。成功返回结果对象；'
+      '失败抛出 Error，带 error_code，可能带 error、hint、recovery。'
       'error_code 取值：invalid_argument、not_found、already_exists、conflict、'
       'failed_precondition、locked、unauthenticated、permission_denied、'
       'unsupported、resource_exhausted、unavailable、internal；具体原因看 error。'
-      '未捕获的错误会保留在结果的 tool_error 中。\n'
+      '未捕获的错误保留在 tool_error 中。\n'
       '- 可用工具及成功返回的关键字段（? 表示可能缺失）：\n'
       '  Read → 列表 entries[]，字段 value，资源详情为资源字段；has_more?，next_offset?\n'
       '  Glob → matches[]，truncated\n'

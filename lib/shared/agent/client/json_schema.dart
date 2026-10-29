@@ -7,18 +7,8 @@
 
 import '../agent_tool_dispatcher.dart' show ToolDef;
 
-Map<String, dynamic> toolDefToJsonSchema(ToolDef tool) {
-  return {
-    'type': 'object',
-    'properties': {
-      for (final entry
-          in (tool.inputSchema['properties'] as Map<String, dynamic>?)
-                  ?.entries ??
-              <MapEntry<String, dynamic>>[])
-        entry.key: entry.value,
-    },
-    if (tool.inputSchema['required'] case final List<dynamic> required_)
-      'required': required_,
-    'additionalProperties': ?tool.inputSchema['additionalProperties'],
-  };
-}
+Map<String, dynamic> toolDefToJsonSchema(ToolDef tool) => {
+  'type': 'object',
+  'properties': <String, dynamic>{},
+  ...tool.inputSchema,
+};
