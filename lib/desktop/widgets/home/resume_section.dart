@@ -194,6 +194,7 @@ class _ResumeMain extends ConsumerWidget {
                     RevericButton.primary(
                       label: context.t(LocaleKeys.homeFeaturedContinueWriting),
                       icon: RevericIcons.pencil_simple,
+                      size: RevericButtonSize.prominent,
                       onPressed: resumeWriting,
                     ),
                   ],

@@ -136,6 +136,7 @@ class GreetingHeader extends StatelessWidget {
                   onPressed: onQuickStart,
                   icon: RevericIcons.auto_awesome,
                   label: context.t(LocaleKeys.libraryQuickStart),
+                  size: RevericButtonSize.prominent,
                 ),
               ],
             ),

@@ -185,6 +185,50 @@ void main() {
     );
   }
 
+  for (final platform in [TargetPlatform.macOS, TargetPlatform.android]) {
+    testWidgets('size tiers resolve the agreed heights on $platform', (
+      tester,
+    ) async {
+      final mobile = platform == TargetPlatform.android;
+      await tester.pumpWidget(
+        _wrap(
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RevericButton.primary(label: 'Standard', onPressed: () {}),
+              RevericButton.primary(
+                label: 'Prominent',
+                size: RevericButtonSize.prominent,
+                onPressed: () {},
+              ),
+              RevericButton.primary(
+                label: 'Compact',
+                size: RevericButtonSize.compact,
+                onPressed: () {},
+              ),
+            ],
+          ),
+          platform: platform,
+        ),
+      );
+      // 移动端外层有 48px padded 触控区，量 Material 本体才是可见高度。
+      double height(String label) => tester
+          .getSize(
+            find.descendant(
+              of: find.widgetWithText(FilledButton, label),
+              matching: find.byType(Material),
+            ),
+          )
+          .height;
+      expect(
+        height('Standard'),
+        mobile ? RevericSizes.buttonHeight : RevericSizes.buttonHeightDesktop,
+      );
+      expect(height('Prominent'), RevericSizes.buttonHeight);
+      expect(height('Compact'), RevericSizes.buttonHeightSm);
+    });
+  }
+
   testWidgets(
     'semantic variants inherit the current theme and expose disabled state',
     (tester) async {

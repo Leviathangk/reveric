@@ -11,7 +11,9 @@ import 'package:flutter/material.dart';
 
 import '../theme/theme.dart';
 
-enum RevericButtonSize { standard, compact }
+/// [standard] 用于表单与弹窗操作；[prominent] 只给页面唯一的主操作；
+/// [compact] 用于工具区与行内操作。
+enum RevericButtonSize { standard, prominent, compact }
 
 enum _ButtonVariant { primary, secondary, text, danger }
 
@@ -75,6 +77,12 @@ class RevericButton extends StatelessWidget {
       _ => false,
     };
     final compact = size == RevericButtonSize.compact;
+    final minimumHeight = switch (size) {
+      RevericButtonSize.compact => RevericSizes.buttonHeightSm,
+      RevericButtonSize.prominent => RevericSizes.buttonHeight,
+      RevericButtonSize.standard =>
+        mobile ? RevericSizes.buttonHeight : RevericSizes.buttonHeightDesktop,
+    };
     final danger = _variant == _ButtonVariant.danger;
     final dangerBackground = theme.brightness == Brightness.dark
         ? Color.alphaBlend(
@@ -96,9 +104,7 @@ class RevericButton extends StatelessWidget {
         ? colors.canvas
         : colors.textPrimary;
     final style = ButtonStyle(
-      minimumSize: compact
-          ? const WidgetStatePropertyAll(Size(0, RevericSizes.buttonHeightSm))
-          : null,
+      minimumSize: WidgetStatePropertyAll(Size(0, minimumHeight)),
       padding: compact
           ? const WidgetStatePropertyAll(
               EdgeInsets.symmetric(horizontal: RevericSizes.buttonPaddingHSm),

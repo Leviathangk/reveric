@@ -91,13 +91,13 @@ components:
     textColor: "{colors.on-accent}"
     rounded: "{rounded.button}"
     padding: "0 16px"
-    height: "40px"
+    height: "36px"
   button-secondary:
     backgroundColor: "{colors.surface}"
     textColor: "{colors.text-secondary}"
     rounded: "{rounded.button}"
     padding: "0 16px"
-    height: "40px"
+    height: "36px"
   input:
     backgroundColor: "{colors.surface-container-high}"
     textColor: "{colors.text-primary}"
@@ -226,8 +226,9 @@ All values come from the canvas helpers in `lib/shared/theme/canvas_colors.dart`
 ### Buttons
 
 - **Shape:** 8px radius via `RevericRadius.button`.
-- **Primary:** `FilledButton`, `accent` background, `onAccent` foreground, 40px height, 16px horizontal padding.
-- **Secondary:** `OutlinedButton`, `borderInput` stroke, `textSecondary` foreground, 40px height.
+- **Size:** Desktop buttons are 36px tall so they line up with 36px fields; mobile buttons are 40px. A page's single main action (for example "Continue writing" on the home page) uses the 40px prominent size. Toolbars and inline row actions use the 32px compact size.
+- **Primary:** `FilledButton`, `accent` background, `onAccent` foreground, 16px horizontal padding.
+- **Secondary:** `OutlinedButton`, `borderInput` stroke, `textSecondary` foreground.
 - **Text:** `TextButton`, transparent background, `textSecondary` foreground, 12px horizontal padding.
 - **Danger:** Destructive confirmation uses `FilledButton` with `deletionBorder`; inline destructive actions use `OutlinedButton` with `warningText`.
 - **Hover / Focus:** Use Flutter theme states and token colors. Do not restyle individual buttons unless the semantic role changes.

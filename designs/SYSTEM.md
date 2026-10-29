@@ -333,7 +333,7 @@ Flutter 普通操作统一使用 `lib/shared/components/reveric_button.dart` 的
 `primary` / `secondary` / `text` 分别组合 Filled / Outlined / TextButton，`danger` 用于破坏性确认。
 调用方传入 label、可选 Phosphor icon、onPressed、loading 和 size，不暴露任意 style、颜色或圆角。
 组件只负责展示与点击禁用，异步任务和错误处理归调用方；有图标时原位替换为进度指示器，无图标时预留加载宽度，保持文案可见。
-`standard` 使用标准按钮高度，`compact` 使用紧凑高度；移动端保留 Material padded 触控目标，桌面端不额外扩张命中区。
+`standard` 用于表单与弹窗操作，`prominent` 只给页面上的主操作，`compact` 用于工具区与行内操作；移动端保留 Material padded 触控目标，桌面端不额外扩张命中区。
 纯图标操作、设置行、卡片、选项卡和虚线添加入口不属于此组件。
 
 所有按钮统一通过 `RevericThemeData.toThemeData()` 中的 `filledButtonTheme` /
@@ -343,8 +343,9 @@ Flutter 普通操作统一使用 `lib/shared/components/reveric_button.dart` 的
 | Token | Value |
 |---|---|
 | `RevericRadius.button` | 8 px |
-| `RevericSizes.buttonHeight` | 40 px (主按钮 / 次按钮 / 文本按钮默认) |
-| `RevericSizes.buttonHeightSm` | 32 px (toolbar / chip / 紧凑场景) |
+| `RevericSizes.buttonHeightDesktop` | 36 px (桌面 `standard`，与 `fieldHeight` 对齐) |
+| `RevericSizes.buttonHeight` | 40 px (移动端 `standard`；各端 `prominent` 页面主操作) |
+| `RevericSizes.buttonHeightSm` | 32 px (`compact`：toolbar / chip / 行内操作) |
 | `RevericSizes.buttonPaddingH` | 16 px (默认水平内边距) |
 | `RevericSizes.buttonPaddingHSm` | 12 px (TextButton 水平内边距) |
 | `RevericSizes.buttonIconSize` | 16 px (图标与加载槽位) |

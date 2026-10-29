@@ -21,7 +21,10 @@ void main() {
       final name =
           '${mobile ? 'mobile' : 'desktop'}_${dark ? 'dark' : 'light'}';
       testWidgets('button states $name', (tester) async {
-        tester.view.physicalSize = Size(mobile ? 375 : 1000, 900);
+        tester.view.physicalSize = Size(
+          mobile ? 375 : 1000,
+          mobile ? 1000 : 900,
+        );
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
@@ -70,13 +73,28 @@ void main() {
                                 icon: RevericIcons.arrows_clockwise,
                                 onPressed: () {},
                               ),
-                              RevericButton.text(
-                                label: '取消',
-                                onPressed: () {},
-                              ),
+                              RevericButton.text(label: '取消', onPressed: () {}),
                               RevericButton.danger(
                                 label: '删除',
                                 icon: RevericIcons.delete,
+                                onPressed: () {},
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            '主操作 / Prominent',
+                            style: data.typography.uiSemibold,
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              RevericButton.primary(
+                                label: '继续写作',
+                                icon: RevericIcons.pencil_simple,
+                                size: RevericButtonSize.prominent,
                                 onPressed: () {},
                               ),
                             ],

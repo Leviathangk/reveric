@@ -136,6 +136,9 @@ class RevericSizes {
   /// 标准按钮高度（FilledButton / OutlinedButton / TextButton / ElevatedButton）。
   static const double buttonHeight = 40;
 
+  /// 桌面普通按钮高度；与 [fieldHeight] 一致，放在输入框旁时上下对齐。
+  static const double buttonHeightDesktop = 36;
+
   /// 紧凑按钮高度（toolbar / chip-like inline 按钮）。
   static const double buttonHeightSm = 32;
 
