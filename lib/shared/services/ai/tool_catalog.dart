@@ -185,28 +185,28 @@ class AgentToolCatalog {
       throw ArgumentError('Invalid tool search options');
     }
     await _target(mcpServer);
-    final matches = <({int score, Map<String, dynamic> tool})>[];
-    for (final tool in _definitions(server: mcpServer, source: source)) {
-      final config = servers.where((s) => s.name == tool['server']).firstOrNull;
-      final score = toolSearchScore(
-        query,
-        name: tool['name'] as String,
-        description:
-            '${tool['description']} ${config == null ? '' : description(config) ?? ''}',
-        fields: jsonEncode(tool['inputSchema']),
-      );
-      if (score > 0) {
-        matches.add((score: score, tool: tool));
-      }
-    }
-    matches.sort((a, b) {
-      final order = b.score.compareTo(a.score);
-      return order != 0
-          ? order
-          : (a.tool['name'] as String).compareTo(b.tool['name'] as String);
-    });
+    final definitions = {
+      for (final tool in _definitions(server: mcpServer, source: source))
+        tool['name'] as String: tool,
+    };
+    final serverDescriptions = {
+      for (final server in servers) server.name: description(server) ?? '',
+    };
+    final currentTools = tools;
+    final matches = rankToolSearch(query, [
+      for (final tool in definitions.values)
+        ToolSearchDocument(
+          name: tool['name'] as String,
+          rawName: tool['source'] == 'mcp'
+              ? currentTools[tool['name']]?.rawName
+              : null,
+          description:
+              '${tool['description']} ${serverDescriptions[tool['server']] ?? ''}',
+          inputSchema: tool['inputSchema'] as Map<String, dynamic>,
+        ),
+    ]);
     final result = _page(
-      matches.take(limit).map((m) => _summary(m.tool)).toList(),
+      matches.take(limit).map((name) => _summary(definitions[name]!)).toList(),
       key: 'tools',
       extra: source == 'builtin'
           ? {'complete': true, 'pendingServers': [], 'failedServers': []}
