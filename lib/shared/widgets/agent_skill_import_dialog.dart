@@ -170,14 +170,16 @@ class _AgentSkillImportDialogState extends State<_AgentSkillImportDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
+                  Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: RevericSpacing.md,
+                    runSpacing: RevericSpacing.xs,
                     children: [
-                      Expanded(
-                        child: Text(
-                          context.t(LocaleKeys.agentSkillImportSelectSkills),
-                          style: typo.uiSmallSemibold.copyWith(
-                            color: colors.textSecondary,
-                          ),
+                      Text(
+                        context.t(LocaleKeys.agentSkillImportSelectSkills),
+                        style: typo.uiSmallSemibold.copyWith(
+                          color: colors.textSecondary,
                         ),
                       ),
                       Text(
@@ -190,7 +192,6 @@ class _AgentSkillImportDialogState extends State<_AgentSkillImportDialog> {
                         ),
                         style: typo.uiSmall.copyWith(color: colors.textMuted),
                       ),
-                      const SizedBox(width: RevericSpacing.md),
                       RevericButton.text(
                         size: RevericButtonSize.compact,
                         label: context.t(
@@ -202,6 +203,15 @@ class _AgentSkillImportDialogState extends State<_AgentSkillImportDialog> {
                       ),
                     ],
                   ),
+                  if (widget.candidates.any(
+                    (candidate) => candidate.hasScripts,
+                  )) ...[
+                    const SizedBox(height: RevericSpacing.sm),
+                    Text(
+                      context.t(LocaleKeys.agentSkillImportScriptsWarning),
+                      style: typo.uiSmall.copyWith(color: colors.warningText),
+                    ),
+                  ],
                   const SizedBox(height: RevericSpacing.md),
                   DecoratedBox(
                     decoration: BoxDecoration(
@@ -232,7 +242,13 @@ class _AgentSkillImportDialogState extends State<_AgentSkillImportDialog> {
                           );
                           return _SkillRow(
                             name: candidate.name,
-                            category: candidate.category,
+                            category: [
+                              candidate.category,
+                              if (candidate.hasScripts)
+                                context.t(
+                                  LocaleKeys.agentSkillImportHasScripts,
+                                ),
+                            ].where((text) => text.isNotEmpty).join(' · '),
                             selected: selected,
                             conflict: candidate.nameConflict,
                             onTap: () => _toggle(candidate),
@@ -410,19 +426,23 @@ class _SkillRow extends StatelessWidget {
                 ),
               ] else if (category.isNotEmpty) ...[
                 const SizedBox(width: RevericSpacing.sm),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: RevericSpacing.sm,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colors.surface,
-                    borderRadius: BorderRadius.circular(RevericRadius.medium),
-                    border: Border.all(color: colors.borderSubtle),
-                  ),
-                  child: Text(
-                    category,
-                    style: typo.uiTiny.copyWith(color: colors.textMuted),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: RevericSpacing.sm,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.surface,
+                      borderRadius: BorderRadius.circular(RevericRadius.medium),
+                      border: Border.all(color: colors.borderSubtle),
+                    ),
+                    child: Text(
+                      category,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: typo.uiTiny.copyWith(color: colors.textMuted),
+                    ),
                   ),
                 ),
               ],

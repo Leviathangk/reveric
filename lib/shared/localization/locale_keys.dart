@@ -873,8 +873,7 @@ abstract final class LocaleKeys {
   static const agentShortcutSubtitle = 'agent_shortcut.subtitle';
   static const agentShortcutTitle = 'agent_shortcut.title';
   // ── agent_skill ────────────────────────────────────────
-  static const agentSkillMarketNotConnected =
-      'agent_skill.market_not_connected';
+
   static const agentSkillCount = 'agent_skill.count';
   static const agentSkillDeleteConfirm = 'agent_skill.delete_confirm';
   static const agentSkillDescription = 'agent_skill.description';
@@ -917,7 +916,16 @@ abstract final class LocaleKeys {
   static const agentSkillTabInstalled = 'agent_skill.tab_installed';
   static const agentSkillTabLibrary = 'agent_skill.tab_library';
   static const agentSkillTabOfficial = 'agent_skill.tab_official';
+  static const agentSkillMarketNotConnected =
+      'agent_skill.market_not_connected';
   static const agentSkillTabMarket = 'agent_skill.tab_market';
+  static const agentSkillMarketLoadFailed = 'agent_skill.market_load_failed';
+  static const agentSkillMarketCached = 'agent_skill.market_cached';
+  static const agentSkillMarketEmpty = 'agent_skill.market_empty';
+  static const agentSkillMarketNoResults = 'agent_skill.market_no_results';
+  static const agentSkillImportHasScripts = 'agent_skill.import_has_scripts';
+  static const agentSkillImportScriptsWarning =
+      'agent_skill.import_scripts_warning';
   static const agentSkillCreateAndInstall = 'agent_skill.create_and_install';
   static const agentSkillInstall = 'agent_skill.install';
   static const agentSkillDownloaded = 'agent_skill.downloaded';
@@ -2113,6 +2121,7 @@ abstract final class LocaleKeys {
   static const commonAdd = 'common.add';
   static const commonAi = 'common.ai';
   static const commonImport = 'common.import';
+  static const commonRefresh = 'common.refresh';
   static const commonExport = 'common.export';
   static const commonPlay = 'common.play';
   static const commonCancel = 'common.cancel';

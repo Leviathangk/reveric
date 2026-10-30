@@ -185,7 +185,7 @@ Future<void> _pumpHarness(
 /// mode='data':返回 2 个 OfficialAgentSkill(name/version/category 可见)。
 /// mode='empty':返回空 list,触发 _CatalogEmpty 渲染。
 /// 其他接口对本测试无用,直接返回空常量或抛 StateError 防止误调用。
-class _FakeCatalogService implements AgentSkillCatalogService {
+class _FakeCatalogService extends AgentSkillCatalogService {
   @override
   Future<OfficialAgentSkill> getOfficial({required String listingId}) =>
       throw UnimplementedError('getOfficial is not used in this test.');

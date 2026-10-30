@@ -168,8 +168,9 @@ class SkillSetupPanel extends HookConsumerWidget {
     }, [dialog.value]);
 
     Future<List<AgentSkillImportCandidate>?> selectSkillsForImport(
-      List<NovelAgentSkillModel> existing,
-    ) async {
+      List<NovelAgentSkillModel> existing, {
+      String initialUrl = '',
+    }) async {
       const transfer = AgentSkillTransferService();
       final candidates =
           await showRevericDialog<List<AgentSkillImportCandidate>>(
@@ -177,6 +178,7 @@ class SkillSetupPanel extends HookConsumerWidget {
             builder: (dialogContext) => RevericDialog.panel(
               title: Text(dialogContext.t(LocaleKeys.agentSkillImport)),
               content: AgentSkillImportSourceForm(
+                initialUrl: initialUrl,
                 existingNames: existing
                     .map((skill) => skill.name.trim())
                     .toSet(),
@@ -223,9 +225,12 @@ class SkillSetupPanel extends HookConsumerWidget {
     }
 
     // 导入到全局技能：技能应用全局唯一,name 即工具名。
-    Future<void> importInstalledSkills() async {
+    Future<void> importInstalledSkills({String initialUrl = ''}) async {
       try {
-        final selected = await selectSkillsForImport(installed);
+        final selected = await selectSkillsForImport(
+          installed,
+          initialUrl: initialUrl,
+        );
         if (selected == null || !context.mounted) {
           return;
         }
@@ -492,7 +497,9 @@ class SkillSetupPanel extends HookConsumerWidget {
                   catalogDetail.value = OfficialSkillCatalogDetail(skill);
                 },
               ),
-              _SkTab.market => const MarketplaceCatalogTab(),
+              _SkTab.market => MarketplaceCatalogTab(
+                onImport: (url) => importInstalledSkills(initialUrl: url),
+              ),
             },
           ),
         ],
@@ -590,7 +597,7 @@ class SkillSetupPanel extends HookConsumerWidget {
     required ValueNotifier<_SkTab> tab,
     required Map<_SkTab, int> counts,
   }) {
-    const tabs = [_SkTab.installed, _SkTab.official];
+    const tabs = _SkTab.values;
     return Container(
       padding: EdgeInsetsDirectional.only(
         start: RevericSpacing.x5l,
@@ -648,22 +655,27 @@ class SkillSetupPanel extends HookConsumerWidget {
                   color: active ? colors.textPrimary : colors.textMuted,
                 ),
               ),
-              const SizedBox(width: RevericSpacing.xs),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                decoration: BoxDecoration(
-                  color: active
-                      ? colors.accent.withValues(alpha: 0.16)
-                      : colors.surfaceDim,
-                  borderRadius: BorderRadius.circular(RevericRadius.pill),
-                ),
-                child: Text(
-                  '$count',
-                  style: typo.uiTiny.copyWith(
-                    color: active ? colors.accent : colors.textSubtle,
+              if (t != _SkTab.market) ...[
+                const SizedBox(width: RevericSpacing.xs),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: active
+                        ? colors.accent.withValues(alpha: 0.16)
+                        : colors.surfaceDim,
+                    borderRadius: BorderRadius.circular(RevericRadius.pill),
+                  ),
+                  child: Text(
+                    '$count',
+                    style: typo.uiTiny.copyWith(
+                      color: active ? colors.accent : colors.textSubtle,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

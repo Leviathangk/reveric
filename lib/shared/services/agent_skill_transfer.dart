@@ -29,17 +29,42 @@ class AgentSkillImportCandidate {
     required this.parsed,
     required this.nameConflict,
     this.references = const [],
+    this.hasScripts = false,
   });
 
   final String filePath;
   final AgentSkillImportParseResult parsed;
   final bool nameConflict;
   final List<AgentSkillReferenceFile> references;
+  final bool hasScripts;
 
   String get name => parsed.name;
   String get description => parsed.description;
   String get category => parsed.category;
 }
+
+/// 只检测脚本资源是否存在，不读取或执行脚本。
+bool agentSkillHasScripts(Iterable<String> paths) => paths.any((path) {
+  final parts = path.replaceAll('\\', '/').split('/');
+  return parts.contains('scripts') ||
+      const {
+        '.py',
+        '.js',
+        '.mjs',
+        '.cjs',
+        '.ts',
+        '.sh',
+        '.bash',
+        '.zsh',
+        '.ps1',
+        '.bat',
+        '.cmd',
+        '.rb',
+        '.pl',
+        '.lua',
+        '.dart',
+      }.contains(p.posix.extension(path).toLowerCase());
+});
 
 /// 批量导入结果。
 class AgentSkillImportResult {
@@ -168,6 +193,14 @@ class AgentSkillTransferService {
           parsed: parsed,
           nameConflict: existingNames.contains(name),
           references: _loadReferencesBesideSkillMarkdown(file),
+          hasScripts:
+              Directory(p.join(file.parent.path, 'scripts')).existsSync() ||
+              agentSkillHasScripts(
+                file.parent
+                    .listSync(followLinks: false)
+                    .whereType<File>()
+                    .map((entry) => p.basename(entry.path)),
+              ),
         ),
       );
     }

@@ -156,7 +156,7 @@ void main() {
 
 // ── 测试夹具 ─────────────────────────────────────────────────────────────────
 
-class _FakeCatalogService implements AgentSkillCatalogService {
+class _FakeCatalogService extends AgentSkillCatalogService {
   @override
   Future<OfficialAgentSkill> getOfficial({required String listingId}) =>
       throw UnimplementedError('getOfficial is not used in this test.');

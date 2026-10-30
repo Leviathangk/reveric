@@ -269,7 +269,19 @@ class AgentSkillImportOrchestrator {
             ),
           ),
       ];
-      candidates.add(_candidate(path, raw, references, existingNames));
+      candidates.add(
+        _candidate(
+          path,
+          raw,
+          references,
+          existingNames,
+          hasScripts: agentSkillHasScripts(
+            files.keys
+                .where((key) => key.startsWith(prefix))
+                .map((key) => key.substring(prefix.length)),
+          ),
+        ),
+      );
     }
     if (cancelToken.isCancelled) {
       throw cancelToken.cancelError!;
@@ -347,7 +359,17 @@ List<AgentSkillImportCandidate> _scanArchive(
         );
       }
       candidates.add(
-        _candidate(path, utf8.decode(file.content), references, existingNames),
+        _candidate(
+          path,
+          utf8.decode(file.content),
+          references,
+          existingNames,
+          hasScripts: agentSkillHasScripts(
+            files.keys
+                .where((key) => key.startsWith(prefix))
+                .map((key) => key.substring(prefix.length)),
+          ),
+        ),
       );
     }
     return candidates;
@@ -396,8 +418,9 @@ AgentSkillImportCandidate _candidate(
   String path,
   String raw,
   List<AgentSkillReferenceFile> references,
-  Set<String> existingNames,
-) {
+  Set<String> existingNames, {
+  bool hasScripts = false,
+}) {
   final parsed = AgentSkillImportParser.parse(raw);
   if (parsed == null) {
     throw const FormatException('Invalid SKILL.md frontmatter');
@@ -407,5 +430,6 @@ AgentSkillImportCandidate _candidate(
     parsed: parsed,
     nameConflict: existingNames.contains(parsed.name.trim()),
     references: AgentSkillReferences.normalizeOrThrow(references),
+    hasScripts: hasScripts,
   );
 }

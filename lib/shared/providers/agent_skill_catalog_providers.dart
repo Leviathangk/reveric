@@ -1,19 +1,24 @@
-// 职责: 提供本地官方技能目录的筛选、详情与刷新入口。
+// 职责: 提供官方技能目录查询与广场目录缓存、加载和刷新状态。
 //   类别候选见 dictionary_providers.skillCategoriesProvider。
 // 关联文件:
 //   lib/shared/services/agent_skill_catalog_service.dart
 //   lib/shared/models/official_agent_skill.dart
-//   lib/shared/providers/dictionary_providers.dart
-//   lib/shared/providers/novel_providers.dart
+//   lib/shared/providers/settings_providers.dart
+//   lib/shared/models/marketplace_agent_skill.dart
+//   lib/shared/services/proxy_client.dart
 // 遵循的 Rules:
 //   .agents/rules/state-management.md
 //   .agents/rules/error-handling.md
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../logger/app_logger.dart';
+import '../models/marketplace_agent_skill.dart';
 import '../services/agent_skill_catalog_service.dart';
+import '../services/proxy_client.dart';
+import 'settings_providers.dart';
 
 /// 目录查询过滤参数,作为 family 入参。
 ///
@@ -32,12 +37,88 @@ final _log = AppLogger.forModule('AgentSkillCatalog');
 
 // ── Service 单例 ──────────────────────────────────────────────────────────────
 
-/// 本地官方技能目录服务单例。
+/// 操作开始时读取代理设置；目录刷新和仓库扫描均独占客户端并负责关闭。
+final skillHttpClientFactoryProvider = Provider<Future<Dio> Function()>((ref) {
+  return () async {
+    final settings = await ref.read(appSettingsProvider.future);
+    if (!ref.mounted) {
+      throw StateError('Skill HTTP client factory disposed');
+    }
+    return createProxyDioClient(
+      settings.networkProxy,
+      options: BaseOptions(
+        connectTimeout: const Duration(seconds: 10),
+        headers: {'User-Agent': 'Reveric-Skills'},
+      ),
+    );
+  };
+});
+
+/// 官方本地目录与广场目录服务单例；本地读取不触发代理配置加载。
 final agentSkillCatalogServiceProvider = Provider<AgentSkillCatalogService>((
   ref,
 ) {
-  return AgentSkillCatalogService();
+  final service = AgentSkillCatalogService(
+    createClient: ref.watch(skillHttpClientFactoryProvider),
+  );
+  ref.onDispose(service.dispose);
+  return service;
 });
+
+/// 单个轻量目录跨标签页保留，筛选只使用 Widget 局部状态。
+final marketplaceAgentSkillsProvider =
+    NotifierProvider<MarketplaceAgentSkillsNotifier, MarketplaceCatalogState>(
+      MarketplaceAgentSkillsNotifier.new,
+    );
+
+class MarketplaceCatalogState {
+  const MarketplaceCatalogState({
+    this.skills,
+    this.loading = false,
+    this.error,
+  });
+  final List<MarketplaceAgentSkill>? skills;
+  final bool loading;
+  final Object? error;
+}
+
+class MarketplaceAgentSkillsNotifier extends Notifier<MarketplaceCatalogState> {
+  Future<void>? _pending;
+
+  @override
+  MarketplaceCatalogState build() {
+    final service = ref.watch(agentSkillCatalogServiceProvider);
+    _pending = Future<void>(() async {
+      final cached = await service.readMarketplaceCache();
+      if (!ref.mounted) {
+        return;
+      }
+      state = MarketplaceCatalogState(skills: cached, loading: true);
+      await _load(service);
+    }).whenComplete(() => _pending = null);
+    return const MarketplaceCatalogState(loading: true);
+  }
+
+  Future<void> refresh() {
+    return _pending ??= _load(
+      ref.read(agentSkillCatalogServiceProvider),
+    ).whenComplete(() => _pending = null);
+  }
+
+  Future<void> _load(AgentSkillCatalogService service) async {
+    state = MarketplaceCatalogState(skills: state.skills, loading: true);
+    try {
+      final skills = await service.listMarketplace();
+      if (ref.mounted) {
+        state = MarketplaceCatalogState(skills: skills);
+      }
+    } catch (error) {
+      if (ref.mounted) {
+        state = MarketplaceCatalogState(skills: state.skills, error: error);
+      }
+    }
+  }
+}
 
 // ── 官方目录(本地打包，无需登录)────────────────────────────────────────────────
 

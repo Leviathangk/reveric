@@ -101,5 +101,6 @@
   "common.done": "Done",
   "common.generate": "Generate",
   "common.clear": "Clear",
-  "common.open_link_failed": "Unable to open link."
+  "common.open_link_failed": "Unable to open link.",
+  "common.refresh": "Refresh"
 }

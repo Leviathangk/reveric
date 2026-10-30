@@ -428,7 +428,7 @@ _TestSetup _setup({String? failOnceListingId, Future<void>? detailReady}) =>
       ),
     );
 
-class _FakeCatalogService implements AgentSkillCatalogService {
+class _FakeCatalogService extends AgentSkillCatalogService {
   _FakeCatalogService({this.failOnceListingId, this.detailReady});
 
   final names = <String>['章节写作', '地图设计指南', '剧本对白'];

@@ -569,10 +569,8 @@ class _FakeInstalledAgentSkillsNotifier extends InstalledAgentSkillsNotifier {
 }
 
 /// 实现 [AgentSkillCatalogService] 接口的 fake，仅实现本测试用到的 listOfficial。
-class _FakeAgentSkillCatalogService implements AgentSkillCatalogService {
-  _FakeAgentSkillCatalogService({
-    required OfficialAgentSkillCatalog officialList,
-  }) : _officialList = officialList;
+class _FakeAgentSkillCatalogService extends AgentSkillCatalogService {
+  _FakeAgentSkillCatalogService({required this._officialList});
 
   final OfficialAgentSkillCatalog _officialList;
 

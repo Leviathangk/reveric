@@ -2,6 +2,7 @@
 // 关联文件:
 //   lib/mobile/features/agent_skills/novel_agent_skill_manage_page.dart
 //   lib/mobile/features/agent_skills/official_tab.dart
+//   lib/mobile/features/agent_skills/marketplace_tab.dart
 //   lib/shared/localization/locale_keys.dart
 //   assets/translations/en/agent_skill.json
 //   assets/translations/zh-CN/agent_skill.json
@@ -23,6 +24,7 @@ import '../../../shared/localization/locale_keys.dart';
 import '../../../shared/theme/theme.dart';
 import 'novel_agent_skill_manage_page.dart';
 import 'official_tab.dart';
+import 'marketplace_tab.dart';
 
 /// 移动端 AgentSkill Setup 全局页(无小说上下文)。
 ///
@@ -31,7 +33,7 @@ class GlobalSkillSetupPage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tabController = useTabController(initialLength: 2);
+    final tabController = useTabController(initialLength: 3);
     final colors = RevericTheme.colorsOf(context);
 
     return Scaffold(
@@ -53,6 +55,7 @@ class GlobalSkillSetupPage extends HookConsumerWidget {
                 children: const [
                   NovelInstalledSkillsView(),
                   OfficialAgentSkillTab(),
+                  MarketplaceAgentSkillTab(),
                 ],
               ),
             ),
@@ -134,6 +137,7 @@ class _TabBar extends StatelessWidget {
       tabs: [
         Tab(text: context.t(LocaleKeys.agentSkillTabInstalled)),
         Tab(text: context.t(LocaleKeys.agentSkillTabOfficial)),
+        Tab(text: context.t(LocaleKeys.agentSkillTabMarket)),
       ],
     );
   }

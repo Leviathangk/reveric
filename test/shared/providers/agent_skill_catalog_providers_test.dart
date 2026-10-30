@@ -198,7 +198,7 @@ ProviderContainer _testContainer({required List<Override> overrides}) {
 ///
 /// 仅实现 catalog provider 实际调用的方法;create/withdraw 等编辑类方法
 /// 抛 [UnimplementedError](本测试不覆盖)。
-class _FakeAgentSkillCatalogService implements AgentSkillCatalogService {
+class _FakeAgentSkillCatalogService extends AgentSkillCatalogService {
   _FakeAgentSkillCatalogService({OfficialAgentSkillCatalog? officialList})
     : _officialList =
           officialList ?? const OfficialAgentSkillCatalog(agentSkills: []);

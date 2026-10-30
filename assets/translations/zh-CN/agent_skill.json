@@ -23,7 +23,7 @@
   "agent_skill.tab_installed": "技能",
   "agent_skill.tab_library": "技能库",
   "agent_skill.tab_official": "平台技能",
-  "agent_skill.tab_market": "广场",
+  "agent_skill.tab_market": "技能广场",
   "agent_skill.create_and_install": "创建并安装",
   "agent_skill.install": "下载",
   "agent_skill.downloaded": "已下载",
@@ -177,7 +177,6 @@
   "agent_skill.history_source_ai_edit": "AI 修改",
   "agent_skill.history_source_upgrade": "升级",
   "agent_skill.converted_to_local": "已脱离官方来源",
-  "agent_skill.market_not_connected": "技能市场尚未接入。",
   "agent_skill.import_local": "本地导入",
   "agent_skill.import_local_hint": "选择文件夹可同时导入 references 附件；选择 Markdown 文件仅导入所选文件。",
   "agent_skill.import_remote": "远程导入",
@@ -188,5 +187,12 @@
   "agent_skill.import_unavailable": "仓库或分支不存在，或无法公开访问。",
   "agent_skill.import_rate_limited": "暂时无法访问仓库，可能已达到请求限额，请稍后重试。",
   "agent_skill.import_network_failed": "下载失败，请检查网络连接后重试。",
-  "agent_skill.import_too_large": "仓库或技能文件过大，请改用本地文件夹导入。"
+  "agent_skill.import_too_large": "仓库或技能文件过大，请改用本地文件夹导入。",
+  "agent_skill.market_load_failed": "无法加载技能目录，请检查网络后重试。",
+  "agent_skill.market_cached": "刷新失败，正在显示缓存目录。",
+  "agent_skill.market_empty": "暂无收录的技能。",
+  "agent_skill.market_no_results": "没有匹配的技能，请尝试其他关键词或分类。",
+  "agent_skill.import_has_scripts": "包含脚本",
+  "agent_skill.import_scripts_warning": "部分技能包含脚本。这里只导入提示词和文本附件，不导入或执行脚本；依赖脚本的功能可能无法使用。",
+  "agent_skill.market_not_connected": "技能市场尚未接入。"
 }

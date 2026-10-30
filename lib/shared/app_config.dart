@@ -19,6 +19,10 @@ const anonymousReportingBaseUrl = '';
 /// 公开仓库地址；关于页与反馈的 GitHub Issue 都指向这里。
 const revericGitHubRepoUrl = 'https://github.com/looplj/reveric';
 
+/// 技能广场只读取公开链接目录，导入沿用各来源平台的现有流程。
+const revericSkillsCatalogUrl =
+    'https://raw.githubusercontent.com/looplj/reveric-skills/main/catalog.json';
+
 /// AGPLv3 第 7 条附加条款要求修改版保留的作者署名，与 NOTICES 保持一致，不做本地化。
 const revericAttribution = 'Based on Reveric by looplj.';
 

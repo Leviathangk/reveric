@@ -27,6 +27,8 @@ import 'package:reveric/shared/providers/novel_agent_skill_providers.dart';
 import 'package:reveric/shared/theme/theme.dart';
 import 'package:reveric/shared/widgets/agent_skill_import_source_form.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:reveric/shared/providers/agent_skill_catalog_providers.dart';
+import '../../shared/widgets/agent_skill/marketplace_test_support.dart';
 
 void main() {
   setUpAll(() async {
@@ -52,6 +54,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            agentSkillCatalogServiceProvider.overrideWithValue(
+              TestMarketplaceService(),
+            ),
             installedAgentSkillsProvider.overrideWith(
               () => _FakeInstalledAgentSkillsNotifier([skill]),
             ),
@@ -64,10 +69,35 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(tester.widget<TabBar>(find.byType(TabBar)).tabs, hasLength(2));
+      expect(tester.widget<TabBar>(find.byType(TabBar)).tabs, hasLength(3));
       expect(find.text(tr(LocaleKeys.agentSkillTabInstalled)), findsOneWidget);
       expect(find.text(tr(LocaleKeys.agentSkillTabOfficial)), findsOneWidget);
-      expect(find.text(tr(LocaleKeys.agentSkillTabMarket)), findsNothing);
+      expect(find.text(tr(LocaleKeys.agentSkillTabMarket)), findsOneWidget);
+
+      await tester.tap(find.text(tr(LocaleKeys.agentSkillTabMarket)));
+      await tester.pumpAndSettle();
+      expect(find.text('Dialogue'), findsOneWidget);
+      await tester.tap(find.text(tr(LocaleKeys.commonImport)));
+      await tester.pumpAndSettle();
+      expect(find.byType(AgentSkillImportSourceForm), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(
+              find.descendant(
+                of: find.byType(AgentSkillImportSourceForm),
+                matching: find.byType(TextField),
+              ),
+            )
+            .controller!
+            .text,
+        'https://github.com/example/dialogue',
+      );
+      Navigator.of(
+        tester.element(find.byType(AgentSkillImportSourceForm)),
+      ).pop();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(tr(LocaleKeys.agentSkillTabInstalled)));
+      await tester.pumpAndSettle();
 
       // 导入、导出是技能库迁移后仍需保留的入口，不能因全局化丢失。
       expect(find.text(tr(LocaleKeys.agentSkillImportAction)), findsOneWidget);

@@ -4,12 +4,25 @@
 //   lib/shared/models/ai_provider.dart
 //   lib/shared/services/depth/model_service.dart
 //   lib/shared/services/update/sources/github_releases_source.dart
+//   lib/shared/providers/agent_skill_catalog_providers.dart
 import 'dart:async';
 import 'dart:io';
+import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 import 'package:socks5_proxy/socks_client.dart';
 import '../models/network_proxy.dart';
 
-Future<HttpClient> createProxyHttpClient(NetworkProxy config) async {
+Future<HttpClient> createProxyHttpClient(NetworkProxy config) async =>
+    _createProxyHttpClient(config);
+
+/// 每次操作独占的 Dio；底层客户端延迟创建，关闭未发请求的 Dio 也不会泄漏连接。
+Dio createProxyDioClient(NetworkProxy config, {BaseOptions? options}) =>
+    Dio(options)
+      ..httpClientAdapter = IOHttpClientAdapter(
+        createHttpClient: () => _createProxyHttpClient(config),
+      );
+
+HttpClient _createProxyHttpClient(NetworkProxy config) {
   if (!config.isValid) {
     throw const FormatException('Invalid network proxy configuration');
   }

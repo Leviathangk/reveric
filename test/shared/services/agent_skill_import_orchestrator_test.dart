@@ -117,6 +117,8 @@ void main() {
       expect(a.nameConflict, isTrue);
       expect(a.references.single.path, 'references/中文.txt');
       expect(a.references.single.content, '参考');
+      expect(a.hasScripts, isTrue);
+      expect(result.singleWhere((c) => c.name == 'b').hasScripts, isFalse);
       expect(a.description, 'useful skill for writing');
       expect(requests.single.path, '/repos/a/b/zipball');
     },
@@ -400,6 +402,19 @@ void main() {
       scan('a/b'),
       throwsA(isA<AgentSkillImportLimitException>()),
     );
+  });
+
+  test('Gitee detects scripts without importing or executing them', () async {
+    respond(
+      (options) => _giteeResponse(options, {
+        'skills/a/SKILL.md': _skill('a'),
+        'skills/a/scripts/run.py': 'raise RuntimeError()',
+        'skills/a/references/guide.md': 'guide',
+      }),
+    );
+    final candidates = await scan('https://gitee.com/a/b/tree/main/skills/a');
+    expect(candidates.single.hasScripts, isTrue);
+    expect(candidates.single.references.single.path, 'references/guide.md');
   });
 
   test('HTTP failure preserves status for the caller', () async {

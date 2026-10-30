@@ -7,7 +7,7 @@
 //   lib/shared/models/novel_agent_skill.dart
 //   lib/shared/providers/novel_agent_skill_providers.dart
 //   lib/shared/services/agent_skill_transfer.dart
-//   lib/shared/widgets/agent_skill_import_dialog.dart
+//   lib/mobile/features/agent_skills/import_flow.dart
 //   lib/mobile/services/android_saf_directory_import.dart
 //   lib/shared/widgets/agent_skill_export_dialog.dart
 //   lib/mobile/features/agent_skills/installed_skill_detail_page.dart
@@ -46,13 +46,11 @@ import '../../../shared/services/agent_skill_transfer.dart';
 import '../../../shared/theme/theme.dart';
 import '../../../shared/utils/text_input_composing.dart';
 import '../../../shared/widgets/agent_skill_export_dialog.dart';
-import '../../../shared/widgets/agent_skill_import_dialog.dart';
-import '../../../shared/widgets/agent_skill_import_source_form.dart';
+import 'import_flow.dart';
 import '../../../third/form/flutter_hook_form.dart';
 import '../../services/android_saf_directory_import.dart';
 import '../../widgets/agent_edit_scaffold.dart';
 import '../../widgets/section_scaffold.dart';
-import '../../widgets/sheet.dart';
 import 'installed_skill_detail_page.dart';
 import 'skill_revision_history_page.dart';
 
@@ -129,127 +127,6 @@ class NovelInstalledSkillsView extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.t(LocaleKeys.commonDeleteFailed))),
-        );
-      }
-    }
-  }
-
-  Future<void> _importSkills(BuildContext context, WidgetRef ref) async {
-    final existing =
-        ref.read(installedAgentSkillsProvider).value ??
-        const <NovelAgentSkillModel>[];
-    const transfer = AgentSkillTransferService();
-    try {
-      final candidates = await showMobileSheet<List<AgentSkillImportCandidate>>(
-        context: context,
-        builder: (sheetContext) => MobileSheetScaffold(
-          header: MobileSheetHeader.closable(
-            title: sheetContext.t(LocaleKeys.agentSkillImport),
-            onClose: () => Navigator.of(sheetContext).pop(),
-          ),
-          child: AgentSkillImportSourceForm(
-            existingNames: existing.map((skill) => skill.name.trim()).toSet(),
-            pickDirectory: !agentSkillSupportsDirectoryImport()
-                ? null
-                : () async {
-                    if (defaultTargetPlatform == TargetPlatform.android) {
-                      final result = await pickAndCopyAndroidDirectory(
-                        extensions: AgentSkillReferences.allowedExtensions,
-                      );
-                      if (result == null) {
-                        return null;
-                      }
-                      try {
-                        return transfer.discoverInDirectory(
-                          dirPath: result.directoryPath,
-                          existing: existing,
-                        );
-                      } finally {
-                        await deleteAndroidDirectoryImport(
-                          result.directoryPath,
-                        );
-                      }
-                    }
-                    final path = await getDirectoryPath();
-                    return path == null
-                        ? null
-                        : transfer.discoverInDirectory(
-                            dirPath: path,
-                            existing: existing,
-                          );
-                  },
-            pickFiles: () async {
-              final files = await openFiles(
-                acceptedTypeGroups: const [agentSkillMarkdownTypeGroup],
-              );
-              if (files.isEmpty) {
-                return null;
-              }
-              return [
-                for (final file in files)
-                  transfer.parseSelectedMarkdown(
-                    content: await file.readAsString(),
-                    fileName: file.path,
-                    existing: existing,
-                  ),
-              ];
-            },
-            onDiscovered: (items) => Navigator.of(sheetContext).pop(items),
-            padding: const EdgeInsets.fromLTRB(
-              RevericSpacing.lg,
-              RevericSpacing.lg,
-              RevericSpacing.lg,
-              RevericSpacing.x2l,
-            ),
-          ),
-        ),
-      );
-      if (!context.mounted || candidates == null) {
-        return;
-      }
-
-      final selected = await showAgentSkillImportDialog(
-        context,
-        candidates: candidates,
-      );
-      if (selected == null || !context.mounted) {
-        return;
-      }
-
-      final result = await transfer.importCandidates(
-        candidates: selected,
-        notifier: ref.read(installedAgentSkillsProvider.notifier),
-        existing: existing,
-      );
-      if (!context.mounted) {
-        return;
-      }
-      _showTransferMessage(
-        context,
-        result.failed > 0 || result.skipped > 0
-            ? context.t(
-                LocaleKeys.agentSkillImportPartial,
-                namedArgs: {
-                  'imported': '${result.imported}',
-                  'skipped': '${result.skipped}',
-                  'failed': '${result.failed}',
-                },
-              )
-            : context.t(
-                LocaleKeys.agentSkillImportSuccess,
-                namedArgs: {'imported': '${result.imported}'},
-              ),
-      );
-    } catch (error, stackTrace) {
-      _log.error(
-        'Import installed skills failed',
-        error: error,
-        stackTrace: stackTrace,
-      );
-      if (context.mounted) {
-        _showTransferMessage(
-          context,
-          context.t(LocaleKeys.agentSkillImportFailed),
         );
       }
     }
@@ -380,7 +257,7 @@ class NovelInstalledSkillsView extends ConsumerWidget {
           onCreate: () => unawaited(_openSkill(context, ref)),
           onImport: skillsAsync.isLoading
               ? null
-              : () => unawaited(_importSkills(context, ref)),
+              : () => unawaited(importMobileAgentSkills(context, ref)),
           onExport: () => unawaited(_exportSkills(context, skills)),
         ),
       ],

@@ -3,11 +3,13 @@
 //   lib/shared/services/agent_skill_import_orchestrator.dart
 //   lib/shared/services/agent_skill_import_source.dart
 //   lib/shared/widgets/agent_skill_import_dialog.dart
+//   lib/shared/providers/agent_skill_catalog_providers.dart
 //   lib/shared/localization/locale_keys.dart
 //   assets/translations/en/agent_skill.json
 //   assets/translations/zh-CN/agent_skill.json
 // 遵循的 Rules:
 //   .agents/rules/hooks.md
+//   .agents/rules/state-management.md
 //   .agents/rules/design-system.md
 //   .agents/rules/file-access.md
 
@@ -16,12 +18,14 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../components/reveric_button.dart';
 import '../components/reveric_text_field.dart';
 import '../localization/app_localization.dart';
 import '../localization/locale_keys.dart';
 import '../logger/app_logger.dart';
+import '../providers/agent_skill_catalog_providers.dart';
 import '../services/agent_skill_import_orchestrator.dart';
 import '../services/agent_skill_import_source.dart';
 import '../services/agent_skill_transfer.dart';
@@ -29,7 +33,7 @@ import '../theme/theme.dart';
 
 final _log = AppLogger.forModule('SkillImportSourceForm');
 
-class AgentSkillImportSourceForm extends HookWidget {
+class AgentSkillImportSourceForm extends HookConsumerWidget {
   const AgentSkillImportSourceForm({
     super.key,
     required this.existingNames,
@@ -37,6 +41,7 @@ class AgentSkillImportSourceForm extends HookWidget {
     this.pickDirectory,
     required this.onDiscovered,
     this.padding = EdgeInsets.zero,
+    this.initialUrl = '',
   });
 
   final Set<String> existingNames;
@@ -46,29 +51,23 @@ class AgentSkillImportSourceForm extends HookWidget {
 
   /// 弹窗正文已有内边距，保持默认 0；移动 sheet 传入与标题头对齐的内边距。
   final EdgeInsetsGeometry padding;
+  final String initialUrl;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final route = ModalRoute.of(context);
-    final url = useTextEditingController();
+    final url = useTextEditingController(text: initialUrl);
     final busy = useState(false);
     final errorKey = useState<String?>(null);
     final request = useRef<CancelToken?>(null);
-    final client = useMemoized(
-      () => Dio(
-        BaseOptions(
-          connectTimeout: const Duration(seconds: 15),
-          headers: {'User-Agent': 'Reveric-Skill-Import'},
-        ),
-      ),
-    );
+    final client = useRef<Dio?>(null);
     useEffect(
       () => () {
         final token = request.value;
         if (token != null && !token.isCancelled) {
           token.cancel('Import closed');
         }
-        client.close(force: true);
+        client.value?.close(force: true);
       },
       [client],
     );
@@ -139,22 +138,33 @@ class AgentSkillImportSourceForm extends HookWidget {
       final token = CancelToken();
       request.value = token;
       unawaited(
-        scan(
-          () => AgentSkillImportOrchestrator()
-              .discover(
-                source: source,
-                existingNames: existingNames,
-                client: client,
-                cancelToken: token,
-              )
-              .timeout(
-                const Duration(minutes: 2),
-                onTimeout: () {
-                  token.cancel('Import timed out');
-                  throw TimeoutException('Repository scan timed out');
-                },
-              ),
-        ),
+        scan(() async {
+          final acquired = await ref.read(skillHttpClientFactoryProvider)();
+          if (!context.mounted || token.isCancelled) {
+            acquired.close(force: true);
+            return null;
+          }
+          client.value = acquired;
+          try {
+            return await AgentSkillImportOrchestrator()
+                .discover(
+                  source: source,
+                  existingNames: existingNames,
+                  client: acquired,
+                  cancelToken: token,
+                )
+                .timeout(
+                  const Duration(minutes: 2),
+                  onTimeout: () {
+                    token.cancel('Import timed out');
+                    throw TimeoutException('Repository scan timed out');
+                  },
+                );
+          } finally {
+            acquired.close(force: true);
+            client.value = null;
+          }
+        }),
       );
     }
 

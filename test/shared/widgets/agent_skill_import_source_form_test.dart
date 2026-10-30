@@ -9,11 +9,14 @@
 //   assets/translations/zh-CN/common.json
 
 import 'dart:async';
+import 'package:dio/dio.dart';
+import 'package:reveric/shared/providers/agent_skill_catalog_providers.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:reveric/mobile/widgets/sheet.dart';
 import 'package:reveric/shared/components/reveric_button.dart';
 import 'package:reveric/shared/components/reveric_dialog.dart';
@@ -42,6 +45,88 @@ void main() {
   });
   setUp(() => rootBundle.clear());
 
+  testWidgets(
+    'remote scans acquire a fresh configured client and close it on failure',
+    (tester) async {
+      final adapters = <_ImportAdapter>[];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            skillHttpClientFactoryProvider.overrideWithValue(() async {
+              final adapter = _ImportAdapter();
+              adapters.add(adapter);
+              return Dio()..httpClientAdapter = adapter;
+            }),
+          ],
+          child: _wrap(
+            AgentSkillImportSourceForm(
+              initialUrl: 'https://github.com/example/skill',
+              existingNames: const {},
+              pickFiles: () async => null,
+              onDiscovered: (_) => fail('Expected rate limiting'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(adapters, isEmpty);
+      for (var attempt = 1; attempt <= 2; attempt++) {
+        await tester.tap(
+          find.widgetWithText(
+            RevericButton,
+            tr(LocaleKeys.agentSkillImportScan),
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(adapters, hasLength(attempt));
+        expect(adapters.last.path, '/repos/example/skill/zipball');
+        expect(adapters.last.closed, isTrue);
+        expect(
+          find.text(tr(LocaleKeys.agentSkillImportRateLimited)),
+          findsOneWidget,
+        );
+      }
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
+    'closing while proxy settings load closes the late client without downloading',
+    (tester) async {
+      final pending = Completer<Dio>();
+      final adapter = _ImportAdapter();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            skillHttpClientFactoryProvider.overrideWithValue(
+              () => pending.future,
+            ),
+          ],
+          child: _wrap(
+            AgentSkillImportSourceForm(
+              initialUrl: 'https://github.com/example/skill',
+              existingNames: const {},
+              pickFiles: () async => null,
+              onDiscovered: (_) => fail('Import was closed'),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.widgetWithText(RevericButton, tr(LocaleKeys.agentSkillImportScan)),
+      );
+      await tester.pump();
+      await tester.pumpWidget(const SizedBox.shrink());
+      pending.complete(Dio()..httpClientAdapter = adapter);
+      await tester.pumpAndSettle();
+      expect(adapter.closed, isTrue);
+      expect(adapter.path, isNull);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   for (final platform in [
     TargetPlatform.windows,
     TargetPlatform.macOS,
@@ -66,6 +151,7 @@ void main() {
                   Widget content(BuildContext context) =>
                       AgentSkillImportSourceForm(
                         existingNames: const {},
+                        initialUrl: 'https://github.com/example/skill',
                         pickDirectory: () async => [_candidate],
                         pickFiles: () async => [_candidate],
                         onDiscovered: (items) {
@@ -102,6 +188,11 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Open'));
         await tester.pumpAndSettle();
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).controller!.text,
+          'https://github.com/example/skill',
+        );
+        expect(selected, isNull);
         await tester.enterText(
           find.byType(TextField),
           'https://example.com/not-supported',
@@ -231,21 +322,42 @@ void main() {
   });
 }
 
-Widget _wrap(Widget child) => EasyLocalization(
-  supportedLocales: const [Locale('en')],
-  path: 'assets/translations',
-  assetLoader: const MergingAssetLoader(),
-  fallbackLocale: const Locale('en'),
-  startLocale: const Locale('en'),
-  child: Builder(
-    builder: (context) => MaterialApp(
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
-      theme: RevericThemeData.reveric.toThemeData(),
-      builder: (_, child) =>
-          RevericTheme(data: RevericThemeData.reveric, child: child!),
-      home: Scaffold(body: child),
+Widget _wrap(Widget child) => ProviderScope(
+  child: EasyLocalization(
+    supportedLocales: const [Locale('en')],
+    path: 'assets/translations',
+    assetLoader: const MergingAssetLoader(),
+    fallbackLocale: const Locale('en'),
+    startLocale: const Locale('en'),
+    child: Builder(
+      builder: (context) => MaterialApp(
+        localizationsDelegates: context.localizationDelegates,
+        supportedLocales: context.supportedLocales,
+        locale: context.locale,
+        theme: RevericThemeData.reveric.toThemeData(),
+        builder: (_, child) =>
+            RevericTheme(data: RevericThemeData.reveric, child: child!),
+        home: Scaffold(body: child),
+      ),
     ),
   ),
 );
+
+class _ImportAdapter implements HttpClientAdapter {
+  bool closed = false;
+  String? path;
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? stream,
+    Future<void>? cancel,
+  ) async {
+    path = options.uri.path;
+    return ResponseBody.fromString('rate limited', 429);
+  }
+
+  @override
+  void close({bool force = false}) {
+    closed = true;
+  }
+}

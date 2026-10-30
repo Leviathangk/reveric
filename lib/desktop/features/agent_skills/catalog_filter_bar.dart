@@ -35,12 +35,16 @@ class CatalogFilterBar extends StatelessWidget {
     required this.selectedCategory,
     required this.onCategory,
     required this.searchController,
+    this.trailing,
   });
 
   final List<String> categories;
   final String? selectedCategory;
   final ValueChanged<String?> onCategory;
   final TextEditingController searchController;
+
+  /// 搜索框右侧的附加操作(如广场刷新);null 时不占位。
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -87,6 +91,10 @@ class CatalogFilterBar extends StatelessWidget {
               height: RevericSizes.buttonHeightSm,
             ),
           ),
+          if (trailing != null) ...[
+            const SizedBox(width: RevericSpacing.sm),
+            trailing!,
+          ],
         ],
       ),
     );

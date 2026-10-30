@@ -619,7 +619,7 @@ OfficialAgentSkill _officialDto(
 }
 
 /// 仅实现 install flow 测试需要的 catalog 方法;其余方法抛 UnimplementedError。
-class _FakeCatalogService implements AgentSkillCatalogService {
+class _FakeCatalogService extends AgentSkillCatalogService {
   _FakeCatalogService({OfficialAgentSkillCatalog? officialList})
     : _officialList =
           officialList ?? const OfficialAgentSkillCatalog(agentSkills: []);

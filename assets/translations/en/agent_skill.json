@@ -23,7 +23,7 @@
   "agent_skill.tab_installed": "Skills",
   "agent_skill.tab_library": "Library",
   "agent_skill.tab_official": "Official",
-  "agent_skill.tab_market": "Marketplace",
+  "agent_skill.tab_market": "Discover",
   "agent_skill.create_and_install": "Create & Install",
   "agent_skill.install": "Download",
   "agent_skill.downloaded": "Downloaded",
@@ -177,7 +177,6 @@
   "agent_skill.history_source_ai_edit": "Edited by AI",
   "agent_skill.history_source_upgrade": "Upgraded",
   "agent_skill.converted_to_local": "Detached from its source",
-  "agent_skill.market_not_connected": "The skill marketplace is not connected yet.",
   "agent_skill.import_local": "From your device",
   "agent_skill.import_local_hint": "Choose a folder to include references. Choose Markdown files to import only the selected files.",
   "agent_skill.import_remote": "From a repository",
@@ -188,5 +187,12 @@
   "agent_skill.import_unavailable": "The repository or revision does not exist or is not public.",
   "agent_skill.import_rate_limited": "Repository access is temporarily restricted or rate limited. Try again later.",
   "agent_skill.import_network_failed": "Download failed. Check your connection and try again.",
-  "agent_skill.import_too_large": "The repository or skill files exceed the import limit. Import from a local folder instead."
+  "agent_skill.import_too_large": "The repository or skill files exceed the import limit. Import from a local folder instead.",
+  "agent_skill.market_load_failed": "Unable to load the skill directory. Check your connection and try again.",
+  "agent_skill.market_cached": "Refresh failed. Showing the saved directory.",
+  "agent_skill.market_empty": "No skills have been listed yet.",
+  "agent_skill.market_no_results": "No matching skills. Try another search or category.",
+  "agent_skill.import_has_scripts": "Includes scripts",
+  "agent_skill.import_scripts_warning": "Some skills include scripts. Only instructions and text references will be imported; scripts will not be imported or run. Features that depend on them may be unavailable.",
+  "agent_skill.market_not_connected": "The skill marketplace is not connected yet."
 }

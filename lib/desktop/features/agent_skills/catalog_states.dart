@@ -39,9 +39,12 @@ class CatalogLoadingState extends StatelessWidget {
 
 /// 目录加载失败 + 重试。
 class CatalogErrorState extends StatelessWidget {
-  const CatalogErrorState({super.key, required this.onRetry});
+  const CatalogErrorState({super.key, required this.onRetry, this.message});
 
   final VoidCallback onRetry;
+
+  /// 已本地化的失败说明;null 时用通用加载失败文案。
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +63,7 @@ class CatalogErrorState extends StatelessWidget {
             ),
             const SizedBox(height: RevericSpacing.md),
             Text(
-              context.t(LocaleKeys.agentSkillLoadFailed),
+              message ?? context.t(LocaleKeys.agentSkillLoadFailed),
               style: typo.heading2.copyWith(color: colors.textSecondary),
               textAlign: TextAlign.center,
             ),
