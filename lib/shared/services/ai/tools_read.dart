@@ -2,7 +2,6 @@
 // 关联文件:
 //   lib/shared/agent/tools.dart
 //   lib/shared/services/ai/tools_support.dart
-//   lib/shared/services/ai/tools_web.dart
 //   lib/shared/services/working_overlay.dart
 // 遵循的 Rules:
 //   .agents/rules/json.md

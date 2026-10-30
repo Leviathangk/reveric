@@ -4,6 +4,7 @@
 //   lib/shared/agent/agent_orchestrator.dart
 //   lib/shared/models/agent_council_models.dart
 //   lib/shared/agent/fake_agent.dart
+import '../../../helpers/plugin_host.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reveric/shared/agent/agent_hook.dart';
@@ -187,7 +188,9 @@ void main() {
         );
         final records = <String, Map<String, dynamic>>{};
         final sources = <String, String?>{};
-        final orchestrator = AgentCouncilOrchestrator()..mcpService = service;
+        final orchestrator =
+            (AgentCouncilOrchestrator()..pluginHost = emptyPluginHost())
+              ..mcpService = service;
         await orchestrator.startDiscussion(
           novelId: 'novel',
           sessionId: 'shared-council',
@@ -231,7 +234,10 @@ void main() {
       (speaker, _) =>
           speaker == 'Alice' ? 'Carol 的方案有漏洞。\n【请回应】Carol' : '$speaker 发言',
     );
-    final session = await discuss(AgentCouncilOrchestrator(), fake.client);
+    final session = await discuss(
+      (AgentCouncilOrchestrator()..pluginHost = emptyPluginHost()),
+      fake.client,
+    );
 
     expect(speakers(session), ['Alice', 'Carol', 'Bob']);
     final first = session.rounds.single.messages.first;
@@ -242,7 +248,8 @@ void main() {
   test(
     'author interjection mentioning a member makes them answer first',
     () async {
-      final orchestrator = AgentCouncilOrchestrator();
+      final orchestrator = (AgentCouncilOrchestrator()
+        ..pluginHost = emptyPluginHost());
       final fake = client((speaker, _) {
         if (speaker == 'Alice') {
           orchestrator.queueUserMessage(
@@ -269,7 +276,8 @@ void main() {
   );
 
   test('solo speaker appends to the last round', () async {
-    final orchestrator = AgentCouncilOrchestrator();
+    final orchestrator = (AgentCouncilOrchestrator()
+      ..pluginHost = emptyPluginHost());
     final fake = client((speaker, _) => '$speaker 发言');
     final first = await discuss(orchestrator, fake.client);
     orchestrator.finishRun();
@@ -288,7 +296,8 @@ void main() {
   test(
     'members with memory only get what was said since their last turn',
     () async {
-      final orchestrator = AgentCouncilOrchestrator();
+      final orchestrator = (AgentCouncilOrchestrator()
+        ..pluginHost = emptyPluginHost());
       final fake = client((speaker, _) => '$speaker 第一轮观点');
       await discuss(orchestrator, fake.client, rounds: 2);
 
@@ -308,7 +317,8 @@ void main() {
   test(
     'history edits drop member memory so the next turn sees everything',
     () async {
-      final orchestrator = AgentCouncilOrchestrator();
+      final orchestrator = (AgentCouncilOrchestrator()
+        ..pluginHost = emptyPluginHost());
       final fake = client((speaker, _) => '$speaker 观点');
       final first = await discuss(orchestrator, fake.client);
       orchestrator.finishRun();

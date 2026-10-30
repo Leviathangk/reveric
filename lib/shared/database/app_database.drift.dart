@@ -21747,6 +21747,1242 @@ class ImageAssetReferencesCompanion
   }
 }
 
+class $PluginRegistryTable extends PluginRegistry
+    with TableInfo<$PluginRegistryTable, PluginRegistryData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PluginRegistryTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _pluginIdMeta = const VerificationMeta(
+    'pluginId',
+  );
+  @override
+  late final GeneratedColumn<String> pluginId = GeneratedColumn<String>(
+    'plugin_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
+  );
+  @override
+  late final GeneratedColumn<String> version = GeneratedColumn<String>(
+    'version',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _packagePathMeta = const VerificationMeta(
+    'packagePath',
+  );
+  @override
+  late final GeneratedColumn<String> packagePath = GeneratedColumn<String>(
+    'package_path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _enabledMeta = const VerificationMeta(
+    'enabled',
+  );
+  @override
+  late final GeneratedColumn<bool> enabled = GeneratedColumn<bool>(
+    'enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now(),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now(),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0',
+    defaultValue: const CustomExpression('0'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    pluginId,
+    version,
+    source,
+    packagePath,
+    enabled,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'plugin_registry';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PluginRegistryData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('plugin_id')) {
+      context.handle(
+        _pluginIdMeta,
+        pluginId.isAcceptableOrUnknown(data['plugin_id']!, _pluginIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pluginIdMeta);
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_versionMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceMeta);
+    }
+    if (data.containsKey('package_path')) {
+      context.handle(
+        _packagePathMeta,
+        packagePath.isAcceptableOrUnknown(
+          data['package_path']!,
+          _packagePathMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_packagePathMeta);
+    }
+    if (data.containsKey('enabled')) {
+      context.handle(
+        _enabledMeta,
+        enabled.isAcceptableOrUnknown(data['enabled']!, _enabledMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_enabledMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {pluginId};
+  @override
+  PluginRegistryData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PluginRegistryData(
+      pluginId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}plugin_id'],
+      )!,
+      version: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}version'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      packagePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}package_path'],
+      )!,
+      enabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enabled'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PluginRegistryTable createAlias(String alias) {
+    return $PluginRegistryTable(attachedDatabase, alias);
+  }
+}
+
+class PluginRegistryData extends DataClass
+    implements Insertable<PluginRegistryData> {
+  final String pluginId;
+  final String version;
+  final String source;
+  final String packagePath;
+  final bool enabled;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime deletedAt;
+  const PluginRegistryData({
+    required this.pluginId,
+    required this.version,
+    required this.source,
+    required this.packagePath,
+    required this.enabled,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['plugin_id'] = Variable<String>(pluginId);
+    map['version'] = Variable<String>(version);
+    map['source'] = Variable<String>(source);
+    map['package_path'] = Variable<String>(packagePath);
+    map['enabled'] = Variable<bool>(enabled);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['deleted_at'] = Variable<DateTime>(deletedAt);
+    return map;
+  }
+
+  PluginRegistryCompanion toCompanion(bool nullToAbsent) {
+    return PluginRegistryCompanion(
+      pluginId: Value(pluginId),
+      version: Value(version),
+      source: Value(source),
+      packagePath: Value(packagePath),
+      enabled: Value(enabled),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: Value(deletedAt),
+    );
+  }
+
+  factory PluginRegistryData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PluginRegistryData(
+      pluginId: serializer.fromJson<String>(json['pluginId']),
+      version: serializer.fromJson<String>(json['version']),
+      source: serializer.fromJson<String>(json['source']),
+      packagePath: serializer.fromJson<String>(json['packagePath']),
+      enabled: serializer.fromJson<bool>(json['enabled']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'pluginId': serializer.toJson<String>(pluginId),
+      'version': serializer.toJson<String>(version),
+      'source': serializer.toJson<String>(source),
+      'packagePath': serializer.toJson<String>(packagePath),
+      'enabled': serializer.toJson<bool>(enabled),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime>(deletedAt),
+    };
+  }
+
+  PluginRegistryData copyWith({
+    String? pluginId,
+    String? version,
+    String? source,
+    String? packagePath,
+    bool? enabled,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? deletedAt,
+  }) => PluginRegistryData(
+    pluginId: pluginId ?? this.pluginId,
+    version: version ?? this.version,
+    source: source ?? this.source,
+    packagePath: packagePath ?? this.packagePath,
+    enabled: enabled ?? this.enabled,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt ?? this.deletedAt,
+  );
+  PluginRegistryData copyWithCompanion(PluginRegistryCompanion data) {
+    return PluginRegistryData(
+      pluginId: data.pluginId.present ? data.pluginId.value : this.pluginId,
+      version: data.version.present ? data.version.value : this.version,
+      source: data.source.present ? data.source.value : this.source,
+      packagePath: data.packagePath.present
+          ? data.packagePath.value
+          : this.packagePath,
+      enabled: data.enabled.present ? data.enabled.value : this.enabled,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PluginRegistryData(')
+          ..write('pluginId: $pluginId, ')
+          ..write('version: $version, ')
+          ..write('source: $source, ')
+          ..write('packagePath: $packagePath, ')
+          ..write('enabled: $enabled, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    pluginId,
+    version,
+    source,
+    packagePath,
+    enabled,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PluginRegistryData &&
+          other.pluginId == this.pluginId &&
+          other.version == this.version &&
+          other.source == this.source &&
+          other.packagePath == this.packagePath &&
+          other.enabled == this.enabled &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class PluginRegistryCompanion extends UpdateCompanion<PluginRegistryData> {
+  final Value<String> pluginId;
+  final Value<String> version;
+  final Value<String> source;
+  final Value<String> packagePath;
+  final Value<bool> enabled;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime> deletedAt;
+  final Value<int> rowid;
+  const PluginRegistryCompanion({
+    this.pluginId = const Value.absent(),
+    this.version = const Value.absent(),
+    this.source = const Value.absent(),
+    this.packagePath = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PluginRegistryCompanion.insert({
+    required String pluginId,
+    required String version,
+    required String source,
+    required String packagePath,
+    required bool enabled,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : pluginId = Value(pluginId),
+       version = Value(version),
+       source = Value(source),
+       packagePath = Value(packagePath),
+       enabled = Value(enabled);
+  static Insertable<PluginRegistryData> custom({
+    Expression<String>? pluginId,
+    Expression<String>? version,
+    Expression<String>? source,
+    Expression<String>? packagePath,
+    Expression<bool>? enabled,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (pluginId != null) 'plugin_id': pluginId,
+      if (version != null) 'version': version,
+      if (source != null) 'source': source,
+      if (packagePath != null) 'package_path': packagePath,
+      if (enabled != null) 'enabled': enabled,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PluginRegistryCompanion copyWith({
+    Value<String>? pluginId,
+    Value<String>? version,
+    Value<String>? source,
+    Value<String>? packagePath,
+    Value<bool>? enabled,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return PluginRegistryCompanion(
+      pluginId: pluginId ?? this.pluginId,
+      version: version ?? this.version,
+      source: source ?? this.source,
+      packagePath: packagePath ?? this.packagePath,
+      enabled: enabled ?? this.enabled,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (pluginId.present) {
+      map['plugin_id'] = Variable<String>(pluginId.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<String>(version.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (packagePath.present) {
+      map['package_path'] = Variable<String>(packagePath.value);
+    }
+    if (enabled.present) {
+      map['enabled'] = Variable<bool>(enabled.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PluginRegistryCompanion(')
+          ..write('pluginId: $pluginId, ')
+          ..write('version: $version, ')
+          ..write('source: $source, ')
+          ..write('packagePath: $packagePath, ')
+          ..write('enabled: $enabled, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PluginStorageTable extends PluginStorage
+    with TableInfo<$PluginStorageTable, PluginStorageData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PluginStorageTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _pluginIdMeta = const VerificationMeta(
+    'pluginId',
+  );
+  @override
+  late final GeneratedColumn<String> pluginId = GeneratedColumn<String>(
+    'plugin_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _keyMeta = const VerificationMeta('key');
+  @override
+  late final GeneratedColumn<String> key = GeneratedColumn<String>(
+    'key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now(),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now(),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    pluginId,
+    key,
+    value,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'plugin_storage';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PluginStorageData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('plugin_id')) {
+      context.handle(
+        _pluginIdMeta,
+        pluginId.isAcceptableOrUnknown(data['plugin_id']!, _pluginIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pluginIdMeta);
+    }
+    if (data.containsKey('key')) {
+      context.handle(
+        _keyMeta,
+        key.isAcceptableOrUnknown(data['key']!, _keyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_keyMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {pluginId, key};
+  @override
+  PluginStorageData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PluginStorageData(
+      pluginId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}plugin_id'],
+      )!,
+      key: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PluginStorageTable createAlias(String alias) {
+    return $PluginStorageTable(attachedDatabase, alias);
+  }
+}
+
+class PluginStorageData extends DataClass
+    implements Insertable<PluginStorageData> {
+  final String pluginId;
+  final String key;
+  final String value;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const PluginStorageData({
+    required this.pluginId,
+    required this.key,
+    required this.value,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['plugin_id'] = Variable<String>(pluginId);
+    map['key'] = Variable<String>(key);
+    map['value'] = Variable<String>(value);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  PluginStorageCompanion toCompanion(bool nullToAbsent) {
+    return PluginStorageCompanion(
+      pluginId: Value(pluginId),
+      key: Value(key),
+      value: Value(value),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PluginStorageData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PluginStorageData(
+      pluginId: serializer.fromJson<String>(json['pluginId']),
+      key: serializer.fromJson<String>(json['key']),
+      value: serializer.fromJson<String>(json['value']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'pluginId': serializer.toJson<String>(pluginId),
+      'key': serializer.toJson<String>(key),
+      'value': serializer.toJson<String>(value),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  PluginStorageData copyWith({
+    String? pluginId,
+    String? key,
+    String? value,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => PluginStorageData(
+    pluginId: pluginId ?? this.pluginId,
+    key: key ?? this.key,
+    value: value ?? this.value,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  PluginStorageData copyWithCompanion(PluginStorageCompanion data) {
+    return PluginStorageData(
+      pluginId: data.pluginId.present ? data.pluginId.value : this.pluginId,
+      key: data.key.present ? data.key.value : this.key,
+      value: data.value.present ? data.value.value : this.value,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PluginStorageData(')
+          ..write('pluginId: $pluginId, ')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(pluginId, key, value, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PluginStorageData &&
+          other.pluginId == this.pluginId &&
+          other.key == this.key &&
+          other.value == this.value &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PluginStorageCompanion extends UpdateCompanion<PluginStorageData> {
+  final Value<String> pluginId;
+  final Value<String> key;
+  final Value<String> value;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const PluginStorageCompanion({
+    this.pluginId = const Value.absent(),
+    this.key = const Value.absent(),
+    this.value = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PluginStorageCompanion.insert({
+    required String pluginId,
+    required String key,
+    required String value,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : pluginId = Value(pluginId),
+       key = Value(key),
+       value = Value(value);
+  static Insertable<PluginStorageData> custom({
+    Expression<String>? pluginId,
+    Expression<String>? key,
+    Expression<String>? value,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (pluginId != null) 'plugin_id': pluginId,
+      if (key != null) 'key': key,
+      if (value != null) 'value': value,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PluginStorageCompanion copyWith({
+    Value<String>? pluginId,
+    Value<String>? key,
+    Value<String>? value,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return PluginStorageCompanion(
+      pluginId: pluginId ?? this.pluginId,
+      key: key ?? this.key,
+      value: value ?? this.value,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (pluginId.present) {
+      map['plugin_id'] = Variable<String>(pluginId.value);
+    }
+    if (key.present) {
+      map['key'] = Variable<String>(key.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PluginStorageCompanion(')
+          ..write('pluginId: $pluginId, ')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PluginSecretsTable extends PluginSecrets
+    with TableInfo<$PluginSecretsTable, PluginSecret> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PluginSecretsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _pluginIdMeta = const VerificationMeta(
+    'pluginId',
+  );
+  @override
+  late final GeneratedColumn<String> pluginId = GeneratedColumn<String>(
+    'plugin_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _keyMeta = const VerificationMeta('key');
+  @override
+  late final GeneratedColumn<String> key = GeneratedColumn<String>(
+    'key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now(),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    clientDefault: () => DateTime.now(),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    pluginId,
+    key,
+    value,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'plugin_secrets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PluginSecret> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('plugin_id')) {
+      context.handle(
+        _pluginIdMeta,
+        pluginId.isAcceptableOrUnknown(data['plugin_id']!, _pluginIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_pluginIdMeta);
+    }
+    if (data.containsKey('key')) {
+      context.handle(
+        _keyMeta,
+        key.isAcceptableOrUnknown(data['key']!, _keyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_keyMeta);
+    }
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {pluginId, key};
+  @override
+  PluginSecret map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PluginSecret(
+      pluginId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}plugin_id'],
+      )!,
+      key: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PluginSecretsTable createAlias(String alias) {
+    return $PluginSecretsTable(attachedDatabase, alias);
+  }
+}
+
+class PluginSecret extends DataClass implements Insertable<PluginSecret> {
+  final String pluginId;
+  final String key;
+  final String value;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const PluginSecret({
+    required this.pluginId,
+    required this.key,
+    required this.value,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['plugin_id'] = Variable<String>(pluginId);
+    map['key'] = Variable<String>(key);
+    map['value'] = Variable<String>(value);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  PluginSecretsCompanion toCompanion(bool nullToAbsent) {
+    return PluginSecretsCompanion(
+      pluginId: Value(pluginId),
+      key: Value(key),
+      value: Value(value),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PluginSecret.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PluginSecret(
+      pluginId: serializer.fromJson<String>(json['pluginId']),
+      key: serializer.fromJson<String>(json['key']),
+      value: serializer.fromJson<String>(json['value']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'pluginId': serializer.toJson<String>(pluginId),
+      'key': serializer.toJson<String>(key),
+      'value': serializer.toJson<String>(value),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  PluginSecret copyWith({
+    String? pluginId,
+    String? key,
+    String? value,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => PluginSecret(
+    pluginId: pluginId ?? this.pluginId,
+    key: key ?? this.key,
+    value: value ?? this.value,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  PluginSecret copyWithCompanion(PluginSecretsCompanion data) {
+    return PluginSecret(
+      pluginId: data.pluginId.present ? data.pluginId.value : this.pluginId,
+      key: data.key.present ? data.key.value : this.key,
+      value: data.value.present ? data.value.value : this.value,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PluginSecret(')
+          ..write('pluginId: $pluginId, ')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(pluginId, key, value, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PluginSecret &&
+          other.pluginId == this.pluginId &&
+          other.key == this.key &&
+          other.value == this.value &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PluginSecretsCompanion extends UpdateCompanion<PluginSecret> {
+  final Value<String> pluginId;
+  final Value<String> key;
+  final Value<String> value;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const PluginSecretsCompanion({
+    this.pluginId = const Value.absent(),
+    this.key = const Value.absent(),
+    this.value = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PluginSecretsCompanion.insert({
+    required String pluginId,
+    required String key,
+    required String value,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : pluginId = Value(pluginId),
+       key = Value(key),
+       value = Value(value);
+  static Insertable<PluginSecret> custom({
+    Expression<String>? pluginId,
+    Expression<String>? key,
+    Expression<String>? value,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (pluginId != null) 'plugin_id': pluginId,
+      if (key != null) 'key': key,
+      if (value != null) 'value': value,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PluginSecretsCompanion copyWith({
+    Value<String>? pluginId,
+    Value<String>? key,
+    Value<String>? value,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return PluginSecretsCompanion(
+      pluginId: pluginId ?? this.pluginId,
+      key: key ?? this.key,
+      value: value ?? this.value,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (pluginId.present) {
+      map['plugin_id'] = Variable<String>(pluginId.value);
+    }
+    if (key.present) {
+      map['key'] = Variable<String>(key.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PluginSecretsCompanion(')
+          ..write('pluginId: $pluginId, ')
+          ..write('key: $key, ')
+          ..write('value: $value, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -21807,6 +23043,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $ImageAssetReferencesTable imageAssetReferences =
       $ImageAssetReferencesTable(this);
+  late final $PluginRegistryTable pluginRegistry = $PluginRegistryTable(this);
+  late final $PluginStorageTable pluginStorage = $PluginStorageTable(this);
+  late final $PluginSecretsTable pluginSecrets = $PluginSecretsTable(this);
+  late final PluginDao pluginDao = PluginDao(this as AppDatabase);
   late final AiProviderDao aiProviderDao = AiProviderDao(this as AppDatabase);
   late final GenerationTaskDao generationTaskDao = GenerationTaskDao(
     this as AppDatabase,
@@ -21898,6 +23138,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     imageBatches,
     imageBatchSlots,
     imageAssetReferences,
+    pluginRegistry,
+    pluginStorage,
+    pluginSecrets,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -33688,6 +34931,702 @@ typedef $$ImageAssetReferencesTableProcessedTableManager =
       ImageAssetReferenceRow,
       PrefetchHooks Function()
     >;
+typedef $$PluginRegistryTableCreateCompanionBuilder =
+    PluginRegistryCompanion Function({
+      required String pluginId,
+      required String version,
+      required String source,
+      required String packagePath,
+      required bool enabled,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$PluginRegistryTableUpdateCompanionBuilder =
+    PluginRegistryCompanion Function({
+      Value<String> pluginId,
+      Value<String> version,
+      Value<String> source,
+      Value<String> packagePath,
+      Value<bool> enabled,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$PluginRegistryTableFilterComposer
+    extends Composer<_$AppDatabase, $PluginRegistryTable> {
+  $$PluginRegistryTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get pluginId => $composableBuilder(
+    column: $table.pluginId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get packagePath => $composableBuilder(
+    column: $table.packagePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PluginRegistryTableOrderingComposer
+    extends Composer<_$AppDatabase, $PluginRegistryTable> {
+  $$PluginRegistryTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get pluginId => $composableBuilder(
+    column: $table.pluginId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get version => $composableBuilder(
+    column: $table.version,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get packagePath => $composableBuilder(
+    column: $table.packagePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PluginRegistryTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PluginRegistryTable> {
+  $$PluginRegistryTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get pluginId =>
+      $composableBuilder(column: $table.pluginId, builder: (column) => column);
+
+  GeneratedColumn<String> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get packagePath => $composableBuilder(
+    column: $table.packagePath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get enabled =>
+      $composableBuilder(column: $table.enabled, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$PluginRegistryTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PluginRegistryTable,
+          PluginRegistryData,
+          $$PluginRegistryTableFilterComposer,
+          $$PluginRegistryTableOrderingComposer,
+          $$PluginRegistryTableAnnotationComposer,
+          $$PluginRegistryTableCreateCompanionBuilder,
+          $$PluginRegistryTableUpdateCompanionBuilder,
+          (
+            PluginRegistryData,
+            BaseReferences<
+              _$AppDatabase,
+              $PluginRegistryTable,
+              PluginRegistryData
+            >,
+          ),
+          PluginRegistryData,
+          PrefetchHooks Function()
+        > {
+  $$PluginRegistryTableTableManager(
+    _$AppDatabase db,
+    $PluginRegistryTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PluginRegistryTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PluginRegistryTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PluginRegistryTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> pluginId = const Value.absent(),
+                Value<String> version = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<String> packagePath = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PluginRegistryCompanion(
+                pluginId: pluginId,
+                version: version,
+                source: source,
+                packagePath: packagePath,
+                enabled: enabled,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String pluginId,
+                required String version,
+                required String source,
+                required String packagePath,
+                required bool enabled,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PluginRegistryCompanion.insert(
+                pluginId: pluginId,
+                version: version,
+                source: source,
+                packagePath: packagePath,
+                enabled: enabled,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PluginRegistryTable, PluginRegistryData>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $PluginRegistryTable,
+                    PluginRegistryData
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PluginRegistryTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PluginRegistryTable,
+      PluginRegistryData,
+      $$PluginRegistryTableFilterComposer,
+      $$PluginRegistryTableOrderingComposer,
+      $$PluginRegistryTableAnnotationComposer,
+      $$PluginRegistryTableCreateCompanionBuilder,
+      $$PluginRegistryTableUpdateCompanionBuilder,
+      (
+        PluginRegistryData,
+        BaseReferences<_$AppDatabase, $PluginRegistryTable, PluginRegistryData>,
+      ),
+      PluginRegistryData,
+      PrefetchHooks Function()
+    >;
+typedef $$PluginStorageTableCreateCompanionBuilder =
+    PluginStorageCompanion Function({
+      required String pluginId,
+      required String key,
+      required String value,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$PluginStorageTableUpdateCompanionBuilder =
+    PluginStorageCompanion Function({
+      Value<String> pluginId,
+      Value<String> key,
+      Value<String> value,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$PluginStorageTableFilterComposer
+    extends Composer<_$AppDatabase, $PluginStorageTable> {
+  $$PluginStorageTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get pluginId => $composableBuilder(
+    column: $table.pluginId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PluginStorageTableOrderingComposer
+    extends Composer<_$AppDatabase, $PluginStorageTable> {
+  $$PluginStorageTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get pluginId => $composableBuilder(
+    column: $table.pluginId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PluginStorageTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PluginStorageTable> {
+  $$PluginStorageTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get pluginId =>
+      $composableBuilder(column: $table.pluginId, builder: (column) => column);
+
+  GeneratedColumn<String> get key =>
+      $composableBuilder(column: $table.key, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$PluginStorageTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PluginStorageTable,
+          PluginStorageData,
+          $$PluginStorageTableFilterComposer,
+          $$PluginStorageTableOrderingComposer,
+          $$PluginStorageTableAnnotationComposer,
+          $$PluginStorageTableCreateCompanionBuilder,
+          $$PluginStorageTableUpdateCompanionBuilder,
+          (
+            PluginStorageData,
+            BaseReferences<
+              _$AppDatabase,
+              $PluginStorageTable,
+              PluginStorageData
+            >,
+          ),
+          PluginStorageData,
+          PrefetchHooks Function()
+        > {
+  $$PluginStorageTableTableManager(_$AppDatabase db, $PluginStorageTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PluginStorageTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PluginStorageTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PluginStorageTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> pluginId = const Value.absent(),
+                Value<String> key = const Value.absent(),
+                Value<String> value = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PluginStorageCompanion(
+                pluginId: pluginId,
+                key: key,
+                value: value,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String pluginId,
+                required String key,
+                required String value,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PluginStorageCompanion.insert(
+                pluginId: pluginId,
+                key: key,
+                value: value,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PluginStorageTable, PluginStorageData>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $PluginStorageTable,
+                    PluginStorageData
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PluginStorageTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PluginStorageTable,
+      PluginStorageData,
+      $$PluginStorageTableFilterComposer,
+      $$PluginStorageTableOrderingComposer,
+      $$PluginStorageTableAnnotationComposer,
+      $$PluginStorageTableCreateCompanionBuilder,
+      $$PluginStorageTableUpdateCompanionBuilder,
+      (
+        PluginStorageData,
+        BaseReferences<_$AppDatabase, $PluginStorageTable, PluginStorageData>,
+      ),
+      PluginStorageData,
+      PrefetchHooks Function()
+    >;
+typedef $$PluginSecretsTableCreateCompanionBuilder =
+    PluginSecretsCompanion Function({
+      required String pluginId,
+      required String key,
+      required String value,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+typedef $$PluginSecretsTableUpdateCompanionBuilder =
+    PluginSecretsCompanion Function({
+      Value<String> pluginId,
+      Value<String> key,
+      Value<String> value,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$PluginSecretsTableFilterComposer
+    extends Composer<_$AppDatabase, $PluginSecretsTable> {
+  $$PluginSecretsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get pluginId => $composableBuilder(
+    column: $table.pluginId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PluginSecretsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PluginSecretsTable> {
+  $$PluginSecretsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get pluginId => $composableBuilder(
+    column: $table.pluginId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PluginSecretsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PluginSecretsTable> {
+  $$PluginSecretsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get pluginId =>
+      $composableBuilder(column: $table.pluginId, builder: (column) => column);
+
+  GeneratedColumn<String> get key =>
+      $composableBuilder(column: $table.key, builder: (column) => column);
+
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$PluginSecretsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PluginSecretsTable,
+          PluginSecret,
+          $$PluginSecretsTableFilterComposer,
+          $$PluginSecretsTableOrderingComposer,
+          $$PluginSecretsTableAnnotationComposer,
+          $$PluginSecretsTableCreateCompanionBuilder,
+          $$PluginSecretsTableUpdateCompanionBuilder,
+          (
+            PluginSecret,
+            BaseReferences<_$AppDatabase, $PluginSecretsTable, PluginSecret>,
+          ),
+          PluginSecret,
+          PrefetchHooks Function()
+        > {
+  $$PluginSecretsTableTableManager(_$AppDatabase db, $PluginSecretsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PluginSecretsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PluginSecretsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PluginSecretsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> pluginId = const Value.absent(),
+                Value<String> key = const Value.absent(),
+                Value<String> value = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PluginSecretsCompanion(
+                pluginId: pluginId,
+                key: key,
+                value: value,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String pluginId,
+                required String key,
+                required String value,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PluginSecretsCompanion.insert(
+                pluginId: pluginId,
+                key: key,
+                value: value,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PluginSecretsTable, PluginSecret>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $PluginSecretsTable,
+                    PluginSecret
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PluginSecretsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PluginSecretsTable,
+      PluginSecret,
+      $$PluginSecretsTableFilterComposer,
+      $$PluginSecretsTableOrderingComposer,
+      $$PluginSecretsTableAnnotationComposer,
+      $$PluginSecretsTableCreateCompanionBuilder,
+      $$PluginSecretsTableUpdateCompanionBuilder,
+      (
+        PluginSecret,
+        BaseReferences<_$AppDatabase, $PluginSecretsTable, PluginSecret>,
+      ),
+      PluginSecret,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -33771,4 +35710,10 @@ class $AppDatabaseManager {
       $$ImageBatchSlotsTableTableManager(_db, _db.imageBatchSlots);
   $$ImageAssetReferencesTableTableManager get imageAssetReferences =>
       $$ImageAssetReferencesTableTableManager(_db, _db.imageAssetReferences);
+  $$PluginRegistryTableTableManager get pluginRegistry =>
+      $$PluginRegistryTableTableManager(_db, _db.pluginRegistry);
+  $$PluginStorageTableTableManager get pluginStorage =>
+      $$PluginStorageTableTableManager(_db, _db.pluginStorage);
+  $$PluginSecretsTableTableManager get pluginSecrets =>
+      $$PluginSecretsTableTableManager(_db, _db.pluginSecrets);
 }

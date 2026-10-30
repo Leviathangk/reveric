@@ -1,17 +1,15 @@
-// 职责: AI 工具管理器，负责注册 Run/Read/Glob/Grep/WebSearch/WebFetch/Write/Edit/Create/SpawnAgent 等工具并协调可回滚 working change patch。
+// 职责: AI 工具管理器，负责注册 Run/Read/Glob/Grep/Write/Edit/Create/SpawnAgent 等工具并协调可回滚 working change patch。
 // 关联文件:
 //   lib/shared/services/ai/chat.dart
 //   lib/shared/services/ai/tools_support.dart
 //   lib/shared/services/ai/tool_error_normalize.dart
 //   lib/shared/services/ai/tool_result_payloads.dart
-//   lib/shared/services/ai/tools_web.dart
 //   lib/shared/services/ai/tools_read.dart
 //   lib/shared/services/ai/tools_glob.dart
 //   lib/shared/services/ai/tools_grep.dart
 //   lib/shared/services/ai/tools_image.dart
 //   lib/shared/services/ai/tools_run.dart
 //   lib/shared/services/ai/tools_subagent.dart
-//   lib/third/html2md/html2md.dart
 //   lib/shared/services/working_overlay.dart
 //   lib/shared/services/novel_content.dart
 //   lib/shared/services/novel_actions.dart
@@ -49,7 +47,6 @@ import 'dart:ui' show Offset, Rect, Size;
 import 'package:flutter/foundation.dart';
 import 'package:collection/collection.dart';
 import 'package:drift/drift.dart' show Value;
-import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import '../../database/app_database.dart';
 import '../../utils/entity_relation_types.dart';
@@ -112,7 +109,6 @@ import 'media_diagnostics.dart' show safeMediaDiagnostic;
 import 'tool_result_payloads.dart';
 import 'package:easy_localization/easy_localization.dart';
 
-import '../../../third/html2md/html2md.dart' as html2md;
 import '../../localization/locale_keys.dart';
 
 // Re-export types for backward compatibility
@@ -145,7 +141,6 @@ part 'tools_storyboard.dart';
 part 'tools_production.dart';
 part 'stagings_run_command_handler.dart';
 part 'tools_production_schema.dart';
-part 'tools_web.dart';
 part 'tools_read.dart';
 part 'tools_resource_search_support.dart';
 part 'tools_glob.dart';
@@ -4053,8 +4048,6 @@ const List<AiToolDefinition> aiToolCatalog = [
   AiToolDefinition(name: 'Read', group: AiToolGroup.read),
   AiToolDefinition(name: 'Glob', group: AiToolGroup.search),
   AiToolDefinition(name: 'Grep', group: AiToolGroup.search),
-  AiToolDefinition(name: 'WebSearch', group: AiToolGroup.web),
-  AiToolDefinition(name: 'WebFetch', group: AiToolGroup.web),
   AiToolDefinition(name: 'Create', group: AiToolGroup.create),
   AiToolDefinition(name: 'Write', group: AiToolGroup.write),
   AiToolDefinition(name: 'Remove', group: AiToolGroup.write),
@@ -4118,7 +4111,6 @@ class AiToolManager extends _AiToolManagerBase
         _AiToolManagerPathHintsMixin,
         _AiToolManagerCanvasMixin,
         _AiToolManagerScreenplayMixin,
-        _AiToolManagerWebMixin,
         _AiToolManagerOutlineMixin,
         _AiToolManagerReadMixin,
         _AiToolManagerResourceSearchSupportMixin,
@@ -4465,28 +4457,6 @@ class AiToolManager extends _AiToolManagerBase
         toolName: 'Grep',
         input: input,
         run: () => _handleCrossWorkGrep(input),
-        ref: callId,
-      ),
-    );
-
-    _registerDispatch(
-      'WebSearch',
-      AiToolGroup.web,
-      (input, callId) => _runToolObserved(
-        toolName: 'WebSearch',
-        input: input,
-        run: () => _handleWebSearch(input),
-        ref: callId,
-      ),
-    );
-
-    _registerDispatch(
-      'WebFetch',
-      AiToolGroup.web,
-      (input, callId) => _runToolObserved(
-        toolName: 'WebFetch',
-        input: input,
-        run: () => _handleWebFetch(input),
         ref: callId,
       ),
     );
@@ -5151,16 +5121,6 @@ class AiToolManager extends _AiToolManagerBase
         name: 'GraphSearch',
         description: _graphSearchDescription,
         inputSchema: _graphSearchInputSchema,
-      ),
-      ToolDef(
-        name: 'WebSearch',
-        description: _webSearchDescription,
-        inputSchema: _webSearchInputSchema,
-      ),
-      ToolDef(
-        name: 'WebFetch',
-        description: _webFetchDescription,
-        inputSchema: _webFetchInputSchema,
       ),
       ToolDef(
         name: 'TodoWrite',

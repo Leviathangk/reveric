@@ -4,6 +4,7 @@
 //   lib/shared/services/ai/monologue_orchestrator.dart
 //   lib/shared/providers/ai_mode_processing.dart
 //   lib/shared/services/ai/monologue_session_codec.dart
+import 'plugin_providers.dart';
 import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -109,9 +110,11 @@ class MonologueRuntime extends _$MonologueRuntime {
   MonologueOrchestrator obtainOrchestrator({bool recreate = false}) {
     if (recreate) {
       orchestrator?.cancel();
-      orchestrator = MonologueOrchestrator();
+      orchestrator = (MonologueOrchestrator()
+        ..pluginHost = ref.read(pluginHostServiceProvider));
     }
-    return orchestrator ??= MonologueOrchestrator();
+    return orchestrator ??= (MonologueOrchestrator()
+      ..pluginHost = ref.read(pluginHostServiceProvider));
   }
 
   void setProcessing(bool processing, {bool notifyOnComplete = true}) {

@@ -3,6 +3,7 @@
 //   lib/shared/services/ai/spawn_agent_handler.dart
 //   lib/shared/services/ai/session_persistence.dart
 //   lib/shared/agent/fake_agent.dart
+import 'plugin_host.dart';
 import 'dart:async';
 
 import 'package:drift/native.dart';
@@ -88,6 +89,7 @@ class ControlledSubAgent {
       blocked: blockSave,
     );
     handler = SpawnAgentHandler(
+      pluginHost: emptyPluginHost(),
       codemodeScheduler: fixture.codemodeScheduler,
       workContext: AiSessionContext(
         workId: 'novel',

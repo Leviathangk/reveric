@@ -6,6 +6,8 @@
 //   lib/shared/services/ai/chat.dart
 //   lib/shared/providers/roleplay_providers.dart
 import 'dart:async';
+import '../plugins/agent_dispatcher.dart';
+import '../plugins/host.dart';
 
 import '../../models/content_kind.dart';
 import '../../logger/app_logger.dart';
@@ -65,6 +67,8 @@ final _log = AppLogger.forModule('Roleplay');
 const _titleTimeout = Duration(seconds: 20);
 
 class RoleplayOrchestrator {
+  late PluginHostService pluginHost;
+
   /// 由运行资源提供独立标题客户端；不捕获 UI，也不借用正文的租约。
   Future<String> Function(Future<String> Function(AiClient))? titleClientRunner;
 
@@ -427,7 +431,7 @@ class RoleplayOrchestrator {
       client: aiService.providerClient,
       providerId: aiService.providerId,
       config: aiService.agentConfig,
-      toolManager: tm,
+      toolManager: PluginAgentToolDispatcher(inner: tm, host: pluginHost),
       allowedTools: _roleplayToolNames(aiService),
       initialMessages: _buildInitialMessages(
         session,

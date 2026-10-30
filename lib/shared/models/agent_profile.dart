@@ -49,7 +49,6 @@ class AgentProfile {
     this.avatarPath,
     this.enabled = true,
     this.useCustomPrompt = false,
-    this.allowedToolNames = const [],
     this.ignoredSkillNames = const [],
     this.novelId,
     this.providerId,
@@ -71,7 +70,6 @@ class AgentProfile {
   final int sortOrder;
   final bool enabled;
   final bool useCustomPrompt;
-  final List<String> allowedToolNames;
   final List<String> ignoredSkillNames;
   final String? novelId;
   final String? providerId;
@@ -98,7 +96,6 @@ class AgentProfile {
     int? sortOrder,
     bool? enabled,
     bool? useCustomPrompt,
-    List<String>? allowedToolNames,
     List<String>? ignoredSkillNames,
     String? novelId,
     Object? providerId = _sentinel,
@@ -120,7 +117,6 @@ class AgentProfile {
       sortOrder: sortOrder ?? this.sortOrder,
       enabled: enabled ?? this.enabled,
       useCustomPrompt: useCustomPrompt ?? this.useCustomPrompt,
-      allowedToolNames: allowedToolNames ?? this.allowedToolNames,
       ignoredSkillNames: ignoredSkillNames ?? this.ignoredSkillNames,
       novelId: novelId ?? this.novelId,
       providerId: providerId == _sentinel
@@ -151,7 +147,6 @@ class AgentProfileDraft {
     required this.scope,
     this.mode = 'chat',
     this.useCustomPrompt = false,
-    this.allowedToolNames = const [],
     this.novelId,
     this.providerId,
     this.model,
@@ -165,7 +160,6 @@ class AgentProfileDraft {
   final AgentProfileRole role;
   final AgentProfileScope scope;
   final bool useCustomPrompt;
-  final List<String> allowedToolNames;
   final String? novelId;
   final String? providerId;
   final String? model;

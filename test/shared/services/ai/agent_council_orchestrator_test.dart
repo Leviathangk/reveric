@@ -5,6 +5,7 @@
 //   lib/shared/models/ai_provider.dart
 //   lib/shared/services/ai/chat.dart
 
+import '../../../helpers/plugin_host.dart';
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -61,7 +62,7 @@ void main() {
     final phases = <CouncilPhase>[];
 
     final discussion = _start(
-      AgentCouncilOrchestrator(),
+      (AgentCouncilOrchestrator()..pluginHost = emptyPluginHost()),
       client,
       onPhaseChanged: (session) => phases.add(session.phase),
     );
@@ -81,7 +82,8 @@ void main() {
     // 会永久停在 provider 的兜底标题上，没有任何补偿路径。
     final title = Completer<String>();
     final client = _FakeTitleAiClient(title);
-    final orchestrator = AgentCouncilOrchestrator();
+    final orchestrator = (AgentCouncilOrchestrator()
+      ..pluginHost = emptyPluginHost());
 
     final discussion = _start(orchestrator, client);
     await Future<void>.delayed(Duration.zero);
@@ -103,7 +105,10 @@ void main() {
       final title = Completer<String>();
       final client = _FakeTitleAiClient(title);
 
-      final discussion = _start(AgentCouncilOrchestrator(), client);
+      final discussion = _start(
+        (AgentCouncilOrchestrator()..pluginHost = emptyPluginHost()),
+        client,
+      );
       title.completeError(
         TimeoutException('chatCompletionDetached', const Duration(seconds: 20)),
       );

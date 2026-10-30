@@ -6,7 +6,6 @@ import '../services/ai/builtin_agent_tools.dart';
 import '../localization/locale_keys.dart';
 import '../models/agent_profile.dart';
 import '../services/ai/prompt_template.dart';
-import '../services/ai/tools.dart';
 import '../logger/app_logger.dart';
 
 part 'agent_profile_providers.g.dart';
@@ -109,9 +108,6 @@ AgentProfile _mapAgent(GlobalAgent agent) {
     enabled: agent.enabled,
     useCustomPrompt: agent.useCustomPrompt,
     novelId: agent.novelId.isEmpty ? null : agent.novelId,
-    allowedToolNames: scope == AgentProfileScope.global
-        ? builtinPrimaryAgentToolNames(agent.slug) ?? agent.allowedToolNames
-        : agent.allowedToolNames,
     providerId: agent.providerId,
     model: agent.model,
     createdAt: agent.createdAt,
@@ -128,15 +124,6 @@ List<AgentProfile> _onlyPrimary(Iterable<AgentProfile> agents) => agents
           builtinPrimaryAgentSlugs.contains(agent.slug),
     )
     .toList();
-
-List<String> _storedAllowedToolNames(AgentProfile profile) {
-  if (profile.isBuiltin && builtinPrimaryAgentSlugs.contains(profile.slug)) {
-    return const <String>[];
-  }
-  return profile.allowedToolNames.isEmpty
-      ? defaultAgentToolNames()
-      : profile.allowedToolNames;
-}
 
 @riverpod
 class GlobalAgentProfiles extends _$GlobalAgentProfiles {
@@ -173,7 +160,7 @@ class GlobalAgentProfiles extends _$GlobalAgentProfiles {
         useCustomPrompt: profile.useCustomPrompt,
         sortOrder: profile.sortOrder,
         novelId: '',
-        allowedToolNames: _storedAllowedToolNames(profile),
+        allowedToolNames: const [],
         ignoredSkillNames: profile.ignoredSkillNames,
         providerId: profile.providerId,
         model: profile.model,
@@ -255,7 +242,7 @@ class NovelAgentProfiles extends _$NovelAgentProfiles {
         useCustomPrompt: profile.useCustomPrompt,
         sortOrder: existing?.sortOrder ?? profile.sortOrder,
         novelId: profile.novelId ?? '',
-        allowedToolNames: _storedAllowedToolNames(profile),
+        allowedToolNames: const [],
         ignoredSkillNames: profile.ignoredSkillNames,
         providerId: profile.providerId,
         model: profile.model,

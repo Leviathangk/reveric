@@ -7,6 +7,8 @@
 //   lib/shared/services/ai/chat.dart
 //   lib/shared/providers/agent_council_providers.dart
 import 'dart:async';
+import '../plugins/agent_dispatcher.dart';
+import '../plugins/host.dart';
 import '../mcp/settings_service.dart';
 import 'mcp/agent_dispatcher.dart';
 import '../../agent/agent_tool_dispatcher.dart';
@@ -71,6 +73,7 @@ final _log = AppLogger.forModule('AgentCouncil');
 const _titleTimeout = Duration(seconds: 20);
 
 class AgentCouncilOrchestrator {
+  late PluginHostService pluginHost;
   McpSettingsService? mcpService;
 
   /// 由运行资源提供独立标题客户端；不捕获 UI，也不借用正文的租约。
@@ -399,18 +402,21 @@ class AgentCouncilOrchestrator {
         client: subClient ?? svc.providerClient,
         providerId: svc.providerId,
         config: svc.agentConfig,
-        toolManager: sharedMcp == null
-            ? tm
-            : McpAgentToolDispatcher(
-                inner: tm,
-                runTools: tm,
-                service: sharedMcp,
-                sourceSessionId: session.id,
-                allowedBuiltins: () => _councilToolNames(svc) ?? const [],
-                client: subClient ?? svc.providerClient,
-                isEnabled: () => true,
-                mcpOnlyRun: true,
-              ),
+        toolManager: PluginAgentToolDispatcher(
+          host: pluginHost,
+          inner: sharedMcp == null
+              ? tm
+              : McpAgentToolDispatcher(
+                  inner: tm,
+                  runTools: tm,
+                  service: sharedMcp,
+                  sourceSessionId: session.id,
+                  allowedBuiltins: () => _councilToolNames(svc) ?? const [],
+                  client: subClient ?? svc.providerClient,
+                  isEnabled: () => true,
+                  mcpOnlyRun: true,
+                ),
+        ),
         allowedTools: _councilToolNames(svc),
         // 沿用上一轮的上下文（含已读到的工具结果）；首轮为空。
         initialMessages: _transcriptsByParticipantId[p.id],
@@ -665,7 +671,7 @@ class AgentCouncilOrchestrator {
         client: aiService.providerClient,
         providerId: aiService.providerId,
         config: aiService.agentConfig,
-        toolManager: tm,
+        toolManager: PluginAgentToolDispatcher(inner: tm, host: pluginHost),
         hooks: _agentHooks(sessionId: session.id, aiService: aiService),
       );
 

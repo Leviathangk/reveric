@@ -5,6 +5,7 @@
 //   lib/shared/services/ai/roleplay_orchestrator.dart
 //   lib/shared/services/ai/monologue_orchestrator.dart
 //   lib/shared/agent/fake_agent.dart
+import '../../../helpers/plugin_host.dart';
 import 'dart:async';
 
 import 'package:drift/native.dart';
@@ -102,22 +103,23 @@ void main() {
       final generatedTitle = Completer<String>();
       final titleResult = Completer<String>();
 
-      final run = AgentCouncilOrchestrator().startDiscussion(
-        novelId: 'novel',
-        context: const AiSessionContext(),
-        topic: 'Topic',
-        participants: const [
-          CouncilParticipant(
-            id: 'agent',
-            name: 'Agent',
-            description: '',
-            prompt: '',
-          ),
-        ],
-        aiService: failingClient(titleFuture: titleResult.future),
-        config: const AgentCouncilConfig(maxRounds: 1),
-        onTitleGenerated: generatedTitle.complete,
-      );
+      final run = (AgentCouncilOrchestrator()..pluginHost = emptyPluginHost())
+          .startDiscussion(
+            novelId: 'novel',
+            context: const AiSessionContext(),
+            topic: 'Topic',
+            participants: const [
+              CouncilParticipant(
+                id: 'agent',
+                name: 'Agent',
+                description: '',
+                prompt: '',
+              ),
+            ],
+            aiService: failingClient(titleFuture: titleResult.future),
+            config: const AgentCouncilConfig(maxRounds: 1),
+            onTitleGenerated: generatedTitle.complete,
+          );
 
       await expectLater(
         run.timeout(const Duration(seconds: 1)),
@@ -148,22 +150,24 @@ void main() {
       );
       final phases = <CouncilPhase>[];
 
-      final result = await AgentCouncilOrchestrator().startDiscussion(
-        novelId: 'novel',
-        context: const AiSessionContext(),
-        topic: 'Topic',
-        participants: const [
-          CouncilParticipant(
-            id: 'agent',
-            name: 'Agent',
-            description: '',
-            prompt: '',
-          ),
-        ],
-        aiService: aiService,
-        config: const AgentCouncilConfig(maxRounds: 1),
-        onPhaseChanged: (session) => phases.add(session.phase),
-      );
+      final result =
+          await (AgentCouncilOrchestrator()..pluginHost = emptyPluginHost())
+              .startDiscussion(
+                novelId: 'novel',
+                context: const AiSessionContext(),
+                topic: 'Topic',
+                participants: const [
+                  CouncilParticipant(
+                    id: 'agent',
+                    name: 'Agent',
+                    description: '',
+                    prompt: '',
+                  ),
+                ],
+                aiService: aiService,
+                config: const AgentCouncilConfig(maxRounds: 1),
+                onPhaseChanged: (session) => phases.add(session.phase),
+              );
 
       expect(result.phase, CouncilPhase.completed);
       expect(result.rounds, hasLength(1));
@@ -186,28 +190,29 @@ void main() {
     final generatedLines = <TheaterLine>[];
     final generatedTitle = Completer<String>();
 
-    final run = TheaterOrchestrator().startPerformance(
-      novelId: 'novel',
-      sceneDescription: 'Scene',
-      participants: const [
-        TheaterParticipant(
-          characterId: 'first',
-          name: 'First',
-          role: 'protagonist',
-          biography: '',
-        ),
-        TheaterParticipant(
-          characterId: 'second',
-          name: 'Second',
-          role: 'supporting',
-          biography: '',
-        ),
-      ],
-      aiService: failingClient(),
-      config: const TheaterConfig(maxRounds: 1),
-      onLineGenerated: (_, line) => generatedLines.add(line),
-      onTitleGenerated: generatedTitle.complete,
-    );
+    final run = (TheaterOrchestrator()..pluginHost = emptyPluginHost())
+        .startPerformance(
+          novelId: 'novel',
+          sceneDescription: 'Scene',
+          participants: const [
+            TheaterParticipant(
+              characterId: 'first',
+              name: 'First',
+              role: 'protagonist',
+              biography: '',
+            ),
+            TheaterParticipant(
+              characterId: 'second',
+              name: 'Second',
+              role: 'supporting',
+              biography: '',
+            ),
+          ],
+          aiService: failingClient(),
+          config: const TheaterConfig(maxRounds: 1),
+          onLineGenerated: (_, line) => generatedLines.add(line),
+          onTitleGenerated: generatedTitle.complete,
+        );
 
     await expectLater(run, throwsA(isA<TheaterRunException>()));
     expect(generatedLines, isEmpty);
@@ -232,15 +237,16 @@ void main() {
       updatedAt: now,
     );
 
-    final run = RoleplayOrchestrator().sendMessage(
-      novelId: 'novel',
-      userMessage: 'Hello',
-      character: character,
-      session: session,
-      aiService: failingClient(),
-      onMessageGenerated: (_, message) => generatedMessages.add(message),
-      onTitleGenerated: generatedTitle.complete,
-    );
+    final run = (RoleplayOrchestrator()..pluginHost = emptyPluginHost())
+        .sendMessage(
+          novelId: 'novel',
+          userMessage: 'Hello',
+          character: character,
+          session: session,
+          aiService: failingClient(),
+          onMessageGenerated: (_, message) => generatedMessages.add(message),
+          onTitleGenerated: generatedTitle.complete,
+        );
 
     await expectLater(run, throwsA(isA<RoleplayRunException>()));
     expect(generatedMessages, isEmpty);
@@ -257,14 +263,15 @@ void main() {
       biography: '',
     );
 
-    final run = MonologueOrchestrator().startSession(
-      novelId: 'novel',
-      topic: 'Topic',
-      character: character,
-      aiService: failingClient(),
-      onMonologueGenerated: (_, entry) => generatedEntries.add(entry),
-      onTitleGenerated: generatedTitle.complete,
-    );
+    final run = (MonologueOrchestrator()..pluginHost = emptyPluginHost())
+        .startSession(
+          novelId: 'novel',
+          topic: 'Topic',
+          character: character,
+          aiService: failingClient(),
+          onMonologueGenerated: (_, entry) => generatedEntries.add(entry),
+          onTitleGenerated: generatedTitle.complete,
+        );
 
     await expectLater(run, throwsA(isA<MonologueRunException>()));
     expect(generatedEntries, isEmpty);

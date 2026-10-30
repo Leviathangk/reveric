@@ -29,6 +29,7 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  pub_semver: ^2.2.0
   flutter:
     sdk: flutter
 
@@ -173,6 +174,8 @@ flutter:
     enable-windowing: true
 
   assets:
+    - assets/plugins/reveric.web/
+    - assets/plugins/reveric.web/dist/
     # Flutter 不会递归扫描子目录，每个目录/文件需单独声明
     - assets/director/models/quaternius-standard-male.glb
     - assets/director/models/quaternius-standard-female.glb

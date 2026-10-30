@@ -21,6 +21,7 @@
 //   .agents/rules/hooks.md
 //   .agents/rules/directory-structure.md
 import 'settings_mcp_section.dart';
+import 'settings_plugins_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -132,6 +133,11 @@ class SettingsDialog extends HookConsumerWidget {
       id: 'mcp',
       labelKey: LocaleKeys.settingsMcp,
       icon: RevericIcons.hub_outlined,
+    ),
+    _SettingsNavItem(
+      id: 'plugins',
+      labelKey: LocaleKeys.settingsPlugins,
+      icon: RevericIcons.layers_outlined,
     ),
     _SettingsNavItem(
       id: 'remote',
@@ -390,6 +396,7 @@ class SettingsDialog extends HookConsumerWidget {
       'ai_agents' => const _AiAgentSettingsSection(),
       'remote' => _RemoteSettingsSection(),
       'mcp' => const McpDesktopSettingsSection(),
+      'plugins' => const PluginsDesktopSettingsSection(),
       'usage' => _UsageSettingsSection(initialSessionId: initialUsageSessionId),
       'editor' => const _EditorSettingsSection(),
       'reading' => const _ReadingSettingsSection(),

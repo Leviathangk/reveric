@@ -5,6 +5,7 @@
 //   lib/shared/services/ai/tool_error_normalize.dart
 //   third/fjs/lib/fjs.dart
 import 'dart:async';
+import '../../javascript.dart';
 import 'dart:convert';
 
 import 'package:fjs/fjs.dart';
@@ -103,7 +104,6 @@ String codemodeErrorMessage(String code) => switch (code) {
 /// The caller owns tool futures (especially writes) independently of native
 /// Promise cancellation, and must settle their effects before final delivery.
 class FjsRuntime {
-  static Future<void>? _initialization;
   final Completer<void> _settled = Completer<void>();
   JsEngine? _engine;
   Future<void>? _closing;
@@ -479,7 +479,7 @@ class FjsRuntime {
           );
           cancel(errorCode: 'codemode_timeout');
         });
-        await (_initialization ??= LibFjs.init());
+        await initializeJavascript();
         if (_accepting) {
           _engine = await JsEngine.create(
             builtins: JsBuiltinOptions.none(),

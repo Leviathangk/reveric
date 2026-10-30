@@ -260,3 +260,10 @@ deps: ## 安装依赖
 
 check-agent-rules: ## 检查 Agent 指令与规则引用
 	@bash .agents/scripts/check-agent-rules.sh
+
+.PHONY: plugins plugins-test
+plugins: ## 构建内置插件并更新 assets 产物
+	cd plugins && npm ci && node build.mjs
+
+plugins-test: ## 验证内置插件类型和逻辑
+	cd plugins && npm ci && node build.mjs --test

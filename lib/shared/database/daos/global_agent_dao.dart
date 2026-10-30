@@ -99,7 +99,21 @@ class GlobalAgentDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<void> upsert(GlobalAgent agent) async {
-    await into(agents).insertOnConflictUpdate(agent);
+    try {
+      // 权限来自代码策略；保留旧列数据，不再覆盖历史值。
+      await into(agents).insertOnConflictUpdate(
+        agent
+            .toCompanion(false)
+            .copyWith(allowedToolNames: const Value.absent()),
+      );
+    } catch (error, stackTrace) {
+      _log.error(
+        '[DB] agents UPSERT id=${agent.id}',
+        error: error,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   Future<int> softDelete(String id, {DateTime? deletedAt}) async {

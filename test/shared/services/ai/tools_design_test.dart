@@ -4,7 +4,6 @@
 //   lib/shared/services/ai/tools_create.dart
 //   lib/shared/services/ai/tools_write.dart
 //   lib/shared/services/ai/tools_edit.dart
-//   lib/shared/services/ai/tools_web.dart
 //   lib/shared/services/ai/tools_glob.dart
 //   lib/shared/services/ai/tools_grep.dart
 //   lib/shared/services/ai/tools_outline.dart
@@ -268,47 +267,6 @@ void main() {
 
     test('returns empty for empty input', () {
       expect(AiToolManager.stripChapterTitlePrefix(''), '');
-    });
-  });
-
-  group('Web tool numeric arguments', () {
-    test('accepts numeric strings from model tool calls', () {
-      final limit = parseToolBoundedInt(
-        '5',
-        fieldName: 'limit',
-        defaultValue: 3,
-        min: 1,
-        max: 10,
-      );
-
-      expect(limit.value, 5);
-      expect(limit.error, isNull);
-    });
-
-    test('returns a tool error for non-numeric values', () {
-      final limit = parseToolBoundedInt(
-        'many',
-        fieldName: 'limit',
-        defaultValue: 3,
-        min: 1,
-        max: 10,
-      );
-
-      expect(limit.value, 3);
-      expect(limit.error, 'limit must be a number');
-    });
-
-    test('clamps parsed values to the tool schema bounds', () {
-      final limit = parseToolBoundedInt(
-        '30',
-        fieldName: 'limit',
-        defaultValue: 3,
-        min: 1,
-        max: 10,
-      );
-
-      expect(limit.value, 10);
-      expect(limit.error, isNull);
     });
   });
 }

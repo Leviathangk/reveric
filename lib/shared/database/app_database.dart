@@ -43,6 +43,7 @@ import 'daos/image_asset_dao.dart';
 import 'daos/asset_dao.dart';
 import 'daos/production_style_dao.dart';
 import 'daos/app_settings_dao.dart';
+import 'daos/plugin_dao.dart';
 import 'daos/app_state_dao.dart';
 import 'daos/memory_dao.dart';
 import 'daos/novel_dao.dart';
@@ -1140,6 +1141,46 @@ class ReadingProgress extends Table {
   Set<Column<Object>> get primaryKey => {novelId};
 }
 
+class PluginRegistry extends Table {
+  TextColumn get pluginId => text()();
+  TextColumn get version => text()();
+  TextColumn get source => text()();
+  TextColumn get packagePath => text()();
+  BoolColumn get enabled => boolean().customConstraint('NOT NULL')();
+  DateTimeColumn get createdAt =>
+      dateTime().clientDefault(() => DateTime.now())();
+  DateTimeColumn get updatedAt =>
+      dateTime().clientDefault(() => DateTime.now())();
+  DateTimeColumn get deletedAt =>
+      dateTime().customConstraint('NOT NULL DEFAULT 0')();
+  @override
+  Set<Column<Object>> get primaryKey => {pluginId};
+}
+
+class PluginStorage extends Table {
+  TextColumn get pluginId => text()();
+  TextColumn get key => text()();
+  TextColumn get value => text()();
+  DateTimeColumn get createdAt =>
+      dateTime().clientDefault(() => DateTime.now())();
+  DateTimeColumn get updatedAt =>
+      dateTime().clientDefault(() => DateTime.now())();
+  @override
+  Set<Column<Object>> get primaryKey => {pluginId, key};
+}
+
+class PluginSecrets extends Table {
+  TextColumn get pluginId => text()();
+  TextColumn get key => text()();
+  TextColumn get value => text()();
+  DateTimeColumn get createdAt =>
+      dateTime().clientDefault(() => DateTime.now())();
+  DateTimeColumn get updatedAt =>
+      dateTime().clientDefault(() => DateTime.now())();
+  @override
+  Set<Column<Object>> get primaryKey => {pluginId, key};
+}
+
 final _log = AppLogger.forModule('Database');
 
 @DriftDatabase(
@@ -1177,8 +1218,12 @@ final _log = AppLogger.forModule('Database');
     ImageBatches,
     ImageBatchSlots,
     ImageAssetReferences,
+    PluginRegistry,
+    PluginStorage,
+    PluginSecrets,
   ],
   daos: [
+    PluginDao,
     AiProviderDao,
     GenerationTaskDao,
     ProviderAssetDao,
@@ -1235,13 +1280,29 @@ class AppDatabase extends _$AppDatabase {
 
   static _CachedAppDatabase? _cachedDatabase;
 
-  static const currentSchemaVersion = 1;
+  static const currentSchemaVersion = 2;
 
   @override
   int get schemaVersion => currentSchemaVersion;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (migrator, from, to) async {
+      if (from < 2) {
+        try {
+          await migrator.createTable(pluginRegistry);
+          await migrator.createTable(pluginStorage);
+          await migrator.createTable(pluginSecrets);
+        } catch (error, stackTrace) {
+          AppLogger.error(
+            '[DB] CREATE plugin_registry/plugin_storage/plugin_secrets schema=2',
+            error: error,
+            stackTrace: stackTrace,
+          );
+          rethrow;
+        }
+      }
+    },
     onCreate: (migrator) async {
       // checkpoint 立即落盘：原生崩溃（sqlite3.dll）会绕过 catch，
       // 这条日志用于区分"死在建库"与其它启动路径。

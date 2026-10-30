@@ -4,6 +4,7 @@
 //   lib/shared/agent/agent_orchestrator.dart
 //   lib/shared/models/theater_models.dart
 //   lib/shared/agent/fake_agent.dart
+import '../../../helpers/plugin_host.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reveric/shared/agent/agent_hook.dart';
@@ -121,17 +122,18 @@ void main() {
   }
 
   test('addressed character replies next within the round', () async {
-    final result = await TheaterOrchestrator().startPerformance(
-      novelId: 'novel',
-      sceneDescription: 'Scene',
-      participants: const [_alice, _bob, _carol],
-      aiService: client(
-        (speaker) => speaker == 'Alice'
-            ? '【对象】\nCarol\n\n【舞台指示】\n无\n\n【台词】\nCarol, explain.'
-            : '【对象】\n无\n\n【舞台指示】\n无\n\n【台词】\n$speaker speaks.',
-      ),
-      config: const TheaterConfig(maxRounds: 1),
-    );
+    final result = await (TheaterOrchestrator()..pluginHost = emptyPluginHost())
+        .startPerformance(
+          novelId: 'novel',
+          sceneDescription: 'Scene',
+          participants: const [_alice, _bob, _carol],
+          aiService: client(
+            (speaker) => speaker == 'Alice'
+                ? '【对象】\nCarol\n\n【舞台指示】\n无\n\n【台词】\nCarol, explain.'
+                : '【对象】\n无\n\n【舞台指示】\n无\n\n【台词】\n$speaker speaks.',
+          ),
+          config: const TheaterConfig(maxRounds: 1),
+        );
 
     expect(result.lines.map((l) => l.characterId), ['alice', 'carol', 'bob']);
     expect(result.lines.first.addresseeId, 'carol');
@@ -152,11 +154,12 @@ void main() {
       ),
     ]);
 
-    final result = await TheaterOrchestrator().continuePerformance(
-      session: session,
-      aiService: client((speaker) => '【台词】\n$speaker answers.'),
-      speakerId: 'bob',
-    );
+    final result = await (TheaterOrchestrator()..pluginHost = emptyPluginHost())
+        .continuePerformance(
+          session: session,
+          aiService: client((speaker) => '【台词】\n$speaker answers.'),
+          speakerId: 'bob',
+        );
 
     expect(result.lines, hasLength(2));
     expect(result.lines.last.characterId, 'bob');
@@ -164,7 +167,8 @@ void main() {
   });
 
   test('director notes reach the next speaker prompt', () async {
-    final orchestrator = TheaterOrchestrator();
+    final orchestrator = (TheaterOrchestrator()
+      ..pluginHost = emptyPluginHost());
     final fakeClient = FakeProviderClient(
       responder: (request) {
         final speaker = _speakerOf(request);

@@ -8,6 +8,7 @@
 //   lib/shared/providers/ai_providers.dart
 // 遵循的 Rules:
 //   .agents/rules/state-management.md
+import '../../../helpers/plugin_host.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -588,6 +589,7 @@ void main() {
         );
         final template = fixture.child().handler;
         final childHandler = SpawnAgentHandler(
+          pluginHost: emptyPluginHost(),
           codemodeScheduler: fixture.codemodeScheduler,
           workContext: template.workContext,
           availableSubAgents: template.availableSubAgents,
@@ -834,6 +836,7 @@ void main() {
         final release = Completer<void>();
         final template = fixture.child().handler;
         final writer = SpawnAgentHandler(
+          pluginHost: emptyPluginHost(),
           codemodeScheduler: fixture.codemodeScheduler,
           workContext: template.workContext,
           availableSubAgents: template.availableSubAgents,
@@ -2482,8 +2485,8 @@ void main() {
         overrides: [
           appDatabaseProvider.overrideWithValue(appDb),
           novelActionsProvider.overrideWithValue(NovelActionsService(appDb)),
-          // fake provider 是自定义 provider，Pro 门禁会在 AiClient.initialize 兜底拦下。
 
+          // fake provider 是自定义 provider，Pro 门禁会在 AiClient.initialize 兜底拦下。
           aiSettingsProvider.overrideWithValue(
             AiSettings(
               providers: [_materializationProvider],
@@ -2653,8 +2656,8 @@ void main() {
         overrides: [
           appDatabaseProvider.overrideWithValue(appDb),
           novelActionsProvider.overrideWithValue(NovelActionsService(appDb)),
-          // fake provider 是自定义 provider，Pro 门禁会在 AiClient.initialize 兜底拦下。
 
+          // fake provider 是自定义 provider，Pro 门禁会在 AiClient.initialize 兜底拦下。
           aiSettingsProvider.overrideWithValue(
             AiSettings(
               providers: [_materializationProvider],
@@ -2814,8 +2817,8 @@ void main() {
         overrides: [
           appDatabaseProvider.overrideWithValue(appDb),
           novelActionsProvider.overrideWithValue(NovelActionsService(appDb)),
-          // fake provider 是自定义 provider，Pro 门禁会在 AiClient.initialize 兜底拦下。
 
+          // fake provider 是自定义 provider，Pro 门禁会在 AiClient.initialize 兜底拦下。
           aiSettingsProvider.overrideWithValue(
             AiSettings(
               providers: [_materializationProvider],

@@ -20,11 +20,6 @@ AgentProfile _$AgentProfileFromJson(Map<String, dynamic> json) => AgentProfile(
   avatarPath: json['avatar_path'] as String?,
   enabled: json['enabled'] as bool? ?? true,
   useCustomPrompt: json['use_custom_prompt'] as bool? ?? false,
-  allowedToolNames:
-      (json['allowed_tool_names'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
   ignoredSkillNames:
       (json['ignored_skill_names'] as List<dynamic>?)
           ?.map((e) => e as String)
@@ -56,7 +51,6 @@ Map<String, dynamic> _$AgentProfileToJson(AgentProfile instance) =>
       'sort_order': instance.sortOrder,
       'enabled': instance.enabled,
       'use_custom_prompt': instance.useCustomPrompt,
-      'allowed_tool_names': instance.allowedToolNames,
       'ignored_skill_names': instance.ignoredSkillNames,
       'novel_id': instance.novelId,
       'provider_id': instance.providerId,
@@ -87,11 +81,6 @@ AgentProfileDraft _$AgentProfileDraftFromJson(Map<String, dynamic> json) =>
       scope: $enumDecode(_$AgentProfileScopeEnumMap, json['scope']),
       mode: json['mode'] as String? ?? 'chat',
       useCustomPrompt: json['use_custom_prompt'] as bool? ?? false,
-      allowedToolNames:
-          (json['allowed_tool_names'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
       novelId: json['novel_id'] as String?,
       providerId: json['provider_id'] as String?,
       model: json['model'] as String?,
@@ -107,7 +96,6 @@ Map<String, dynamic> _$AgentProfileDraftToJson(AgentProfileDraft instance) =>
       'role': _$AgentProfileRoleEnumMap[instance.role]!,
       'scope': _$AgentProfileScopeEnumMap[instance.scope]!,
       'use_custom_prompt': instance.useCustomPrompt,
-      'allowed_tool_names': instance.allowedToolNames,
       'novel_id': instance.novelId,
       'provider_id': instance.providerId,
       'model': instance.model,

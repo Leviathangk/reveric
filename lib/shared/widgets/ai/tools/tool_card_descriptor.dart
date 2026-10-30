@@ -31,10 +31,14 @@ import 'package:reveric/shared/services/ai/tools.dart';
 import 'package:reveric/shared/services/ai/tool_result_payloads.dart';
 import 'package:reveric/shared/services/ai/run_command_parser.dart';
 import 'tool_resource_resolver.dart';
+import 'plugin_tool_display.dart';
 
 /// 返回工具调用的语义动作动词（本地化）。
 /// 例如 "Looking up"、"Writing to"、"Editing"。
 String toolActionVerb(BuildContext context, AiToolCallBlock block) {
+  if (isPluginToolBlock(block)) {
+    return pluginToolTitle(block);
+  }
   final toolName = block.toolName;
   if (isRelationCreateBlock(block)) {
     return context.t(LocaleKeys.aiToolActionCreatingRelation);
@@ -79,6 +83,9 @@ String toolActionVerb(BuildContext context, AiToolCallBlock block) {
 }
 
 String localizedToolCallTitle(BuildContext context, AiToolCallBlock block) {
+  if (isPluginToolBlock(block)) {
+    return pluginToolTitle(block);
+  }
   if (block.toolName != 'Run') {
     return localizedToolName(context, block.toolName);
   }
@@ -397,6 +404,10 @@ String? toolHeaderSubtitle(
   AiToolResolvedResource? resource, {
   ToolRelationEndpointLabels? relationEndpoints,
 }) {
+  if (isPluginToolBlock(block)) {
+    final title = pluginToolTitle(block), summary = pluginToolSummary(block);
+    return summary == null ? title : '$title $summary';
+  }
   if (block.toolName == 'Codemode') {
     return codemodeActivitySummary(context, block);
   }
@@ -601,6 +612,9 @@ String? toolRowTarget(
   AiToolResolvedResource? resource, {
   ToolRelationEndpointLabels? relationEndpoints,
 }) {
+  if (isPluginToolBlock(block)) {
+    return pluginToolSummary(block);
+  }
   if (block.toolName == 'Codemode') {
     return codemodeActivitySummary(context, block);
   }

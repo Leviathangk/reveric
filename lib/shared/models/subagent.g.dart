@@ -19,11 +19,6 @@ SubAgent _$SubAgentFromJson(Map<String, dynamic> json) => SubAgent(
   avatarPath: json['avatar_path'] as String?,
   enabled: json['enabled'] as bool? ?? true,
   useCustomPrompt: json['use_custom_prompt'] as bool? ?? false,
-  allowedToolNames:
-      (json['allowed_tool_names'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
   novelId: json['novel_id'] as String?,
   providerId: json['provider_id'] as String?,
   model: json['model'] as String?,
@@ -49,7 +44,6 @@ Map<String, dynamic> _$SubAgentToJson(SubAgent instance) => <String, dynamic>{
   'sort_order': instance.sortOrder,
   'enabled': instance.enabled,
   'use_custom_prompt': instance.useCustomPrompt,
-  'allowed_tool_names': instance.allowedToolNames,
   'novel_id': instance.novelId,
   'provider_id': instance.providerId,
   'model': instance.model,
@@ -73,11 +67,6 @@ SubAgentDraft _$SubAgentDraftFromJson(Map<String, dynamic> json) =>
       mode: json['mode'] as String? ?? 'chat',
       enabled: json['enabled'] as bool? ?? true,
       useCustomPrompt: json['use_custom_prompt'] as bool? ?? false,
-      allowedToolNames:
-          (json['allowed_tool_names'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
       novelId: json['novel_id'] as String?,
       providerId: json['provider_id'] as String?,
       model: json['model'] as String?,
@@ -95,7 +84,6 @@ Map<String, dynamic> _$SubAgentDraftToJson(SubAgentDraft instance) =>
       'scope': _$SubAgentScopeEnumMap[instance.scope]!,
       'enabled': instance.enabled,
       'use_custom_prompt': instance.useCustomPrompt,
-      'allowed_tool_names': instance.allowedToolNames,
       'novel_id': instance.novelId,
       'provider_id': instance.providerId,
       'model': instance.model,

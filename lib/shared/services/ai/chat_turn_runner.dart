@@ -25,6 +25,8 @@ import '../../providers/mcp_providers.dart';
 import 'mcp/agent_dispatcher.dart';
 import 'package:reveric/shared/utils/ai_error.dart';
 import 'dart:async';
+import '../../providers/plugin_providers.dart';
+import '../plugins/agent_dispatcher.dart';
 import '../../providers/editing.dart';
 import 'dart:math';
 
@@ -1621,7 +1623,9 @@ class ChatTurnRunner {
         ? null
         : container.read(novelContentDatabaseProvider(currentDatabasePath));
     final mcpService = container.read(mcpSettingsServiceProvider);
+    final pluginHost = container.read(pluginHostServiceProvider);
     final spawnAgentHandler = SpawnAgentHandler(
+      pluginHost: pluginHost,
       mcpService: mcpService,
       workContext: promptContext,
       availableSubAgents: availableSubAgents,
@@ -1725,7 +1729,10 @@ class ChatTurnRunner {
       client: client.providerClient,
       providerId: client.providerId,
       config: client.agentConfig,
-      toolManager: mcpDispatcher,
+      toolManager: PluginAgentToolDispatcher(
+        inner: mcpDispatcher,
+        host: pluginHost,
+      ),
       contextManager: ctxMgr,
       allowedTools: allowedTools,
       // Todo 续跑 enabled: false：只上报结束时未完成 Todo 的快照，不追加续跑。

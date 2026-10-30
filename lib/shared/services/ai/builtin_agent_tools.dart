@@ -29,24 +29,26 @@ const builtinSubAgentSlugs = {
   'theme_guardian',
 };
 
-const builtinReadOnlyAgentToolNames = [
-  'Read',
-  'Glob',
-  'Grep',
-  'WebSearch',
-  'WebFetch',
-  'Run',
+// 只列禁止的 Host 工具；插件与 MCP 按各自的运行状态提供。
+const builtinDefaultSubAgentDisabledToolNames = {
   'SpawnAgent',
+  'ForkAgent',
+  'AskUser',
+  'SuggestNextAction',
+  'SendAgentMessage',
+  'StopAgent',
+};
+const builtinExplorerDisabledToolNames = {
+  ...builtinDefaultSubAgentDisabledToolNames,
+  'Create',
+  'Write',
+  'Edit',
+  'Replace',
+  'Remove',
+  'Run',
   'TodoWrite',
-  'AgentSkill',
-];
-
-const builtinWriterSubAgentToolNames = [
-  'Read',
-  'Glob',
-  'Grep',
-  'WebSearch',
-  'WebFetch',
+};
+const builtinSpecialModeDisabledToolNames = {
   'Create',
   'Write',
   'Edit',
@@ -55,70 +57,21 @@ const builtinWriterSubAgentToolNames = [
   'Run',
   'TodoWrite',
   'AgentSkill',
-];
-
-const builtinExplorerSubAgentToolNames = [
-  'Read',
-  'Glob',
-  'Grep',
-  'WebSearch',
-  'WebFetch',
-  'GraphSearch',
-  'Run',
-  'AgentSkill',
-];
-
-const builtinChroniclerSubAgentToolNames = [
-  'Read',
-  'GraphSearch',
-  // 关系创建并入 Create（`Create /relations`），不再需要单独的 CreateRelation。
-  'Create',
-  'Remove',
-  'Write',
-  'Edit',
-  'Grep',
-  'Run',
-  'TodoWrite',
-  'AgentSkill',
-];
-
-const builtinDefaultSubAgentToolNames = [
-  'Read',
-  'Glob',
-  'Grep',
-  'WebSearch',
-  'WebFetch',
-  'Create',
-  'Write',
-  'Edit',
-  'Replace',
-  'Run',
-  'TodoWrite',
-  'AgentSkill',
-];
-
-List<String>? builtinPrimaryAgentToolNames(String slug) {
-  final names = switch (slug) {
-    'monologue_narrator' ||
-    'roleplay_master' ||
-    'theater_actor' => builtinReadOnlyAgentToolNames,
-    _ => null,
-  };
-  return names == null ? null : List<String>.from(names);
-}
-
-List<String>? builtinSubAgentToolNames(String slug) {
-  if (!builtinSubAgentSlugs.contains(slug)) {
-    return null;
-  }
-  if (slug == 'explorer') {
-    return List<String>.from(builtinExplorerSubAgentToolNames);
-  }
-  if (slug == 'chronicler') {
-    return List<String>.from(builtinChroniclerSubAgentToolNames);
-  }
-  if (slug == 'writer') {
-    return List<String>.from(builtinWriterSubAgentToolNames);
-  }
-  return List<String>.from(builtinDefaultSubAgentToolNames);
-}
+  'SpawnAgent',
+  'ForkAgent',
+  'AskUser',
+  'SuggestNextAction',
+  'SendAgentMessage',
+  'StopAgent',
+  'Codemode',
+};
+Set<String>? builtinPrimaryAgentDisabledToolNames(String slug) =>
+    builtinPrimaryAgentSlugs.contains(slug)
+    ? builtinSpecialModeDisabledToolNames
+    : null;
+Set<String>? builtinSubAgentDisabledToolNames(String slug) =>
+    !builtinSubAgentSlugs.contains(slug)
+    ? null
+    : slug == 'explorer'
+    ? builtinExplorerDisabledToolNames
+    : builtinDefaultSubAgentDisabledToolNames;

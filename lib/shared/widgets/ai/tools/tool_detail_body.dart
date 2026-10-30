@@ -33,7 +33,8 @@ import 'skill_tool_card_body.dart';
 import 'spawn_agent_tool_card_body.dart';
 import 'tool_card_descriptor.dart';
 import 'tool_resource_resolver.dart';
-import 'web_tool_card_body.dart';
+import 'plugin_tool_card_body.dart';
+import 'plugin_tool_display.dart';
 import 'write_tool_card_body.dart';
 
 Widget? aiToolBodyFor(
@@ -43,6 +44,9 @@ Widget? aiToolBodyFor(
   String? novelId,
   String? databasePath,
 }) {
+  if (isPluginToolBlock(block)) {
+    return PluginToolCardBody(block: block);
+  }
   if (block.source == 'mcp') {
     return McpToolCardBody(block: block);
   }
@@ -92,9 +96,6 @@ Widget? aiToolBodyFor(
       novelId: novelId,
       databasePath: databasePath,
     );
-  }
-  if (toolName == 'WebSearch' || toolName == 'WebFetch') {
-    return WebToolCardBody(block: block);
   }
   if (toolName == 'Run') {
     if (!isRunToolCallReadyForDisplay(block)) {

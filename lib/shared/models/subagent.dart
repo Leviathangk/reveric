@@ -46,7 +46,6 @@ class SubAgent {
     this.avatarPath,
     this.enabled = true,
     this.useCustomPrompt = false,
-    this.allowedToolNames = const [],
     this.novelId,
     this.providerId,
     this.model,
@@ -67,7 +66,6 @@ class SubAgent {
   final int sortOrder;
   final bool enabled;
   final bool useCustomPrompt;
-  final List<String> allowedToolNames;
   final String? novelId;
   final String? providerId;
   final String? model;
@@ -93,7 +91,6 @@ class SubAgent {
     int? sortOrder,
     bool? enabled,
     bool? useCustomPrompt,
-    List<String>? allowedToolNames,
     String? novelId,
     Object? providerId = _sentinel,
     Object? model = _sentinel,
@@ -114,7 +111,6 @@ class SubAgent {
       sortOrder: sortOrder ?? this.sortOrder,
       enabled: enabled ?? this.enabled,
       useCustomPrompt: useCustomPrompt ?? this.useCustomPrompt,
-      allowedToolNames: allowedToolNames ?? this.allowedToolNames,
       novelId: novelId ?? this.novelId,
       providerId: providerId == _sentinel
           ? this.providerId
@@ -142,7 +138,6 @@ class SubAgentDraft {
     this.mode = 'chat',
     this.enabled = true,
     this.useCustomPrompt = false,
-    this.allowedToolNames = const [],
     this.novelId,
     this.providerId,
     this.model,
@@ -158,7 +153,6 @@ class SubAgentDraft {
   final SubAgentScope scope;
   final bool enabled;
   final bool useCustomPrompt;
-  final List<String> allowedToolNames;
   final String? novelId;
   final String? providerId;
   final String? model;

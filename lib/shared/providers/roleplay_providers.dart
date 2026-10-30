@@ -4,6 +4,7 @@
 //   lib/shared/services/ai/roleplay_orchestrator.dart
 //   lib/shared/providers/ai_mode_processing.dart
 //   lib/shared/services/ai/roleplay_session_codec.dart
+import 'plugin_providers.dart';
 import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -107,7 +108,8 @@ class RoleplayRuntime extends _$RoleplayRuntime {
   }
 
   RoleplayOrchestrator obtainOrchestrator() {
-    return orchestrator ??= RoleplayOrchestrator();
+    return orchestrator ??= (RoleplayOrchestrator()
+      ..pluginHost = ref.read(pluginHostServiceProvider));
   }
 
   void setProcessing(bool processing, {bool notifyOnComplete = true}) {

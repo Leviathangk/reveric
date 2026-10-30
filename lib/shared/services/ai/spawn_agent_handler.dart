@@ -13,6 +13,8 @@
 //   lib/shared/models/agent_skill.dart
 
 import 'dart:async';
+import '../plugins/agent_dispatcher.dart';
+import '../plugins/host.dart';
 import '../mcp/settings_service.dart';
 import 'mcp/agent_dispatcher.dart';
 import 'mcp/run_command_handler.dart';
@@ -53,6 +55,8 @@ import 'prompts/use_cases/agent_prompt_use_case.dart';
 import 'session_persistence.dart';
 import 'tool_error_normalize.dart';
 import 'tools.dart';
+import 'builtin_agent_tools.dart';
+import 'host_tool_policy.dart';
 
 part 'spawn_agent_run.dart';
 
@@ -81,6 +85,7 @@ class SpawnAgentHandler {
     required this.codemodeScheduler,
     this.codemodeRuntimeFactory,
     this.mcpService,
+    required this.pluginHost,
     this.onRunFinished,
     this.hooks = const [],
     this.defaultAllowedToolNames = defaultSubAgentToolNames,
@@ -102,6 +107,7 @@ class SpawnAgentHandler {
   final CodemodeScheduler codemodeScheduler;
   final FjsRuntime Function()? codemodeRuntimeFactory;
   final McpSettingsService? mcpService;
+  final PluginHostService pluginHost;
   final void Function(SpawnAgentRun)? onRunFinished;
   final List<AgentHook> hooks;
   final List<String> Function() defaultAllowedToolNames;
@@ -249,7 +255,12 @@ class SpawnAgentHandler {
       subSessionId: subSessionId,
     );
     final subConfig = _resolveConfig(sub, modelResolution);
-    final configured = defaultAllowedToolNames();
+    final disabled =
+        builtinSubAgentDisabledToolNames(sub.slug) ??
+        builtinDefaultSubAgentDisabledToolNames;
+    final configured = defaultAllowedToolNames()
+        .where((name) => !disabled.contains(name))
+        .toList();
     final allowed = [
       ...configured,
       if (configured.isNotEmpty && !configured.contains(codemodeToolName))
@@ -350,7 +361,12 @@ class SpawnAgentHandler {
     late final AgentToolDispatcher subTools;
     McpAgentToolDispatcher? mcpTools;
     final codemodeTools = CodemodeToolDispatcher(
-      inner: innerTools,
+      inner: HostToolPolicyDispatcher(
+        inner: innerTools,
+        // 外层 MCP dispatcher 统一校验 Run mcp/help mcp；普通 Run 仍由
+        // mcpOnlyRun 拒绝，避免内层再次误拦已通过校验的 MCP 命令。
+        disabled: mcpService != null ? disabled.difference({'Run'}) : disabled,
+      ),
       isAllowed: codemodeAllowed,
       runCodemode: (input, callId, context) => CodemodeOrchestrator().execute(
         input: input,
@@ -378,6 +394,7 @@ class SpawnAgentHandler {
         allowedBuiltins: () => allowed,
         client: modelResolution.client,
         isEnabled: () => true,
+        mcpOnlyRun: disabled.contains('Run'),
       );
     }
     subTools = mcpTools ?? codemodeTools;
@@ -399,7 +416,7 @@ class SpawnAgentHandler {
       client: modelResolution.client,
       providerId: modelResolution.providerId ?? defaultProviderId,
       config: subConfig,
-      toolManager: subTools,
+      toolManager: PluginAgentToolDispatcher(inner: subTools, host: pluginHost),
       contextManager: subCtxMgr,
       hooks: spawnHooks,
       emitToolEvents: false,

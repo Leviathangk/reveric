@@ -61,6 +61,9 @@ void main() {
         ),
       );
 
+      await database.customStatement(
+        "UPDATE agents SET allowed_tool_names = '[\"Read\"]' WHERE id = 'system_monologue'",
+      );
       final restoredMissing = await restoreDefaultGlobalAgents(
         database,
         overwriteExisting: false,
@@ -85,7 +88,7 @@ void main() {
       expect(reset?.enabled, isTrue);
       expect(reset?.useCustomPrompt, isFalse);
       expect(reset?.prompt, isEmpty);
-      expect(reset?.allowedToolNames, isEmpty);
+      expect(reset?.allowedToolNames, ['Read']);
 
       final custom = await database.globalAgentDao.getBySlug('user-defined');
       expect(custom?.name, 'User defined');

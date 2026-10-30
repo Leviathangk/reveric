@@ -12,6 +12,7 @@
 //   lib/shared/logger/app_logger.dart
 //   lib/shared/logger/flutter_error_logger.dart
 //   lib/shared/logger/startup_failure_reporter.dart
+import 'shared/providers/plugin_providers.dart';
 import 'shared/providers/mcp_providers.dart';
 import 'dart:async';
 import 'shared/providers/depth.dart';
@@ -698,6 +699,18 @@ class _AppLifecycleWatcherState extends ConsumerState<AppLifecycleWatcher>
       ) {
         AppLogger.error(
           '[MCP] Configuration initialization failed',
+          error: error,
+          stackTrace: stack,
+        );
+      }),
+    );
+    unawaited(
+      ref.read(pluginHostServiceProvider).start().catchError((
+        Object error,
+        StackTrace stack,
+      ) {
+        AppLogger.error(
+          '[Plugin] Initialization failed',
           error: error,
           stackTrace: stack,
         );

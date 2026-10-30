@@ -4,6 +4,7 @@
 //   lib/shared/models/agent_run_state.dart
 //   lib/shared/services/ai/agent_council_orchestrator.dart
 //   lib/shared/services/ai/council_session_codec.dart
+import 'plugin_providers.dart';
 import 'mcp_providers.dart';
 import 'dart:async';
 
@@ -147,9 +148,11 @@ class AgentCouncilRuntime extends _$AgentCouncilRuntime {
   AgentCouncilOrchestrator obtainOrchestrator({bool recreate = false}) {
     if (recreate) {
       orchestrator?.cancel();
-      orchestrator = AgentCouncilOrchestrator();
+      orchestrator = (AgentCouncilOrchestrator()
+        ..pluginHost = ref.read(pluginHostServiceProvider));
     }
-    final current = orchestrator ??= AgentCouncilOrchestrator();
+    final current = orchestrator ??= (AgentCouncilOrchestrator()
+      ..pluginHost = ref.read(pluginHostServiceProvider));
     current.mcpService = ref.read(mcpSettingsServiceProvider);
     return current;
   }

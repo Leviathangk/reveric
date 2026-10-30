@@ -3,6 +3,8 @@
 //   lib/shared/services/ai/tools.dart
 //   lib/shared/services/ai/chat.dart
 
+import '../services/ai/builtin_agent_tools.dart';
+
 enum AiSessionMode {
   chat('chat'),
   council('council'),
@@ -42,16 +44,7 @@ enum AiSessionMode {
     council ||
     monologue ||
     theater ||
-    roleplay => _specialModeTools.contains(toolName),
-  };
-
-  static const _specialModeTools = {
-    'Read',
-    'Glob',
-    'Grep',
-    'WebSearch',
-    'WebFetch',
-    'GraphSearch',
+    roleplay => !builtinSpecialModeDisabledToolNames.contains(toolName),
   };
 
   String get promptHint => switch (this) {
@@ -60,13 +53,5 @@ enum AiSessionMode {
     monologue => '当前处于 monologue 模式，AI 将代入小说角色，以第一人称描述内心活动与行动。',
     theater => '当前处于 theater 模式，多个小说角色将在场景中互动表演。',
     roleplay => '当前处于 roleplay 模式，你将与小说角色进行一对一对话互动。',
-  };
-
-  String get allowedToolsDescription => switch (this) {
-    chat => '可用工具：Chat Orchestrator 可使用 chat 模式工具',
-    council => '可用工具：Read, Glob, Grep, WebSearch, WebFetch, GraphSearch',
-    monologue => '可用工具：Read, Glob, Grep, WebSearch, WebFetch, GraphSearch',
-    theater => '可用工具：Read, Glob, Grep, WebSearch, WebFetch, GraphSearch',
-    roleplay => '可用工具：Read, Glob, Grep, WebSearch, WebFetch, GraphSearch',
   };
 }

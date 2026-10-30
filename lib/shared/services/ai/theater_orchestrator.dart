@@ -7,6 +7,8 @@
 //   lib/shared/services/ai/chat.dart
 //   lib/shared/providers/theater_providers.dart
 import 'dart:async';
+import '../plugins/agent_dispatcher.dart';
+import '../plugins/host.dart';
 import 'dart:math';
 
 import 'package:collection/collection.dart';
@@ -67,6 +69,8 @@ final _log = AppLogger.forModule('Theater');
 const _titleTimeout = Duration(seconds: 20);
 
 class TheaterOrchestrator {
+  late PluginHostService pluginHost;
+
   /// 由运行资源提供独立标题客户端；不捕获 UI，也不借用正文的租约。
   Future<String> Function(Future<String> Function(AiClient))? titleClientRunner;
 
@@ -371,7 +375,7 @@ class TheaterOrchestrator {
         client: subClient ?? aiService.providerClient,
         providerId: aiService.providerId,
         config: aiService.agentConfig,
-        toolManager: tm,
+        toolManager: PluginAgentToolDispatcher(inner: tm, host: pluginHost),
         allowedTools: _theaterToolNames(aiService),
         hooks: _agentHooks(
           sessionId: accumulatedSession.id,

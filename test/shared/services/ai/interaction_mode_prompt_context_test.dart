@@ -6,6 +6,7 @@
 //   lib/shared/services/ai/roleplay_orchestrator.dart
 //   lib/shared/services/ai/theater_orchestrator.dart
 
+import '../../../helpers/plugin_host.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reveric/shared/agent/agent_hook.dart';
@@ -102,54 +103,53 @@ void main() {
   });
 
   for (final malformed in [false, true]) {
-    test(
-      'Council malformed=$malformed prompt excludes editor context',
-      () async {
-        final fakeClient = FakeProviderClient(
-          responses: const [
-            FakeProviderClientResponse.text('Council response'),
-          ],
-        );
-        final aiClient = _PromptCaptureAiClient(fakeClient, toolManager);
-        const invalidPrompt =
-            'SENTINEL_COUNCIL_BASE_PROMPT\n{{#screenplay_workspace}}未闭合条件';
+    test('Council malformed=$malformed prompt excludes editor context', () async {
+      final fakeClient = FakeProviderClient(
+        responses: const [FakeProviderClientResponse.text('Council response')],
+      );
+      final aiClient = _PromptCaptureAiClient(fakeClient, toolManager);
+      const invalidPrompt =
+          'SENTINEL_COUNCIL_BASE_PROMPT\n{{#screenplay_workspace}}未闭合条件';
 
-        await AgentCouncilOrchestrator().startDiscussion(
-          novelId: 'novel',
-          topic: 'Discuss the story',
-          participants: [
-            CouncilParticipant(
-              id: 'plot_architect',
-              name: 'Plot architect',
-              description: 'Plans the plot',
-              prompt: malformed
-                  ? invalidPrompt
-                  : 'SENTINEL_COUNCIL_BASE_PROMPT\n'
-                        '{{#screenplay_workspace}}场次规则{{/screenplay_workspace}}'
-                        '{{^screenplay_workspace}}章节规则{{/screenplay_workspace}}',
+      await (AgentCouncilOrchestrator()..pluginHost = emptyPluginHost())
+          .startDiscussion(
+            novelId: 'novel',
+            topic: 'Discuss the story',
+            participants: [
+              CouncilParticipant(
+                id: 'plot_architect',
+                name: 'Plot architect',
+                description: 'Plans the plot',
+                prompt: malformed
+                    ? invalidPrompt
+                    : 'SENTINEL_COUNCIL_BASE_PROMPT\n'
+                          '{{#screenplay_workspace}}场次规则{{/screenplay_workspace}}'
+                          '{{^screenplay_workspace}}章节规则{{/screenplay_workspace}}',
+              ),
+            ],
+            aiService: aiClient,
+            context: _context,
+            config: const AgentCouncilConfig(
+              maxRounds: 1,
+              autoSummarize: false,
             ),
-          ],
-          aiService: aiClient,
-          context: _context,
-          config: const AgentCouncilConfig(maxRounds: 1, autoSummarize: false),
-        );
+          );
 
-        final systemPrompt =
-            fakeClient.capturedStreamRequests.single.messages.first.content;
-        expect(systemPrompt, contains('SENTINEL_COUNCIL_BASE_PROMPT'));
-        if (malformed) {
-          expect(systemPrompt, startsWith(invalidPrompt));
-        } else {
-          expect(systemPrompt, contains('场次规则'));
-          expect(systemPrompt, isNot(contains('章节规则')));
-          expect(systemPrompt, isNot(contains('{{')));
-        }
-        expect(systemPrompt, contains('当前作品工作路径：/works/current'));
-        expect(systemPrompt, contains('原作工作路径：/works/original_novel'));
-        expect(systemPrompt, isNot(contains('/internal/database/path')));
-        _expectNoEditorContext(systemPrompt);
-      },
-    );
+      final systemPrompt =
+          fakeClient.capturedStreamRequests.single.messages.first.content;
+      expect(systemPrompt, contains('SENTINEL_COUNCIL_BASE_PROMPT'));
+      if (malformed) {
+        expect(systemPrompt, startsWith(invalidPrompt));
+      } else {
+        expect(systemPrompt, contains('场次规则'));
+        expect(systemPrompt, isNot(contains('章节规则')));
+        expect(systemPrompt, isNot(contains('{{')));
+      }
+      expect(systemPrompt, contains('当前作品工作路径：/works/current'));
+      expect(systemPrompt, contains('原作工作路径：/works/original_novel'));
+      expect(systemPrompt, isNot(contains('/internal/database/path')));
+      _expectNoEditorContext(systemPrompt);
+    });
   }
 
   test(
@@ -167,7 +167,8 @@ void main() {
       );
       final mainClient = _PromptCaptureAiClient(primary, toolManager);
       final otherClient = _PromptCaptureAiClient(alternate, toolManager);
-      final orchestrator = AgentCouncilOrchestrator();
+      final orchestrator = (AgentCouncilOrchestrator()
+        ..pluginHost = emptyPluginHost());
       final first = await orchestrator.startDiscussion(
         novelId: 'current',
         topic: '按本次要求讨论',

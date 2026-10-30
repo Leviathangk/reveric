@@ -325,7 +325,6 @@ class SubagentsRunCommandHandler {
       'provider_id': agent.providerId,
       'model': agent.model,
       'reasoning_effort': agent.reasoningEffort,
-      'allowed_tool_names': agent.allowedToolNames,
     };
   }
 

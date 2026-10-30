@@ -58,6 +58,8 @@ backup/
 tool/evaluation/results/
 tool/evaluation/local/breakdown_sources.json
 dist/
+!assets/plugins/*/dist/
+!assets/plugins/*/dist/index.js
 .qoder/
 .mimocode/
 .vscode

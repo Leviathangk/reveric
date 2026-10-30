@@ -4,6 +4,7 @@
 //   lib/shared/services/ai/theater_orchestrator.dart
 //   lib/shared/providers/ai_mode_processing.dart
 //   lib/desktop/features/theater/panel.dart
+import 'plugin_providers.dart';
 import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -122,9 +123,11 @@ class TheaterRuntime extends _$TheaterRuntime {
   TheaterOrchestrator obtainOrchestrator({bool recreate = false}) {
     if (recreate) {
       orchestrator?.cancel();
-      orchestrator = TheaterOrchestrator();
+      orchestrator = (TheaterOrchestrator()
+        ..pluginHost = ref.read(pluginHostServiceProvider));
     }
-    return orchestrator ??= TheaterOrchestrator();
+    return orchestrator ??= (TheaterOrchestrator()
+      ..pluginHost = ref.read(pluginHostServiceProvider));
   }
 
   void setProcessing(bool processing, {bool notifyOnComplete = true}) {

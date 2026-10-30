@@ -6,6 +6,11 @@
 //   lib/shared/services/ai/session_persistence.dart
 //   lib/shared/agent/fake_agent.dart
 
+import '../../../helpers/plugin_host.dart';
+import 'package:reveric/shared/services/mcp/settings_service.dart';
+import 'package:reveric/shared/services/mcp/settings_orchestrator.dart';
+import 'package:reveric/shared/models/mcp/config.dart';
+import '../mcp/execution_test.dart' show ExecutionConnection;
 import 'dart:async';
 import 'dart:convert';
 
@@ -144,6 +149,7 @@ void main() {
     FakeProviderClient client, {
     FjsRuntime Function()? codemodeRuntimeFactory,
     AgentToolDispatcher? toolManager,
+    McpSettingsService? mcpService,
     AiSessionContext? workContext,
     List<String> Function()? allowedToolNames,
     List<SubAgent> availableSubAgents = const [reviewer],
@@ -162,6 +168,8 @@ void main() {
     List<AgentHook> hooks = const [],
   }) {
     return SpawnAgentHandler(
+      pluginHost: emptyPluginHost(),
+      mcpService: mcpService,
       codemodeRuntimeFactory: codemodeRuntimeFactory,
       codemodeScheduler: codemodeScheduler,
       workContext:
@@ -2659,6 +2667,187 @@ void main() {
     },
   );
 
+  test(
+    'explorer preserves MCP Run while rejecting ordinary Run and Write',
+    () async {
+      final connection = ExecutionConnection();
+      await McpSettingsOrchestrator().save(
+        database: appDb,
+        create: true,
+        config: McpServerConfig(
+          name: 'notes',
+          enabled: true,
+          exposure: McpExposure.direct,
+          connection: McpHttpConfig(url: 'https://example.test'),
+        ),
+      );
+      final service = McpSettingsService(
+        appDb,
+        supportsStdio: true,
+        connector: (_) async => connection,
+      );
+      addTearDown(service.close);
+      await service.initialized;
+      final content = NovelContentService(novelDb);
+      final manager = AiToolManager(
+        content,
+        workId: novelId,
+        workingOverlayService: WorkingOverlayService(
+          novelDb,
+          content,
+          novelActionsService: NovelActionsService(appDb),
+        ),
+      )..registerAllTools();
+      final client = FakeProviderClient(
+        responses: const [
+          FakeProviderClientResponse.toolCalls([
+            ToolCall(
+              callId: 'help',
+              toolName: 'Run',
+              arguments: {'command': 'help', 'subcommand': 'mcp'},
+            ),
+            ToolCall(
+              callId: 'list',
+              toolName: 'Run',
+              arguments: {'command': 'mcp', 'subcommand': 'list'},
+            ),
+            ToolCall(
+              callId: 'mcp-call',
+              toolName: 'Run',
+              arguments: {
+                'command': 'mcp',
+                'subcommand': 'call',
+                'options': {
+                  'name': 'mcp__notes__write',
+                  'arguments': {'number': 1},
+                },
+              },
+            ),
+            ToolCall(
+              callId: 'ordinary',
+              toolName: 'Run',
+              arguments: {'command': 'novel'},
+            ),
+            ToolCall(
+              callId: 'write',
+              toolName: 'Write',
+              arguments: {
+                'path': '/chapters/test/content',
+                'value': 'forbidden',
+              },
+            ),
+          ]),
+          FakeProviderClientResponse.text('done'),
+        ],
+      );
+      await buildHandler(
+        client,
+        toolManager: manager,
+        mcpService: service,
+        availableSubAgents: [reviewer.copyWith(slug: 'explorer')],
+      ).run(
+        input: const {'agent': '内容核验', 'name': '鲁迅', 'task': 'discover MCP'},
+      );
+      final names = client.capturedStreamRequests.first.tools!.map(
+        (tool) => tool.name,
+      );
+      expect(names, contains('Run'));
+      expect(names, isNot(contains('Write')));
+      final results = {
+        for (final block
+            in client.capturedStreamRequests.last.messages
+                .expand((m) => m.blocks)
+                .whereType<ToolResultBlock>())
+          block.toolCallId:
+              jsonDecode(
+                    block.content
+                        .whereType<TextBlock>()
+                        .map((b) => b.text)
+                        .join(),
+                  )
+                  as Map<String, dynamic>,
+      };
+      for (final call in ['help', 'list', 'mcp-call']) {
+        expect(results[call]?['ok'], true, reason: '$call: ${results[call]}');
+      }
+      expect(results['help'].toString(), contains('MCP commands:'));
+      expect(connection.calls, 1);
+      for (final call in ['ordinary', 'write']) {
+        expect(results[call]?['error_code'], 'permission_denied');
+      }
+    },
+  );
+
+  test(
+    'explorer rejects direct writes despite a model emitting an undeclared call',
+    () async {
+      var writes = 0;
+      final dispatcher = FakeAgentToolDispatcher(
+        tools: {
+          for (final name in ['Read', 'Write', 'Run'])
+            name: FakeAgentTool(
+              def: ToolDef(
+                name: name,
+                description: name,
+                inputSchema: const {'type': 'object'},
+              ),
+              handler: (_, _) async {
+                if (name != 'Read') {
+                  writes++;
+                }
+                return {'ok': true};
+              },
+            ),
+        },
+      );
+      final client = FakeProviderClient(
+        responses: const [
+          FakeProviderClientResponse.toolCalls([
+            ToolCall(
+              callId: 'write',
+              toolName: 'Write',
+              arguments: {
+                'path': '/chapters/test/content',
+                'value': 'forbidden',
+              },
+            ),
+            ToolCall(
+              callId: 'run',
+              toolName: 'Run',
+              arguments: {'command': 'novel'},
+            ),
+          ]),
+          FakeProviderClientResponse.text('done'),
+        ],
+      );
+      final result =
+          await buildHandler(
+            client,
+            toolManager: dispatcher,
+            availableSubAgents: [reviewer.copyWith(slug: 'explorer')],
+          ).run(
+            input: const {'agent': '内容核验', 'name': '鲁迅', 'task': 'read only'},
+            callId: 'explorer',
+          );
+      expect(result['ok'], true);
+      expect(writes, 0);
+      final names = client.capturedStreamRequests.first.tools!
+          .map((tool) => tool.name)
+          .toSet();
+      expect(names, contains('Read'));
+      expect(names, isNot(contains('Write')));
+      expect(names, isNot(contains('Run')));
+      final returned = client.capturedStreamRequests.last.messages
+          .expand((message) => message.blocks)
+          .whereType<ToolResultBlock>()
+          .expand((block) => block.content)
+          .whereType<TextBlock>()
+          .map((block) => block.text)
+          .join(' ');
+      expect(returned, contains('permission_denied'));
+    },
+  );
+
   test('injects path schema when subagent has tools', () async {
     final client = FakeProviderClient(
       responses: const [FakeProviderClientResponse.text('ok')],
@@ -2683,6 +2872,7 @@ void main() {
       responses: const [FakeProviderClientResponse.text('ok')],
     );
     final handler = SpawnAgentHandler(
+      pluginHost: emptyPluginHost(),
       codemodeScheduler: codemodeScheduler,
       workContext: const AiSessionContext(
         workId: novelId,
@@ -2838,6 +3028,7 @@ void main() {
         responses: const [FakeProviderClientResponse.text('已完成')],
       );
       final handler = SpawnAgentHandler(
+        pluginHost: emptyPluginHost(),
         codemodeScheduler: codemodeScheduler,
         workContext: const AiSessionContext(
           workId: novelId,

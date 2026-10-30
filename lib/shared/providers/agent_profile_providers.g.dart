@@ -34,7 +34,7 @@ final class GlobalAgentProfilesProvider
 }
 
 String _$globalAgentProfilesHash() =>
-    r'b5cae638e6b27fd22589b52c326f93014cb1727c';
+    r'09675dd36126abc99d194ed431bc72a411e8ed8e';
 
 abstract class _$GlobalAgentProfiles
     extends $AsyncNotifier<List<AgentProfile>> {
@@ -140,7 +140,7 @@ final class NovelAgentProfilesProvider
 }
 
 String _$novelAgentProfilesHash() =>
-    r'fd96cdb7106bb7f3adb824561fb0c27b5b28d813';
+    r'c1d9fe382f8f5b56c3b0be5245e32c66ef8b4536';
 
 final class NovelAgentProfilesFamily extends $Family
     with
