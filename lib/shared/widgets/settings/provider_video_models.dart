@@ -3,6 +3,7 @@
 //   lib/shared/widgets/settings/provider_config_panel.dart
 //   lib/shared/widgets/settings/provider_models_editor.dart
 //   lib/shared/models/ai_provider.dart
+//   lib/shared/widgets/settings/provider_video_highlights.dart
 //   lib/shared/localization/locale_keys.dart
 //   assets/translations/en/settings.json
 //   assets/translations/zh-CN/settings.json
@@ -16,6 +17,7 @@ import '../../localization/app_localization.dart';
 import '../../localization/locale_keys.dart';
 import '../../models/ai_provider.dart';
 import 'provider_models_editor.dart';
+import 'provider_video_highlights.dart';
 
 class ProviderVideoModels extends StatelessWidget {
   const ProviderVideoModels({
@@ -40,6 +42,9 @@ class ProviderVideoModels extends StatelessWidget {
       models: config.availableVideoModels,
       onChanged: onChanged,
       fetchButton: fetchButton,
+      modelTrailing: (model) =>
+          providerVideoHighlights(context, config.type, model),
+      modelNotice: (model) => providerVideoNotice(context, config.type, model),
     );
   }
 }

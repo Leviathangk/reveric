@@ -717,6 +717,12 @@ abstract final class LocaleKeys {
   static const settingsProviderModelIdHint = 'settings.provider_model_id_hint';
   static const settingsProviderVideoModelsLabel =
       'settings.provider_video_models_label';
+  static const settingsProviderVideoHighlightMaxDuration =
+      'settings.provider_video_highlight_max_duration';
+  static const settingsProviderVideoHighlightPriority =
+      'settings.provider_video_highlight_priority';
+  static const settingsProviderVideoNoticePriorityBilling =
+      'settings.provider_video_notice_priority_billing';
   // ── a2ui ────────────────────────────────────────
   static const a2uiComponentUnavailable = 'a2ui.component_unavailable';
   static const a2uiSurfaceUnavailableTitle = 'a2ui.surface_unavailable_title';

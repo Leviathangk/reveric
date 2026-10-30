@@ -1,16 +1,19 @@
-// 职责: 验证标准图标按钮、筛选项和徽标的键盘操作、语义及平台布局边界。
+// 职责: 验证标准图标按钮、筛选项、徽标和下拉选择的键盘操作、语义及平台布局边界。
 // 关联文件:
 //   lib/shared/components/reveric_icon_button.dart
 //   lib/shared/components/reveric_filter_chip.dart
 //   lib/shared/components/reveric_badge.dart
+//   lib/shared/components/reveric_select.dart
 import 'dart:ui' show Tristate;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:reveric/shared/components/reveric_badge.dart';
 import 'package:reveric/shared/components/reveric_filter_chip.dart';
 import 'package:reveric/shared/components/reveric_icon_button.dart';
+import 'package:reveric/shared/components/reveric_select.dart';
 import 'package:reveric/shared/theme/theme.dart';
 
 Widget _wrap(Widget child, {TargetPlatform platform = TargetPlatform.macOS}) {
@@ -202,4 +205,66 @@ void main() {
       semantics.dispose();
     }
   });
+
+  for (final platform in [
+    TargetPlatform.windows,
+    TargetPlatform.macOS,
+    TargetPlatform.android,
+  ]) {
+    testWidgets(
+      'select shows notice on trigger, highlights in menu and closes before '
+      'footer action '
+      'on $platform',
+      (tester) async {
+        var footerTaps = 0;
+        await tester.pumpWidget(
+          _wrap(
+            SizedBox(
+              width: 180,
+              child: RevericSelect<String>(
+                value: 'a',
+                menuWidth: 240,
+                items: const [
+                  RevericSelectItem(
+                    value: 'a',
+                    label: 'model-a',
+                    subtitle: 'Provider',
+                    badges: Tooltip(message: 'tip', child: Text('tag')),
+                    notice: Text('notice'),
+                  ),
+                ],
+                onChanged: (_) {},
+                footerAction: (label: 'Add Model', onTap: () => footerTaps++),
+              ),
+            ),
+            platform: platform,
+          ),
+        );
+        expect(find.text('tag'), findsNothing);
+        expect(find.text('notice'), findsOneWidget);
+        await tester.tap(find.text('model-a'));
+        await tester.pumpAndSettle();
+        expect(find.text('tag'), findsOneWidget);
+        expect(find.text('notice'), findsNWidgets(2));
+        // 菜单内的 Tooltip 需要 layout 阶段的绝对位置，悬停不得抛异常。
+        final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+        addTearDown(mouse.removePointer);
+        await mouse.addPointer(location: Offset.zero);
+        await mouse.moveTo(tester.getCenter(find.text('tag')));
+        await tester.pump(const Duration(seconds: 1));
+        expect(tester.takeException(), isNull);
+        expect(find.text('tip'), findsOneWidget);
+        // 未设 dropUp 时菜单贴在触发器下方。
+        expect(
+          tester.getTopLeft(find.text('model-a').last).dy,
+          greaterThan(tester.getBottomLeft(find.text('model-a').first).dy),
+        );
+        await tester.tap(find.text('Add Model'));
+        await tester.pumpAndSettle();
+        expect(footerTaps, 1);
+        expect(find.text('Add Model'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 }

@@ -8,6 +8,8 @@
 //   assets/translations/zh-CN/screenplay.json
 //   assets/translations/en/common.json
 //   assets/translations/zh-CN/common.json
+//   assets/translations/en/ai.json
+//   assets/translations/zh-CN/ai.json
 // 遵循的 Rules:
 //   .agents/rules/hooks.md
 //   .agents/rules/form.md
@@ -607,6 +609,11 @@ class _AudioForm extends HookConsumerWidget {
                               leadingIcon: RevericIcons.auto_awesome,
                               onEmptyTap: () =>
                                   showAiProviderSettingsDialog(context),
+                              footerAction: (
+                                label: context.t(LocaleKeys.aiAddModel),
+                                onTap: () =>
+                                    showAiProviderSettingsDialog(context),
+                              ),
                               textStyle: typo.uiSmall,
                               placeholder: context.t(
                                 LocaleKeys.storyboardModel,

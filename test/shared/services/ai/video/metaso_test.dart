@@ -300,7 +300,25 @@ void main() {
         VideoRemoteStatus.succeeded,
       );
       final ordinary = lookupVideoChannelModel('metaso', 'MiniMax-H3')!;
-      expect(lookupVideoChannelModel('metaso', alias), same(ordinary));
+      final priority = lookupVideoChannelModel('metaso', alias)!;
+      expect(priority.catalogId, ordinary.catalogId);
+      expect(priority.resolutions, ordinary.resolutions);
+      expect(priority.durations, ordinary.durations);
+      expect(
+        priority.maxDurationByResolution,
+        ordinary.maxDurationByResolution,
+      );
+      expect(
+        priority.protocolOptions.framesRequireAdaptiveRatio,
+        ordinary.protocolOptions.framesRequireAdaptiveRatio,
+      );
+      expect(priority.highlights, contains(VideoModelHighlight.priority));
+      expect(
+        ordinary.highlights,
+        isNot(contains(VideoModelHighlight.priority)),
+      );
+      expect(priority.notices, [VideoModelNotice.priority_billing]);
+      expect(ordinary.notices, isEmpty);
     },
   );
 

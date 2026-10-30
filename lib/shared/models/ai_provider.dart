@@ -269,7 +269,7 @@ String qwenBaseUrl(String value) {
 final List<AiProvider> aiProviderBuiltinDefaults = [
   AiProvider(
     id: 'metaso',
-    name: 'METASO',
+    name: '秘塔科技',
     builtin: true,
     type: 'metaso',
     enabled: false,

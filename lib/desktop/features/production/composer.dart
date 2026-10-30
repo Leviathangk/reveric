@@ -8,6 +8,8 @@
 //   assets/translations/zh-CN/screenplay.json
 //   assets/translations/en/common.json
 //   assets/translations/zh-CN/common.json
+//   assets/translations/en/ai.json
+//   assets/translations/zh-CN/ai.json
 // 遵循的 Rules:
 //   .agents/rules/hooks.md
 //   .agents/rules/design-system.md
@@ -57,6 +59,7 @@ import 'generate_button.dart';
 import 'spec_panel.dart';
 import 'upload.dart';
 import '../../widgets/settings/settings_dialog.dart';
+import '../../../shared/widgets/settings/provider_video_highlights.dart';
 
 /// 将参考输入校验失败映射为当前渠道和模式下可操作的提示。
 String productionReferenceErrorKey({
@@ -873,10 +876,15 @@ class _ComposerForm extends HookConsumerWidget {
                                 compact: true,
                                 dropUp: true,
                                 height: 30,
-                                menuWidth: 240,
+                                menuWidth: 300,
                                 leadingIcon: RevericIcons.auto_awesome,
                                 onEmptyTap: () =>
                                     showAiProviderSettingsDialog(context),
+                                footerAction: (
+                                  label: context.t(LocaleKeys.aiAddModel),
+                                  onTap: () =>
+                                      showAiProviderSettingsDialog(context),
+                                ),
                                 textStyle: typo.uiSmall,
                                 items: [
                                   for (final p in providers.data ?? [])
@@ -891,6 +899,17 @@ class _ComposerForm extends HookConsumerWidget {
                                           value: (p.id, model),
                                           label: model,
                                           subtitle: p.name,
+                                          badges: providerVideoHighlights(
+                                            context,
+                                            p.type,
+                                            model,
+                                            dense: true,
+                                          ),
+                                          notice: providerVideoNotice(
+                                            context,
+                                            p.type,
+                                            model,
+                                          ),
                                         ),
                                 ],
                                 onChanged: (v) {

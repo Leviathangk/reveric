@@ -22,6 +22,8 @@ class RevericSelectItem<T> {
     this.enabled = true,
     this.icon,
     this.color,
+    this.badges,
+    this.notice,
   });
 
   /// 选项值。
@@ -41,6 +43,12 @@ class RevericSelectItem<T> {
 
   /// 选项前置状态色点。为空则不显示色点。
   final Color? color;
+
+  /// 副标题行右侧的徽标（如卖点），只在菜单中显示，不挤占标题宽度。
+  final Widget? badges;
+
+  /// 选项提示（如计费说明图标），在菜单和选中后的触发器中都紧跟标题显示。
+  final Widget? notice;
 }
 
 /// 通用下拉选择控件。
@@ -66,6 +74,7 @@ class RevericSelect<T> extends StatefulWidget {
     this.alignEnd = false,
     this.dropUp = false,
     this.onEmptyTap,
+    this.footerAction,
   });
 
   /// 当前选中值。为空表示未选择。
@@ -112,17 +121,17 @@ class RevericSelect<T> extends StatefulWidget {
   /// 没有任何选项时点触发器的去处（如打开设置去配置）；为空时空列表下触发器不可点。
   final VoidCallback? onEmptyTap;
 
+  /// 菜单底部的固定操作（如「添加模型」），点击后先关闭菜单再回调。
+  final ({String label, VoidCallback onTap})? footerAction;
+
   @override
   State<RevericSelect<T>> createState() => _RevericSelectState<T>();
 }
 
 class _RevericSelectState<T> extends State<RevericSelect<T>> {
-  final LayerLink _link = LayerLink();
   final OverlayPortalController _controller = OverlayPortalController();
-  final GlobalKey _triggerKey = GlobalKey();
 
   bool _open = false;
-  double _triggerWidth = 0;
 
   RevericSelectItem<T>? get _selected {
     for (final item in widget.items) {
@@ -142,8 +151,6 @@ class _RevericSelectState<T> extends State<RevericSelect<T>> {
   }
 
   void _show() {
-    final box = _triggerKey.currentContext?.findRenderObject() as RenderBox?;
-    _triggerWidth = box?.size.width ?? 0;
     setState(() => _open = true);
     _controller.show();
   }
@@ -169,13 +176,12 @@ class _RevericSelectState<T> extends State<RevericSelect<T>> {
     final colors = RevericTheme.colorsOf(context);
     final typo = RevericTheme.typographyOf(context);
 
-    final trigger = OverlayPortal(
+    // 菜单内选项会挂 Tooltip，Tooltip 需要在 layout 阶段算出绝对位置；
+    // CompositedTransformFollower 要到合成阶段才有变换，因此按触发器矩形自行定位。
+    final trigger = OverlayPortal.overlayChildLayoutBuilder(
       controller: _controller,
       overlayChildBuilder: _buildOverlay,
-      child: CompositedTransformTarget(
-        link: _link,
-        child: _buildTrigger(colors, typo),
-      ),
+      child: _buildTrigger(colors, typo),
     );
 
     if (widget.label == null) {
@@ -206,7 +212,6 @@ class _RevericSelectState<T> extends State<RevericSelect<T>> {
     return MouseRegion(
       cursor: enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       child: GestureDetector(
-        key: _triggerKey,
         behavior: HitTestBehavior.opaque,
         onTap: enabled ? emptyTap ?? _toggle : null,
         child: Container(
@@ -248,23 +253,37 @@ class _RevericSelectState<T> extends State<RevericSelect<T>> {
               ],
               Flexible(
                 fit: widget.alignEnd ? FlexFit.loose : FlexFit.tight,
-                child: Text(
-                  hasValue ? selected.label : (widget.placeholder ?? ''),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: (widget.textStyle ?? (compact ? typo.uiTiny : typo.ui))
-                      .copyWith(
-                        color: _open
-                            ? colors.accent
-                            : hasValue
-                            ? colors.textPrimary
-                            : colors.textSubtle,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: widget.alignEnd
+                      ? MainAxisAlignment.end
+                      : MainAxisAlignment.start,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        hasValue ? selected.label : (widget.placeholder ?? ''),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            (widget.textStyle ??
+                                    (compact ? typo.uiTiny : typo.ui))
+                                .copyWith(
+                                  color: _open
+                                      ? colors.accent
+                                      : hasValue
+                                      ? colors.textPrimary
+                                      : colors.textSubtle,
+                                ),
                       ),
+                    ),
+                    if (selected?.notice case final notice?) ...[
+                      const SizedBox(width: RevericSpacing.xs),
+                      notice,
+                    ],
+                  ],
                 ),
               ),
-              SizedBox(
-                width: compact ? RevericSpacing.xxs : RevericSpacing.sm,
-              ),
+              SizedBox(width: compact ? RevericSpacing.xxs : RevericSpacing.sm),
               AnimatedRotation(
                 turns: _open ? 0.5 : 0,
                 duration: const Duration(milliseconds: 140),
@@ -281,7 +300,7 @@ class _RevericSelectState<T> extends State<RevericSelect<T>> {
     );
   }
 
-  Widget _buildOverlay(BuildContext context) {
+  Widget _buildOverlay(BuildContext context, OverlayChildLayoutInfo info) {
     final colors = RevericTheme.colorsOf(context);
     final typo = RevericTheme.typographyOf(context);
 
@@ -293,35 +312,60 @@ class _RevericSelectState<T> extends State<RevericSelect<T>> {
             onTap: _close,
           ),
         ),
-        CompositedTransformFollower(
-          link: _link,
-          showWhenUnlinked: false,
-          targetAnchor: widget.dropUp
-              ? Alignment.topLeft
-              : Alignment.bottomLeft,
-          followerAnchor: widget.dropUp
-              ? Alignment.bottomLeft
-              : Alignment.topLeft,
-          offset: Offset(
-            0,
-            widget.dropUp ? -RevericSpacing.xs : RevericSpacing.xs,
-          ),
-          child: Align(
-            alignment: widget.dropUp ? Alignment.bottomLeft : Alignment.topLeft,
-            child: _RevericSelectMenu<T>(
-              width: widget.menuWidth ?? _triggerWidth,
-              maxHeight: widget.maxMenuHeight,
-              items: widget.items,
-              value: widget.value,
-              colors: colors,
-              typo: typo,
-              onPick: _pick,
+        CustomSingleChildLayout(
+          delegate: _RevericSelectMenuLayout(
+            anchor: MatrixUtils.transformRect(
+              info.childPaintTransform,
+              Offset.zero & info.childSize,
             ),
+            dropUp: widget.dropUp,
+          ),
+          child: _RevericSelectMenu<T>(
+            width: widget.menuWidth ?? info.childSize.width,
+            maxHeight: widget.maxMenuHeight,
+            items: widget.items,
+            value: widget.value,
+            colors: colors,
+            typo: typo,
+            onPick: _pick,
+            footerAction: widget.footerAction == null
+                ? null
+                : (
+                    label: widget.footerAction!.label,
+                    onTap: () {
+                      _close();
+                      widget.footerAction!.onTap();
+                    },
+                  ),
           ),
         ),
       ],
     );
   }
+}
+
+/// 菜单左缘对齐触发器，按 [dropUp] 贴在触发器上方或下方。
+class _RevericSelectMenuLayout extends SingleChildLayoutDelegate {
+  const _RevericSelectMenuLayout({required this.anchor, required this.dropUp});
+
+  final Rect anchor;
+  final bool dropUp;
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
+      constraints.loosen();
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) => Offset(
+    anchor.left,
+    dropUp
+        ? anchor.top - RevericSpacing.xs - childSize.height
+        : anchor.bottom + RevericSpacing.xs,
+  );
+
+  @override
+  bool shouldRelayout(_RevericSelectMenuLayout oldDelegate) =>
+      anchor != oldDelegate.anchor || dropUp != oldDelegate.dropUp;
 }
 
 class _RevericSelectMenu<T> extends StatefulWidget {
@@ -333,6 +377,7 @@ class _RevericSelectMenu<T> extends StatefulWidget {
     required this.colors,
     required this.typo,
     required this.onPick,
+    this.footerAction,
   });
 
   final double width;
@@ -342,6 +387,7 @@ class _RevericSelectMenu<T> extends StatefulWidget {
   final RevericColors colors;
   final RevericTypography typo;
   final ValueChanged<RevericSelectItem<T>> onPick;
+  final ({String label, VoidCallback onTap})? footerAction;
 
   @override
   State<_RevericSelectMenu<T>> createState() => _RevericSelectMenuState<T>();
@@ -410,37 +456,53 @@ class _RevericSelectMenuState<T> extends State<_RevericSelectMenu<T>> {
               ),
             ],
           ),
-          child: ListView(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              for (final (index, item) in widget.items.indexed)
-                Padding(
-                  key: item.value == widget.value ? _selectedKey : null,
-                  padding: EdgeInsets.only(
-                    bottom: index == widget.items.length - 1
-                        ? 0
-                        : RevericSpacing.xxs,
-                  ),
-                  child: _RevericSelectOption<T>(
-                    item: item,
-                    selected: item.value == widget.value,
-                    hovered: _hoveredIndex == index,
-                    colors: colors,
-                    typo: widget.typo,
-                    onHoverChanged: (hovering) {
-                      setState(() {
-                        if (hovering) {
-                          _hoveredIndex = index;
-                        } else if (_hoveredIndex == index) {
-                          _hoveredIndex = null;
-                        }
-                      });
-                    },
-                    onPick: () => widget.onPick(item),
-                  ),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  clipBehavior: Clip.antiAlias,
+                  children: [
+                    for (final (index, item) in widget.items.indexed)
+                      Padding(
+                        key: item.value == widget.value ? _selectedKey : null,
+                        padding: EdgeInsets.only(
+                          bottom: index == widget.items.length - 1
+                              ? 0
+                              : RevericSpacing.xxs,
+                        ),
+                        child: _RevericSelectOption<T>(
+                          item: item,
+                          selected: item.value == widget.value,
+                          hovered: _hoveredIndex == index,
+                          colors: colors,
+                          typo: widget.typo,
+                          onHoverChanged: (hovering) {
+                            setState(() {
+                              if (hovering) {
+                                _hoveredIndex = index;
+                              } else if (_hoveredIndex == index) {
+                                _hoveredIndex = null;
+                              }
+                            });
+                          },
+                          onPick: () => widget.onPick(item),
+                        ),
+                      ),
+                  ],
                 ),
+              ),
+              if (widget.footerAction case final action?) ...[
+                Divider(height: RevericSpacing.sm, color: colors.border),
+                _RevericSelectFooter(
+                  label: action.label,
+                  colors: colors,
+                  typo: widget.typo,
+                  onTap: action.onTap,
+                ),
+              ],
             ],
           ),
         ),
@@ -529,23 +591,44 @@ class _RevericSelectOption<T> extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      item.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: typo.uiSmallSemibold.copyWith(
-                        color: item.enabled
-                            ? colors.textPrimary
-                            : colors.textMuted,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            item.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: typo.uiSmallSemibold.copyWith(
+                              color: item.enabled
+                                  ? colors.textPrimary
+                                  : colors.textMuted,
+                            ),
+                          ),
+                        ),
+                        if (item.notice case final notice?) ...[
+                          const SizedBox(width: RevericSpacing.xs),
+                          notice,
+                        ],
+                      ],
                     ),
-                    if (item.subtitle != null) ...[
+                    if (item.subtitle != null || item.badges != null) ...[
                       const SizedBox(height: 1),
-                      Text(
-                        item.subtitle!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: typo.uiTiny.copyWith(color: colors.textMuted),
+                      Wrap(
+                        spacing: RevericSpacing.sm,
+                        runSpacing: RevericSpacing.xxs,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (item.subtitle case final subtitle?)
+                            Text(
+                              subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: typo.uiTiny.copyWith(
+                                color: colors.textMuted,
+                              ),
+                            ),
+                          ?item.badges,
+                        ],
                       ),
                     ],
                   ],
@@ -560,6 +643,40 @@ class _RevericSelectOption<T> extends StatelessWidget {
                 ),
               ],
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RevericSelectFooter extends StatelessWidget {
+  const _RevericSelectFooter({
+    required this.label,
+    required this.colors,
+    required this.typo,
+    required this.onTap,
+  });
+
+  final String label;
+  final RevericColors colors;
+  final RevericTypography typo;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: RevericSpacing.sm),
+          child: Center(
+            child: Text(
+              label,
+              style: typo.uiSmall.copyWith(color: colors.textMuted),
+            ),
           ),
         ),
       ),

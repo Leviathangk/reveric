@@ -9,6 +9,8 @@
 //   assets/translations/zh-CN/screenplay.json
 //   assets/translations/en/common.json
 //   assets/translations/zh-CN/common.json
+//   assets/translations/en/ai.json
+//   assets/translations/zh-CN/ai.json
 //   assets/translations/en/production.json
 //   assets/translations/zh-CN/production.json
 // 遵循的 Rules:
@@ -492,6 +494,11 @@ class _ImageForm extends HookConsumerWidget {
                               leadingIcon: RevericIcons.auto_awesome,
                               onEmptyTap: () =>
                                   showAiProviderSettingsDialog(context),
+                              footerAction: (
+                                label: context.t(LocaleKeys.aiAddModel),
+                                onTap: () =>
+                                    showAiProviderSettingsDialog(context),
+                              ),
                               textStyle: typo.uiSmall,
                               placeholder: context.t(
                                 LocaleKeys.storyboardModel,

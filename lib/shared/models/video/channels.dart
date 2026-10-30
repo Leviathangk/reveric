@@ -83,6 +83,26 @@ class AtlasCloudVideoRoute {
   final Set<String> eightSecondResolutions;
 }
 
+/// 模型选择处展示的卖点标签；文案由 UI 层按枚举本地化。
+enum VideoModelHighlight {
+  /// 展示该型号支持的最长时长。
+  max_duration,
+
+  /// 优先排队通道。
+  priority,
+}
+
+/// 选用模型前需要知道的提示（计费、限制等）；与卖点分开，UI 以提示图标呈现。
+enum VideoModelNotice {
+  /// 优先通道按更高价格计费。
+  priority_billing(VideoModelHighlight.priority);
+
+  const VideoModelNotice([this.highlight]);
+
+  /// 该提示解释的卖点；对应徽标悬停时复用提示文案。
+  final VideoModelHighlight? highlight;
+}
+
 class VideoChannelModel {
   const VideoChannelModel({
     required this.catalogId,
@@ -90,8 +110,12 @@ class VideoChannelModel {
     this._requestDefaults = const VideoRequestDefaults(),
     this.protocolOptions = const VideoProtocolOptions(),
     this.maxDurationByResolution = const {},
+    this.highlights = const [],
+    this.notices = const [],
   });
   final String catalogId;
+  final List<VideoModelHighlight> highlights;
+  final List<VideoModelNotice> notices;
   final VideoModelCapabilities _capabilities;
   final VideoRequestDefaults _requestDefaults;
   final VideoProtocolOptions protocolOptions;
@@ -1986,24 +2010,35 @@ const videoChannelModels = <VideoProtocol, Map<String, VideoChannelModel>>{
   },
 };
 
-const _metasoH3 = VideoChannelModel(
-  catalogId: 'MiniMax-H3',
-  capabilities: VideoModelCapabilities(
-    maxPromptCharacters: ConfigValue(10000),
-    resolutions: {'480p', '768P', '1080p', '2K'},
-    // dart format off
-    durations: {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30},
-    // dart format on
-  ),
-  maxDurationByResolution: {'2K': 15},
-  protocolOptions: VideoProtocolOptions(framesRequireAdaptiveRatio: true),
+const _metasoH3Capabilities = VideoModelCapabilities(
+  maxPromptCharacters: ConfigValue(10000),
+  resolutions: {'480p', '768P', '1080p', '2K'},
+  // dart format off
+  durations: {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30},
+  // dart format on
 );
 
 // Public model catalog and API examples: https://metaso.cn/minimax-h3
 const _providerVideoModels = <String, Map<String, VideoChannelModel>>{
   'metaso': {
-    'MiniMax-H3': _metasoH3,
-    'MiniMax-H3-priority': _metasoH3,
+    'MiniMax-H3': VideoChannelModel(
+      catalogId: 'MiniMax-H3',
+      capabilities: _metasoH3Capabilities,
+      maxDurationByResolution: {'2K': 15},
+      protocolOptions: VideoProtocolOptions(framesRequireAdaptiveRatio: true),
+      highlights: [VideoModelHighlight.max_duration],
+    ),
+    'MiniMax-H3-priority': VideoChannelModel(
+      catalogId: 'MiniMax-H3',
+      capabilities: _metasoH3Capabilities,
+      maxDurationByResolution: {'2K': 15},
+      protocolOptions: VideoProtocolOptions(framesRequireAdaptiveRatio: true),
+      highlights: [
+        VideoModelHighlight.max_duration,
+        VideoModelHighlight.priority,
+      ],
+      notices: [VideoModelNotice.priority_billing],
+    ),
     'seedance-2.0': VideoChannelModel(
       catalogId: 'doubao-seedance-2-0-260128',
       requestDefaults: VideoRequestDefaults(audio: ConfigValue(null)),

@@ -139,6 +139,59 @@ void main() {
       },
     );
   }
+  for (final platform in [
+    TargetPlatform.windows,
+    TargetPlatform.macOS,
+    TargetPlatform.android,
+  ]) {
+    testWidgets('METASO video models show catalog highlights on $platform', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        EasyLocalization(
+          supportedLocales: const [Locale('en')],
+          path: 'assets/translations',
+          assetLoader: const MergingAssetLoader(),
+          fallbackLocale: const Locale('en'),
+          startLocale: const Locale('en'),
+          child: Builder(
+            builder: (context) => MaterialApp(
+              localizationsDelegates: context.localizationDelegates,
+              supportedLocales: context.supportedLocales,
+              locale: context.locale,
+              theme: RevericThemeData.reveric.toThemeData().copyWith(
+                platform: platform,
+              ),
+              home: RevericTheme(
+                data: RevericThemeData.reveric,
+                child: Scaffold(
+                  body: SizedBox(
+                    width: 400,
+                    child: ProviderVideoModels(
+                      config: aiProviderBuiltinById('metaso')!,
+                      onChanged: (_) {},
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Up to 30s'), findsNWidgets(2));
+      expect(find.text('Priority'), findsOneWidget);
+      // 说明图标与「优先通道」徽标共用同一条计费提示。
+      expect(
+        find.byTooltip(
+          'Generation is scheduled first; video is billed at 2× the current price.',
+        ),
+        findsNWidgets(2),
+      );
+      expect(find.byTooltip('Up to 30s'), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    });
+  }
   test('MiniMax supports only explicitly configured video models', () {
     final provider = aiProviderBuiltinById('openai')!.copyWith(
       type: 'minimax',

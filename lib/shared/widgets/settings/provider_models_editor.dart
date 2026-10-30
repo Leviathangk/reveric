@@ -31,6 +31,8 @@ class ProviderModelsEditor extends HookWidget {
     required this.models,
     required this.onChanged,
     this.fetchButton,
+    this.modelTrailing,
+    this.modelNotice,
   });
 
   final String label;
@@ -38,6 +40,12 @@ class ProviderModelsEditor extends HookWidget {
   final List<String> models;
   final ValueChanged<List<String>> onChanged;
   final Widget? fetchButton;
+
+  /// 模型名右侧的附加说明（如卖点徽标）；返回 null 时不占位。
+  final Widget? Function(String model)? modelTrailing;
+
+  /// 模型名后的提示图标；返回 null 时不占位。
+  final Widget? Function(String model)? modelNotice;
 
   @override
   Widget build(BuildContext context) {
@@ -106,9 +114,20 @@ class ProviderModelsEditor extends HookWidget {
                   child: Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          model,
-                          style: typo.ui.copyWith(color: colors.textPrimary),
+                        child: Wrap(
+                          spacing: RevericSpacing.sm,
+                          runSpacing: RevericSpacing.xxs,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              model,
+                              style: typo.ui.copyWith(
+                                color: colors.textPrimary,
+                              ),
+                            ),
+                            ?modelNotice?.call(model),
+                            ?modelTrailing?.call(model),
+                          ],
                         ),
                       ),
                       RevericIconButton(
