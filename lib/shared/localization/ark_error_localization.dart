@@ -8,7 +8,7 @@
 import 'locale_keys.dart';
 
 /// 错误码来源：https://docs.volcengine.com/docs/ark/error-codes?lang=zh
-/// 只处理推理接口的已知错误族；未知错误继续由消息和 HTTP 状态码分类。
+/// 只匹配精确错误码；错误族的泛化提示见 [arkErrorFamilyLocaleKey]。
 String? arkErrorLocaleKey(String? providerCode, String? message) {
   final code = providerCode?.trim().toLowerCase();
   if (code == null || code.isEmpty) {
@@ -25,7 +25,7 @@ String? arkErrorLocaleKey(String? providerCode, String? message) {
     }
     return LocaleKeys.aiProviderLimitExceeded;
   }
-  return arkErrorFamilyLocaleKey(code);
+  return null;
 }
 
 /// 只按错误码族前缀兜底得到的泛化提示；命中精确错误码时返回 null。

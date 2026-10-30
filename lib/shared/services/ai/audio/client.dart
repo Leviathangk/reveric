@@ -259,27 +259,33 @@ abstract class AudioClient {
     int status, [
     String? message,
     String? providerCode,
-  ]) => AudioException(
-    switch (status) {
-      401 || 403 => 'authentication',
-      429 => 'rate_limited',
-      >= 500 => 'unavailable',
-      >= 400 && < 500 => 'rejected',
-      _ => 'audio_submission_unknown',
-    },
-    statusCode: status,
-    messageKey: localizeAiRunFailure(
-      AiRunFailure.http(
-        statusCode: status,
-        providerMessage: message,
-        providerCode: providerCode,
+  ]) {
+    final failure = AiRunFailure.http(
+      statusCode: status,
+      providerMessage: message,
+      providerCode: providerCode,
+    );
+    return AudioException(
+      switch (status) {
+        401 || 403 => 'authentication',
+        429 => 'rate_limited',
+        >= 500 => 'unavailable',
+        >= 400 && < 500 => 'rejected',
+        _ => 'audio_submission_unknown',
+      },
+      statusCode: status,
+      messageKey: localizeAiRunFailure(
+        failure,
+        (key) => key,
+        preferProviderMessage: false,
       ),
-      (key) => key,
-      preferProviderMessage: false,
-    ),
-    providerMessage: message,
-    detail: providerErrorDetail(providerCode, message, apiKey),
-  );
+      // 已识别出专用文案时不再展示原文，原文仍保留在 detail 中。
+      providerMessage: recognizedAiRunFailureKey(failure) == null
+          ? message
+          : null,
+      detail: providerErrorDetail(providerCode, message, apiKey),
+    );
+  }
 }
 
 /// Temporary outputs are fetched without provider credentials; only GETs retry.

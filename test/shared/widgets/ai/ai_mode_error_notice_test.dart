@@ -31,7 +31,7 @@ void main() {
     tester,
   ) async {
     const message =
-        'This model does not support audio=false. api_key=example-secret';
+        'Upstream returned an unexpected response. api_key=example-secret';
     for (final width in [375.0, 1280.0]) {
       await tester.binding.setSurfaceSize(Size(width, 800));
       await tester.pumpWidget(

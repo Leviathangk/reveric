@@ -19,6 +19,9 @@ void main() {
       const message =
           'Unsupported audio=false; api_key=example-secret\nhttps://provider.test/help?q=1';
       for (final kind in AiRunFailureKind.values) {
+        if (kind == AiRunFailureKind.contextWindowExhausted) {
+          continue;
+        }
         expect(
           localizeAiRunFailure(
             AiRunFailure(kind: kind, providerMessage: message),
@@ -27,6 +30,64 @@ void main() {
           message,
         );
       }
+    },
+  );
+  test('recognized codes and messages win over the provider message', () {
+    expect(
+      localizeAiRunFailure(
+        const AiRunFailure.http(
+          statusCode: 400,
+          providerCode: 'InputImageSensitiveContentDetected.PrivacyInformation',
+          providerMessage: 'Request failed',
+        ),
+        identity,
+      ),
+      LocaleKeys.aiInputImagePrivacyRejected,
+    );
+    expect(
+      localizeAiRunFailure(
+        const AiRunFailure.http(
+          statusCode: 503,
+          providerMessage: 'No available channel for private-model',
+        ),
+        identity,
+      ),
+      LocaleKeys.aiProviderChannelUnavailable,
+    );
+    expect(
+      localizeAiRunFailure(
+        const AiRunFailure(
+          kind: AiRunFailureKind.contextWindowExhausted,
+          providerMessage: 'Request rejected',
+        ),
+        identity,
+      ),
+      LocaleKeys.aiContextWindowExhausted,
+    );
+  });
+  test(
+    'code family prefixes are generic and yield to the provider message',
+    () {
+      const failure = AiRunFailure.http(
+        statusCode: 400,
+        providerCode: 'InvalidParameter.SomethingNew',
+        providerMessage: 'The parameter `seed` must be below 2^31',
+      );
+      expect(recognizedAiRunFailureKey(failure), isNull);
+      expect(
+        localizeAiRunFailure(failure, identity),
+        'The parameter `seed` must be below 2^31',
+      );
+      expect(
+        localizeAiRunFailure(
+          const AiRunFailure.http(
+            statusCode: 400,
+            providerCode: 'InvalidParameter.SomethingNew',
+          ),
+          identity,
+        ),
+        LocaleKeys.aiRequestParameterUnsupported,
+      );
     },
   );
   test('only absent or unusable messages fall back to localized copy', () {

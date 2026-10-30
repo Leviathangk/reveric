@@ -154,18 +154,22 @@ abstract class VideoClient {
       );
       final providerCode = tryReadProviderErrorCode(json);
       final providerMessage = tryReadProviderMessage(json);
+      final failure = AiRunFailure.requestFailed(
+        providerCode: providerCode,
+        providerMessage: providerMessage,
+      );
       return VideoTaskResult(
         status: result.status,
         videoUrl: result.videoUrl,
         messageKey: localizeAiRunFailure(
-          AiRunFailure.requestFailed(
-            providerCode: providerCode,
-            providerMessage: providerMessage,
-          ),
+          failure,
           (key) => key,
           preferProviderMessage: false,
         ),
-        providerMessage: providerMessage,
+        // 已识别出专用文案时不再展示原文，原文仍保留在 detail 中。
+        providerMessage: recognizedAiRunFailureKey(failure) == null
+            ? providerMessage
+            : null,
         detail: providerErrorDetail(providerCode, providerMessage, apiKey),
       );
     } catch (error) {
@@ -273,32 +277,38 @@ abstract class VideoClient {
     Duration? retryAfter, [
     String? message,
     String? providerCode,
-  ]) => VideoException(
-    switch (status) {
-      401 || 403 => VideoErrorCode.authentication,
-      429 => VideoErrorCode.rate_limited,
-      404 when !submitting => VideoErrorCode.not_found,
-      >= 500 => VideoErrorCode.unavailable,
-      >= 400 && < 500 => VideoErrorCode.rejected,
-      _ =>
-        submitting
-            ? VideoErrorCode.submission_unknown
-            : VideoErrorCode.invalid_response,
-    },
-    statusCode: status,
-    retryAfter: retryAfter,
-    messageKey: localizeAiRunFailure(
-      AiRunFailure.http(
-        statusCode: status,
-        providerMessage: message,
-        providerCode: providerCode,
+  ]) {
+    final failure = AiRunFailure.http(
+      statusCode: status,
+      providerMessage: message,
+      providerCode: providerCode,
+    );
+    return VideoException(
+      switch (status) {
+        401 || 403 => VideoErrorCode.authentication,
+        429 => VideoErrorCode.rate_limited,
+        404 when !submitting => VideoErrorCode.not_found,
+        >= 500 => VideoErrorCode.unavailable,
+        >= 400 && < 500 => VideoErrorCode.rejected,
+        _ =>
+          submitting
+              ? VideoErrorCode.submission_unknown
+              : VideoErrorCode.invalid_response,
+      },
+      statusCode: status,
+      retryAfter: retryAfter,
+      messageKey: localizeAiRunFailure(
+        failure,
+        (key) => key,
+        preferProviderMessage: false,
       ),
-      (key) => key,
-      preferProviderMessage: false,
-    ),
-    providerMessage: message,
-    detail: providerErrorDetail(providerCode, message, apiKey),
-  );
+      // 已识别出专用文案时不再展示原文，原文仍保留在 detail 中。
+      providerMessage: recognizedAiRunFailureKey(failure) == null
+          ? message
+          : null,
+      detail: providerErrorDetail(providerCode, message, apiKey),
+    );
+  }
 
   Duration? _retryAfter(String? value) {
     if (value == null) {

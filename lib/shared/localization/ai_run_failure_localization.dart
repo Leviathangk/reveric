@@ -1,4 +1,4 @@
-// 职责: 优先展示供应商原始消息，无消息时将 AI 失败映射为本地化文案。
+// 职责: 将 AI 失败映射为展示文案：已识别的专用文案优先，其次供应商原文，最后泛化提示。
 // 关联文件:
 //   lib/shared/models/ai_run_failure.dart
 //   lib/shared/localization/ark_error_localization.dart
@@ -11,32 +11,27 @@ import '../utils/ai_error.dart';
 import 'ark_error_localization.dart';
 import 'locale_keys.dart';
 
+/// [preferProviderMessage] 为 false 时跳过供应商原文，只返回本地化文案（媒体客户端用来取 key）。
 String localizeAiRunFailure(
   AiRunFailure failure,
   String Function(String key) t, {
   bool preferProviderMessage = true,
 }) {
+  // 识别出专用文案时优先于原文；否则原文比错误族、状态码的泛化提示具体。
+  final recognized = recognizedAiRunFailureKey(failure);
+  if (recognized != null) {
+    return t(recognized);
+  }
   if (preferProviderMessage) {
     final message = tryReadProviderMessage(failure.providerMessage ?? '');
     if (message != null) {
       return message;
     }
   }
-  // 本地化兜底只对 provider 失败匹配错误码；本地/流终态保留专用说明。
-  if (failure.kind == AiRunFailureKind.http ||
-      failure.kind == AiRunFailureKind.streamInterrupted ||
-      failure.kind == AiRunFailureKind.requestFailed) {
-    final codeKey = arkErrorLocaleKey(
-      failure.providerCode,
-      failure.providerMessage,
-    );
-    // 通用参数码没有消息中的上下文长度等具体原因精确。
-    final messageKey =
-        failure.providerCode?.trim().toLowerCase() == 'invalidparameter'
-        ? _providerMessageLocaleKey(failure) ?? codeKey
-        : codeKey ?? _providerMessageLocaleKey(failure);
-    if (messageKey != null) {
-      return t(messageKey);
+  if (_isProviderFailure(failure)) {
+    final family = arkErrorFamilyLocaleKey(failure.providerCode);
+    if (family != null) {
+      return t(family);
     }
   }
   final key = switch (failure.kind) {
@@ -50,6 +45,32 @@ String localizeAiRunFailure(
   };
   return t(key);
 }
+
+/// 按精确错误码或消息规则识别出的专用文案 key。错误族前缀和 HTTP 状态码只给
+/// 泛化原因，不算识别，返回 null，界面应优先展示供应商原文。
+String? recognizedAiRunFailureKey(AiRunFailure failure) {
+  // 已在本地判定为上下文耗尽时，比供应商的笼统拒绝原因更具体。
+  if (failure.kind == AiRunFailureKind.contextWindowExhausted) {
+    return LocaleKeys.aiContextWindowExhausted;
+  }
+  if (!_isProviderFailure(failure)) {
+    return null;
+  }
+  final codeKey = arkErrorLocaleKey(
+    failure.providerCode,
+    failure.providerMessage,
+  );
+  // 通用参数码没有消息中的上下文长度等具体原因精确。
+  return failure.providerCode?.trim().toLowerCase() == 'invalidparameter'
+      ? _providerMessageLocaleKey(failure) ?? codeKey
+      : codeKey ?? _providerMessageLocaleKey(failure);
+}
+
+// 本地化兜底只对 provider 失败匹配错误码；本地/流终态保留专用说明。
+bool _isProviderFailure(AiRunFailure failure) =>
+    failure.kind == AiRunFailureKind.http ||
+    failure.kind == AiRunFailureKind.streamInterrupted ||
+    failure.kind == AiRunFailureKind.requestFailed;
 
 String? _providerMessageLocaleKey(AiRunFailure failure) {
   final message = failure.providerMessage?.trim().toLowerCase();

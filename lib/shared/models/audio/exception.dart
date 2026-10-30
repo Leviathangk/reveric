@@ -21,7 +21,7 @@ class AudioException implements Exception {
   /// 仅携带固定本地化 key，不携带供应商原文或签名地址。
   final String? messageKey;
 
-  /// 供应商原始 message，界面优先展示，不作为本地化 key。
+  /// 未识别出专用文案时的供应商原始 message，界面优先于通用兜底文案展示。
   final String? providerMessage;
 
   /// 脱敏后的供应商错误码和原文，只返回给 Agent。

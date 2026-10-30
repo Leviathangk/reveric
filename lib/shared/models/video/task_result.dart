@@ -45,7 +45,7 @@ class VideoException implements Exception {
   /// Fixed localization key selected by the shared provider error matcher.
   final String? messageKey;
 
-  /// 供应商原始 message，界面优先展示，不作为本地化 key。
+  /// 未识别出专用文案时的供应商原始 message，界面优先于通用兜底文案展示。
   final String? providerMessage;
 
   /// Sanitized provider code and message, persisted for the Agent only.
@@ -82,7 +82,7 @@ class VideoTaskResult {
   /// 已识别的安全本地化键，用于 HTTP 成功但生成任务失败的终态。
   final String? messageKey;
 
-  /// 供应商原始 message，界面优先展示，不作为本地化 key。
+  /// 未识别出专用文案时的供应商原始 message，界面优先于通用兜底文案展示。
   final String? providerMessage;
 
   /// 脱敏后的供应商错误码和原文，只返回给 Agent。
