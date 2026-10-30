@@ -39,12 +39,17 @@ class PluginsSettingsSection extends ConsumerWidget {
                     color: RevericTheme.colorsOf(context).textMuted,
                   ),
                 )
-              : SettingsCard(
-                  padding: EdgeInsets.zero,
+              // 每个插件展开后带完整配置表单，独立成卡，避免多个插件读成一张卡。
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     for (final (index, item) in items.indexed) ...[
-                      if (index > 0) const SettingsRowDivider(),
-                      PluginSettingsRow(key: ValueKey(item.id), status: item),
+                      if (index > 0) const SizedBox(height: RevericSpacing.lg),
+                      SettingsCard(
+                        key: ValueKey(item.id),
+                        padding: EdgeInsets.zero,
+                        children: [PluginSettingsRow(status: item)],
+                      ),
                     ],
                   ],
                 ),

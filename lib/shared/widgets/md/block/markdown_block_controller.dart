@@ -21,11 +21,9 @@ import 'markdown_edit_patch_stack.dart';
 class MarkdownBlockController extends ChangeNotifier {
   MarkdownBlockController({
     required TextEditingController externalController,
-    required FocusNode focusNode,
-    UndoHistoryController? undoController,
+    required this._focusNode,
+    this._undoController,
   }) : _externalController = externalController,
-       _focusNode = focusNode,
-       _undoController = undoController,
        _document = MarkdownBlockDocument.split(externalController.text),
        _lastExternalValue = externalController.value {
     _externalController.addListener(_handleExternalChanged);

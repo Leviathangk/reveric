@@ -231,7 +231,7 @@ flowchart TD
     T03 --> T07
     T06 --> T08
     T07 --> T08
-    T17 --> T18
+    T14 --> T18
     T17 --> T19
     T08 --> T09
     T18 --> T09
@@ -267,10 +267,10 @@ flowchart TD
 | T-11 | [zip 安装、更新、卸载与备份](settings-and-storage.md#安装更新与卸载) | 待办 | T-09、T-10、T-19 | `PluginInstallOrchestrator`、设置页安装与更新入口、软删除卸载、备份目录 |
 | T-12 | [M2 三平台验收](verification.md#m2-第三方工具与配置) | 待办 | T-11 | 用示例第三方搜索插件按 M2 验收表执行 |
 | T-13 | [View 注册与页面挂载](views.md#注册与显示) | 待办 | T-08 | `views.register`、`plugin.page` 导航入口、PluginSurfaceHost、页面生命周期 |
-| T-14 | [A2UI 渲染器与组件目录](views.md#渲染器与组件目录) | 待办 | 无 | 可与 M1 并行。先确定首批组件属性与事件 Schema 并补入方案，确定所用 A2UI 版本（优先 v1.0）并写回方案，引入 `a2ui_core`，实现 Flutter 层组件树、数据刷新、可替换的事件处理方与首批组件；用固定 A2UI 样例测试，提供调试预览入口 |
+| T-14 | [A2UI 渲染器与组件目录](views.md#渲染器与组件目录) | 待验收 | 无 | 可与 M1 并行。先确定首批组件属性与事件 Schema 并补入方案，确定所用 A2UI 版本（优先 v1.0）并写回方案，引入 `a2ui_core`，实现 Flutter 层组件树、数据刷新、可替换的事件处理方与首批组件；用固定 A2UI 样例测试，提供调试预览入口 |
 | T-15 | [action、context.ui 与自定义卡片](views.md#页面状态) | 待办 | T-13、T-14 | 插件 action 作为页面事件处理方、顺序执行与数据更新、`context.ui`、`display.view` 卡片 |
 | T-16 | [M3 三平台验收](verification.md#m3-自定义-view) | 待办 | T-10、T-15 | 用示例“人物整理”页面按 M3 验收表执行 |
-| T-17 | [清单模型](architecture.md#清单结构) | 待办 | 无 | 从 T-03 拆出先做：`lib/shared/models/plugin/manifest.dart` 解析与校验 `plugin.json` 及测试，供 T-03、T-18、T-19 共用 |
-| T-18 | [配置表单组件](settings-and-storage.md#配置与凭据) | 待办 | T-17 | 可与 M1 并行。按清单 `settings` 生成表单与校验的独立组件，含 Widget 测试；放入设置页在 T-09 |
+| T-17 | [清单模型](architecture.md#清单结构) | 待办 | 无 | 从 T-03 拆出先做：`lib/shared/models/plugin/manifest.dart` 解析与校验 `plugin.json` 及测试，供 T-03、T-19 共用；`settings` 字段交给 T-18 已有的 `parsePluginSettingFields` 解析 |
+| T-18 | [配置表单组件](settings-and-storage.md#配置与凭据) | 待验收 | T-14 | 按清单 `settings` 用 A2UI 组件库生成表单，字段解析与校验在 `setting_field.dart`，含 Widget 测试；放入设置页在 T-09 |
 | T-19 | [zip 校验与解压](settings-and-storage.md#包格式) | 待办 | T-17 | 可与 M1 并行。路径穿越、符号链接、大小与条目数限制、清单位置检查及解压，纯函数加单测 |
 | T-20 | [业务数据 API 设计](data-api.md#业务数据-api) | 待办 | 无 | 可与 M1 并行。确定首批章节与人物接口签名、权限名、对应 Service 入口与版本字段，补入 `data-api.md` 与 SDK 类型 |

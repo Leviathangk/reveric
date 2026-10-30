@@ -1,6 +1,7 @@
-// 职责: 展示单个插件的身份、能力、失败原因并持久化启停选择。
+// 职责: 展示单个插件的详情与配置入口，并持久化启停选择。
 // 关联文件:
 //   lib/shared/widgets/settings/plugins/section.dart
+//   lib/shared/widgets/settings/plugins/config_panel.dart
 //   lib/shared/providers/plugin_providers.dart
 //   lib/shared/services/plugins/host.dart
 //   lib/shared/localization/locale_keys.dart
@@ -19,6 +20,7 @@ import '../../../logger/app_logger.dart';
 import '../../../providers/plugin_providers.dart';
 import '../../../services/plugins/host.dart';
 import '../../../theme/theme.dart';
+import 'config_panel.dart';
 
 String pluginFailureKey(String? failure) {
   final text = failure?.toLowerCase() ?? '';
@@ -48,8 +50,12 @@ class PluginSettingsRow extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final expanded = useState(false),
+        // 首次展开后保留详情，收起时不丢失未保存的配置输入。
+        opened = useState(
+          false,
+        ),
         busy = useState(false),
-        failed = useState(false);
+        notice = useState<String?>(null);
     final host = ref.watch(pluginHostServiceProvider),
         manifest = status.manifest;
     final colors = RevericTheme.colorsOf(context),
@@ -63,18 +69,32 @@ class PluginSettingsRow extends HookConsumerWidget {
             .firstOrNull ??
         status.id;
     final statusKey = switch (status.state) {
+      'disabled' when status.needsConfig =>
+        LocaleKeys.settingsPluginsNeedsConfig,
       'disabled' => LocaleKeys.settingsPluginsDisabled,
       'unsupported' => LocaleKeys.settingsPluginsUnsupported,
       'activating' => LocaleKeys.settingsPluginsActivating,
       'available' => LocaleKeys.settingsPluginsAvailable,
       _ => LocaleKeys.settingsPluginsFailed,
     };
+    void setExpanded(bool value) {
+      expanded.value = value;
+      if (value) {
+        opened.value = true;
+      }
+    }
+
     Future<void> toggle(bool value) async {
       if (busy.value) {
         return;
       }
+      if (value && status.needsConfig) {
+        setExpanded(true);
+        notice.value = LocaleKeys.settingsPluginsConfigRequired;
+        return;
+      }
       busy.value = true;
-      failed.value = false;
+      notice.value = null;
       try {
         await host.setEnabled(status.id, value);
       } catch (error, stack) {
@@ -84,7 +104,7 @@ class PluginSettingsRow extends HookConsumerWidget {
           stackTrace: stack,
         );
         if (context.mounted) {
-          failed.value = true;
+          notice.value = LocaleKeys.settingsPluginsSaveFailed;
         }
       } finally {
         if (context.mounted) {
@@ -104,7 +124,7 @@ class PluginSettingsRow extends HookConsumerWidget {
               Expanded(
                 child: InkWell(
                   key: ValueKey('plugin-details-${status.id}'),
-                  onTap: () => expanded.value = !expanded.value,
+                  onTap: () => setExpanded(!expanded.value),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       vertical: RevericSpacing.sm,
@@ -178,62 +198,100 @@ class PluginSettingsRow extends HookConsumerWidget {
               ),
             ],
           ),
-          if (failed.value)
+          // 配置已补齐后提示自动消失。
+          if (notice.value case final key?
+              when key != LocaleKeys.settingsPluginsConfigRequired ||
+                  status.needsConfig)
             Text(
-              context.t(LocaleKeys.settingsPluginsSaveFailed),
+              context.t(key),
               style: typo.uiSmall.copyWith(color: colors.warningText),
             ),
-          if (expanded.value) ...[
-            const SizedBox(height: RevericSpacing.sm),
-            if (manifest?.description case final description?
-                when description.isNotEmpty)
-              Text(
-                description,
-                style: typo.ui.copyWith(color: colors.textSecondary),
-              ),
-            if (manifest?.author case final author? when author.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: RevericSpacing.sm),
-                child: Text(
-                  context.t(
-                    LocaleKeys.settingsPluginsAuthor,
-                    namedArgs: {'author': author},
-                  ),
-                  style: typo.uiSmall.copyWith(color: colors.textMuted),
+          if (opened.value)
+            Visibility(
+              visible: expanded.value,
+              maintainState: true,
+              child: ExcludeFocus(
+                excluding: !expanded.value,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: RevericSpacing.sm),
+                    if (manifest?.description case final description?
+                        when description.isNotEmpty)
+                      Text(
+                        description,
+                        style: typo.ui.copyWith(color: colors.textSecondary),
+                      ),
+                    if (manifest?.author case final author?
+                        when author.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: RevericSpacing.sm),
+                        child: Text(
+                          context.t(
+                            LocaleKeys.settingsPluginsAuthor,
+                            namedArgs: {'author': author},
+                          ),
+                          style: typo.uiSmall.copyWith(color: colors.textMuted),
+                        ),
+                      ),
+                    if (status.state == 'failed')
+                      Padding(
+                        padding: const EdgeInsets.only(top: RevericSpacing.sm),
+                        child: Text(
+                          context.t(pluginFailureKey(status.error)),
+                          style: typo.ui.copyWith(color: colors.warningText),
+                        ),
+                      ),
+                    if (manifest != null && manifest.settings.isNotEmpty) ...[
+                      const SizedBox(height: RevericSpacing.lg),
+                      PluginConfigPanel(host: host, manifest: manifest),
+                    ],
+                    const SizedBox(height: RevericSpacing.lg),
+                    Text(
+                      context.t(LocaleKeys.settingsPluginsTools),
+                      style: typo.uiSemibold.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: RevericSpacing.xxs),
+                    if (tools.isEmpty)
+                      Text(
+                        context.t(LocaleKeys.settingsPluginsNoTools),
+                        style: typo.uiSmall.copyWith(color: colors.textMuted),
+                      ),
+                    for (final tool in tools)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: RevericSpacing.xxs,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              host.registry.resolve(tool.name)?.pluginId ==
+                                      status.id
+                                  ? tool.name
+                                  : '${tool.name} · ${context.t(LocaleKeys.settingsPluginsOverridden, namedArgs: {'plugin': host.registry.resolve(tool.name)?.pluginName ?? tool.pluginName})}',
+                              style: typo.uiSmall.copyWith(
+                                color: colors.textSecondary,
+                              ),
+                            ),
+                            // 描述写给模型看，可能很长，只露出开头。
+                            Text(
+                              tool.toolDef.description,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: typo.uiSmall.copyWith(
+                                color: colors.textMuted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
               ),
-            if (status.state == 'failed')
-              Padding(
-                padding: const EdgeInsets.only(top: RevericSpacing.sm),
-                child: Text(
-                  context.t(pluginFailureKey(status.error)),
-                  style: typo.ui.copyWith(color: colors.warningText),
-                ),
-              ),
-            const SizedBox(height: RevericSpacing.lg),
-            Text(
-              context.t(LocaleKeys.settingsPluginsTools),
-              style: typo.uiSemibold.copyWith(color: colors.textSecondary),
             ),
-            const SizedBox(height: RevericSpacing.xxs),
-            if (tools.isEmpty)
-              Text(
-                context.t(LocaleKeys.settingsPluginsNoTools),
-                style: typo.uiSmall.copyWith(color: colors.textMuted),
-              ),
-            for (final tool in tools)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: RevericSpacing.xxs,
-                ),
-                child: Text(
-                  host.registry.resolve(tool.name)?.pluginId == status.id
-                      ? tool.name
-                      : '${tool.name} · ${context.t(LocaleKeys.settingsPluginsOverridden, namedArgs: {'plugin': host.registry.resolve(tool.name)?.pluginName ?? tool.pluginName})}',
-                  style: typo.uiSmall.copyWith(color: colors.textSecondary),
-                ),
-              ),
-          ],
         ],
       ),
     );

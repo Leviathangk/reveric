@@ -18,6 +18,37 @@ void main() {
   tearDown(() async {
     await server.close(force: true);
   });
+  for (final query in ['hello', '庆余年 小说 猫腻', '中文 café 😀']) {
+    test('request body uses UTF-8 bytes: $query', () async {
+      final received = <List<int>>[];
+      server.listen((req) async {
+        received.add(
+          await req.fold<List<int>>([], (bytes, chunk) => bytes..addAll(chunk)),
+        );
+        req.response.write('ok');
+        await req.response.close();
+      });
+      final api = PluginHttpApi();
+      addTearDown(api.cancel);
+      final body = jsonEncode({
+        'query': query,
+        'count': 5,
+        'need_content': false,
+      });
+      for (final contentType in [null, 'application/json']) {
+        final result = await api.fetch({
+          'url': origin,
+          'method': 'POST',
+          if (contentType != null) 'headers': {'Content-Type': contentType},
+          'body': body,
+        });
+        expect(result['status'], 200);
+        expect(received.last, utf8.encode(body));
+        expect(jsonDecode(utf8.decode(received.last)), jsonDecode(body));
+      }
+      expect(received, hasLength(2));
+    });
+  }
   test(
     'redirect bodies do not count toward the final response limit',
     () async {

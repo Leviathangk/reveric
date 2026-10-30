@@ -123,6 +123,7 @@ void main() {
             providerMessage: message,
           ),
           (key) => key,
+          preferProviderMessage: false,
         ),
         LocaleKeys.aiProviderLimitExceeded,
       );
@@ -135,6 +136,7 @@ void main() {
           providerMessage: 'Your account has exhausted its free trial quota.',
         ),
         (key) => key,
+        preferProviderMessage: false,
       ),
       LocaleKeys.aiProviderTrialQuotaExhausted,
     );
@@ -150,6 +152,7 @@ void main() {
             providerMessage: 'API key not valid',
           ),
           (key) => key,
+          preferProviderMessage: false,
         ),
         LocaleKeys.aiProviderPaymentRequired,
       );
@@ -161,6 +164,7 @@ void main() {
             providerMessage: 'maximum context length exceeded',
           ),
           (key) => key,
+          preferProviderMessage: false,
         ),
         LocaleKeys.aiContextWindowExhausted,
       );

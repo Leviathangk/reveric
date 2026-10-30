@@ -21,12 +21,10 @@ import 'markdown_block_controller.dart';
 /// 变化都经过 formatter 后一次性写回 [MarkdownBlockController.value]。
 class MarkdownTextInputClient with DeltaTextInputClient {
   MarkdownTextInputClient({
-    required MarkdownBlockController controller,
-    required List<TextInputFormatter> inputFormatters,
-    required bool enabled,
-  }) : _controller = controller,
-       _inputFormatters = inputFormatters,
-       _enabled = enabled {
+    required this._controller,
+    required this._inputFormatters,
+    required this._enabled,
+  }) {
     _controller.addListener(_handleControllerChanged);
     _controller.focusNode.addListener(_handleFocusChanged);
   }

@@ -1803,9 +1803,9 @@ class MarkdownBlockListViewState extends State<MarkdownBlockListView> {
 class _ComposingAwareCallbackAction<T extends Intent>
     extends CallbackAction<T> {
   _ComposingAwareCallbackAction({
-    required bool Function() isEnabled,
+    required this._isEnabled,
     required super.onInvoke,
-  }) : _isEnabled = isEnabled;
+  });
 
   final bool Function() _isEnabled;
 

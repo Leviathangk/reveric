@@ -42,7 +42,19 @@ M2 交付。插件在清单 `settings` 中声明配置字段，Host 负责表单
 | `select` | 下拉选择 | `default`、`required`、`options: [{ value, label }]` |
 | `secret` | 密钥输入 | `required` |
 
-所有字段都有 `title`，可选 `description`。表单整体使用 `SingleChildScrollView + Column`，遵循项目表单规则。
+所有字段都有 `title`，可选 `description`。
+
+插件对外只声明上表这种简化的 `settings`，不提供 A2UI 界面：表单必须在执行插件前就能展示，凭据的不回显、替换和清除由 Host 统一处理，插件之间的配置体验也保持一致。Host 内部把 `settings` 转换成 A2UI 消息，用[组件目录](views.md#渲染器与组件目录)渲染，与插件页面共用同一套组件：
+
+| 部分 | 实现 |
+| --- | --- |
+| 字段模型与校验 | `lib/shared/models/plugin/setting_field.dart`：`parsePluginSettingFields` 解析清单 `settings`（已知属性类型错误、默认值不合规、`min > max`、选项重复等抛 `FormatException`，未知属性忽略）；`validatePluginSettingValue` 是保存前的唯一校验规则，T-09 的 service 写入前复用 |
+| 表单 | `lib/shared/widgets/settings/plugins/config_form.dart` 的 `PluginConfigForm`：输入 `fields`、已保存的普通配置、已保存凭据的字段名和 `onSave` 回调；T-09 把它放进设置页，并在 `onSave` 中持久化 |
+| 消息生成 | `config_surface.dart`：字段到组件的映射（`string` / `text` / `integer` / `number` / `secret` 用 TextField 的对应变体，`boolean` 用 Switch，`select` 用 ChoicePicker），以及把页面数据读回为提交内容 |
+
+- 校验规则只在 Dart 侧维护一份：页面数据每次变化后，Host 用 `validatePluginSettingValue` 重算各字段，结果写入页面数据的 `/valid`，组件的 checks 只引用这些路径。字段在用户编辑后显示错误，保存按钮在全部规则通过前禁用；保存时再完整校验一次。
+- 凭据原文不进入页面数据：输入框初始为空，已保存时占位提示「已设置，留空则保持不变」并显示「清空」。清空只标记待清除，点保存后才生效；必填凭据清空后要重新填写才能保存。`onSave` 收到的凭据只包含有变更的字段：新值或 `null`（清除）。
+- 保存失败时表单显示「保存失败」，保留用户输入；底层错误只写日志。
 
 插件运行时按需读取：
 
@@ -62,7 +74,7 @@ const maxResults = await context.settings.get("maxResults");
 | 插件关闭 | 保留普通配置和凭据，停止提供能力 |
 | 保存失败 | 明确提示失败，不把未保存值显示为已生效 |
 
-配置完整与凭据有效是两件事，保存配置不发出网络请求。Key 不进入模型的工具参数、View DataModel、日志或工具结果；Agent 只传业务参数，插件执行时通过 `context.secrets` 取 Key。
+配置完整与凭据有效是两件事，保存配置不发出网络请求。Key 不进入模型的工具参数、插件 View 的 DataModel、日志或工具结果（Host 配置表单的页面数据只临时持有用户正在输入的新值，保存后即清空）；Agent 只传业务参数，插件执行时通过 `context.secrets` 取 Key。
 
 ## 数据库
 

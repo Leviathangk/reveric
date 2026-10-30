@@ -1,11 +1,17 @@
-// 职责: 解析并校验插件清单与入口路径。
+// 职责: 解析并校验插件清单、配置字段、设置页操作与入口路径。
 // 关联文件:
 //   lib/shared/services/plugins/host.dart
+//   lib/shared/models/plugin/setting_field.dart
+//   lib/shared/models/plugin/action.dart
 import 'package:pub_semver/pub_semver.dart';
+import 'action.dart';
+import 'setting_field.dart';
 
 class PluginManifest {
-  PluginManifest._(this.json);
+  PluginManifest._(this.json, this.settings, this.actions);
   final Map<String, dynamic> json;
+  final List<PluginSettingField> settings;
+  final List<PluginAction> actions;
   String get id => json['id'] as String;
   String get name => json['name'] as String;
   String get version => json['version'] as String;
@@ -64,6 +70,15 @@ class PluginManifest {
         json['settings'] is! Map<String, dynamic>) {
       throw const FormatException('Invalid settings');
     }
-    return PluginManifest._(Map.unmodifiable(json));
+    final settings = parsePluginSettingFields(json['settings']);
+    return PluginManifest._(
+      Map.unmodifiable(json),
+      List.unmodifiable(settings),
+      List.unmodifiable(
+        parsePluginActions(json['actions'], {
+          for (final field in settings) field.key,
+        }),
+      ),
+    );
   }
 }

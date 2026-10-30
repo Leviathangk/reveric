@@ -22,6 +22,6 @@ Reveric 需要支持第三方动态加载插件，同时保持 Flutter 原生 UI
 
 ## 修订（2026-10-30）
 
-- 不引入 `genui` 包。界面格式仍采用 A2UI，协议层使用官方纯 Dart 包 `a2ui_core`，Flutter 渲染层自行实现，所用 A2UI 版本在实现时确定（优先 v1.0）；原因与渲染器职责见 [自定义 View](../solutions/plugin-system/views.md#渲染器与组件目录)。上文提到的 GenUI Adapter 及 `plugin_ui/a2ui_adapter.dart` 不再适用。
+- 不引入 `genui` 包。界面格式仍采用 A2UI，协议层使用官方纯 Dart 包 `a2ui_core`，Flutter 渲染层自行实现，采用 A2UI v1.0、`a2ui_core` 锁定 0.4.0；原因与渲染器职责见 [自定义 View](../solutions/plugin-system/views.md#渲染器与组件目录)。上文提到的 GenUI Adapter 及 `plugin_ui/a2ui_adapter.dart` 不再适用。
 - 不扩展 A2UI 协议本身，只自定义组件目录，使插件页面与以后 AI 生成的界面共用同一渲染器和组件。
 - 内置插件同样使用 JS 实现，见[插件系统方案](../solutions/plugin-system/README.md)。

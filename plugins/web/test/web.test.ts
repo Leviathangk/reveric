@@ -35,6 +35,7 @@ function harness(
         tools.set(tool.name, tool);
       },
     },
+    actions: { register: () => {} },
     http: { fetch },
     log: {
       info: (...args) => logs.push(args),

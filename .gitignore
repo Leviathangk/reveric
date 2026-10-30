@@ -82,3 +82,6 @@ dist/
 # Android 签名密钥，不得提交
 *.keystore
 *.jks
+
+# 商业授权介绍材料，仅本地保留
+designs/pitch/

@@ -650,9 +650,21 @@
   "settings.plugins_overridden": "当前由 {plugin} 提供",
   "settings.plugins_load_failed": "无法加载插件，请重新打开设置后重试。",
   "settings.plugins_save_failed": "未能保存开关设置，请重试。",
+  "settings.plugins_needs_config": "需要配置",
+  "settings.plugins_config_required": "填写必填配置并保存后才能开启。",
   "settings.plugins_invalid": "插件包无效，请检查清单与入口文件。",
   "settings.plugins_api_mismatch": "插件需要其他版本的宿主 API。",
   "settings.plugins_conflict": "工具名称与其他插件或宿主保留工具冲突。",
   "settings.plugins_resource_limit": "激活超出时间或内存限制。",
-  "settings.plugins_activation_failed": "插件未能启动，请关闭后重新开启。"
+  "settings.plugins_activation_failed": "插件未能启动，请关闭后重新开启。",
+  "settings.plugin_config_secret_saved_hint": "已设置，留空则保持不变",
+  "settings.plugin_config_secret_clear_hint": "保存后清除",
+  "settings.plugin_config_required_secret_clear_hint": "保存后清除，插件会关闭，重新填写后可再开启",
+  "settings.plugin_action_succeeded": "成功",
+  "settings.plugin_action_unauthorized": "凭据无效",
+  "settings.plugin_action_network": "无法连接服务",
+  "settings.plugin_action_timeout": "请求超时",
+  "settings.plugin_action_failed": "失败",
+  "settings.plugin_action_requires": "请先填写{field}",
+  "settings.plugin_action_result": "{action}：{result}"
 }

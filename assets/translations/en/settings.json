@@ -650,9 +650,21 @@
   "settings.plugins_overridden": "Provided by {plugin}",
   "settings.plugins_load_failed": "Could not load plugins. Reopen settings to try again.",
   "settings.plugins_save_failed": "Could not save the switch setting. Try again.",
+  "settings.plugins_needs_config": "Needs setup",
+  "settings.plugins_config_required": "Fill in the required settings and save to turn it on.",
   "settings.plugins_invalid": "The plugin package is invalid. Check its manifest and entry file.",
   "settings.plugins_api_mismatch": "This plugin requires a different host API version.",
   "settings.plugins_conflict": "A tool name conflicts with another plugin or a reserved tool.",
   "settings.plugins_resource_limit": "Activation exceeded its time or memory limit.",
-  "settings.plugins_activation_failed": "The plugin could not start. Turn it off and on to retry."
+  "settings.plugins_activation_failed": "The plugin could not start. Turn it off and on to retry.",
+  "settings.plugin_config_secret_saved_hint": "Already set. Leave blank to keep it.",
+  "settings.plugin_config_secret_clear_hint": "Cleared when you save.",
+  "settings.plugin_config_required_secret_clear_hint": "Cleared when you save. The plugin turns off until you add a new one.",
+  "settings.plugin_action_succeeded": "Succeeded",
+  "settings.plugin_action_unauthorized": "Invalid credentials",
+  "settings.plugin_action_network": "Couldn't reach the service",
+  "settings.plugin_action_timeout": "Request timed out",
+  "settings.plugin_action_failed": "Failed",
+  "settings.plugin_action_requires": "Fill in {field} first",
+  "settings.plugin_action_result": "{action}: {result}"
 }

@@ -98,7 +98,8 @@ class PluginHttpApi {
           );
         }
         if (args['body'] != null) {
-          req.write(args['body']);
+          // 直接写 UTF-8 字节，避免 write 在未声明 charset 时按 Latin-1 编码。
+          req.add(utf8.encode(args['body'] as String));
         }
         final response = await req.close();
         final bytes = <int>[];

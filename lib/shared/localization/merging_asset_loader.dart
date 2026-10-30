@@ -14,6 +14,7 @@ class MergingAssetLoader extends AssetLoader {
   const MergingAssetLoader();
 
   static const _namespaces = [
+    'a2ui',
     'account',
     'agent',
     'agent_studio',

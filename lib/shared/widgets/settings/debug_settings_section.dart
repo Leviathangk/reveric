@@ -10,6 +10,9 @@
 //   lib/shared/theme/theme.dart
 //   assets/translations/en/settings.json
 //   assets/translations/zh-CN/settings.json
+//   lib/shared/widgets/a2ui/preview/preview_panel.dart
+//   assets/translations/en/a2ui.json
+//   assets/translations/zh-CN/a2ui.json
 // 遵循的 Rules:
 //   .agents/rules/directory-structure.md
 //   .agents/rules/hooks.md
@@ -32,6 +35,7 @@ import '../../providers/update_providers.dart';
 import '../../services/app_initialization.dart';
 import '../../services/debug/sqlite_schema_repair_orchestrator.dart';
 import '../../theme/theme.dart';
+import '../a2ui/preview/preview_panel.dart';
 
 /// 调试设置 section。
 class DebugSettingsSection extends HookConsumerWidget {
@@ -267,6 +271,19 @@ class DebugSettingsSection extends HookConsumerWidget {
                       );
                       isRepairingSchema.value = false;
                     },
+              colors: colors,
+              typo: typo,
+            ),
+            colors: colors,
+            typo: typo,
+          ),
+          const SizedBox(height: RevericSpacing.xl),
+          _DebugActionCard(
+            title: context.t(LocaleKeys.a2uiPreviewTitle),
+            description: context.t(LocaleKeys.a2uiPreviewDescription),
+            action: _DebugActionButton(
+              label: context.t(LocaleKeys.a2uiPreviewOpen),
+              onPressed: () => showA2uiPreview(context),
               colors: colors,
               typo: typo,
             ),

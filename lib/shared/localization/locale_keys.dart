@@ -717,6 +717,25 @@ abstract final class LocaleKeys {
   static const settingsProviderModelIdHint = 'settings.provider_model_id_hint';
   static const settingsProviderVideoModelsLabel =
       'settings.provider_video_models_label';
+  // ── a2ui ────────────────────────────────────────
+  static const a2uiComponentUnavailable = 'a2ui.component_unavailable';
+  static const a2uiSurfaceUnavailableTitle = 'a2ui.surface_unavailable_title';
+  static const a2uiSurfaceUnavailableDescription =
+      'a2ui.surface_unavailable_description';
+  static const a2uiPreviewTitle = 'a2ui.preview_title';
+  static const a2uiPreviewDescription = 'a2ui.preview_description';
+  static const a2uiPreviewOpen = 'a2ui.preview_open';
+  static const a2uiPreviewSample = 'a2ui.preview_sample';
+  static const a2uiPreviewData = 'a2ui.preview_data';
+  static const a2uiPreviewActions = 'a2ui.preview_actions';
+  static const a2uiPreviewNoActions = 'a2ui.preview_no_actions';
+  static const a2uiValidationFailed = 'a2ui.validation_failed';
+  static const a2uiPreviewModeSamples = 'a2ui.preview_mode_samples';
+  static const a2uiPreviewModePluginConfig = 'a2ui.preview_mode_plugin_config';
+  static const a2uiPreviewStored = 'a2ui.preview_stored';
+  static const a2uiPreviewSubmissions = 'a2ui.preview_submissions';
+  static const a2uiPreviewNoSubmissions = 'a2ui.preview_no_submissions';
+
   // ── account ────────────────────────────────────────
   static const accountUsageCached = 'account.usage_cached';
   // ── agent ────────────────────────────────────────
@@ -2790,6 +2809,11 @@ abstract final class LocaleKeys {
   static const formMinItems = 'form.min_items';
   static const formMinLength = 'form.min_length';
   static const formRequired = 'form.required';
+  static const formInvalidInteger = 'form.invalid_integer';
+  static const formInvalidNumber = 'form.invalid_number';
+  static const formNumberRange = 'form.number_range';
+  static const formNumberMin = 'form.number_min';
+  static const formNumberMax = 'form.number_max';
   // ── heuristic ────────────────────────────────────────
   // ── Heuristic Onboarding ──
   static const heuristicGoThere = 'heuristic.go_there';
@@ -3913,6 +3937,24 @@ abstract final class LocaleKeys {
   static const settingsMcpCallback = 'settings.mcp_callback';
   static const settingsMcpUnknown = 'settings.mcp_unknown';
   // ── settings ────────────────────────────────────────
+  static const settingsPluginsNeedsConfig = 'settings.plugins_needs_config';
+  static const settingsPluginsConfigRequired =
+      'settings.plugins_config_required';
+  static const settingsPluginConfigSecretSavedHint =
+      'settings.plugin_config_secret_saved_hint';
+  static const settingsPluginConfigSecretClearHint =
+      'settings.plugin_config_secret_clear_hint';
+  static const settingsPluginConfigRequiredSecretClearHint =
+      'settings.plugin_config_required_secret_clear_hint';
+  static const settingsPluginActionSucceeded =
+      'settings.plugin_action_succeeded';
+  static const settingsPluginActionUnauthorized =
+      'settings.plugin_action_unauthorized';
+  static const settingsPluginActionNetwork = 'settings.plugin_action_network';
+  static const settingsPluginActionTimeout = 'settings.plugin_action_timeout';
+  static const settingsPluginActionFailed = 'settings.plugin_action_failed';
+  static const settingsPluginActionRequires = 'settings.plugin_action_requires';
+  static const settingsPluginActionResult = 'settings.plugin_action_result';
   static const settingsAddCustomProvider = 'settings.add_custom_provider';
   static const settingsAddCustomProviderNameHint =
       'settings.add_custom_provider_name_hint';

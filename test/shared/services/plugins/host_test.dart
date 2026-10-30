@@ -1,8 +1,9 @@
-// 职责: 验证插件启停持久化、平台分支、覆盖和在途调用边界。
+// 职责: 验证插件启停持久化、平台分支、覆盖、在途调用边界与设置页操作。
 // 关联文件:
 //   lib/shared/services/plugins/host.dart
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +23,8 @@ PluginPackage package({
   String id = 'test.web',
   String version = '1.0.0',
   List<String>? platforms,
+  Map<String, dynamic>? settings,
+  Map<String, dynamic>? actions,
 }) => PluginPackage(
   'assets/$id',
   PluginManifest.fromJson({
@@ -32,6 +35,8 @@ PluginPackage package({
     'pluginApiVersion': '^1',
     'defaultEnabled': true,
     'platforms': ?platforms,
+    'settings': ?settings,
+    'actions': ?actions,
   }),
   '',
 );
@@ -60,6 +65,15 @@ class FakeExecutor implements PluginExecutor {
     }
     return pending?.future ?? Future.value({'ok': true});
   }
+
+  @override
+  Future<Map<String, dynamic>> runAction(
+    PluginManifest manifest,
+    String code,
+    String action,
+    String callId,
+    AgentCancellationToken? cancellation,
+  ) async => {'ok': true};
 }
 
 class _LoggingExecutor extends FakeExecutor {
@@ -106,6 +120,31 @@ class _GatedExecutor extends FakeExecutor {
     } finally {
       onActive(-1);
     }
+  }
+}
+
+/// 设置页操作读取凭据与配置后按 [result] 返回；[result] 为 null 时抛出超时。
+class _ActionExecutor extends FakeExecutor {
+  _ActionExecutor(this.call, this.reads, this.result);
+  final PluginHostCall call;
+  final List<Object?> reads;
+  final Map<String, dynamic>? result;
+  @override
+  Future<Map<String, dynamic>> runAction(
+    PluginManifest manifest,
+    String code,
+    String action,
+    String callId,
+    AgentCancellationToken? cancellation,
+  ) async {
+    reads
+      ..add(await call('secrets.get', {'key': 'apiKey'}))
+      ..add(await call('settings.get', {'key': 'region'}));
+    final value = result;
+    if (value == null) {
+      throw PluginExecutionError('plugin_timeout', 'Action timed out');
+    }
+    return value;
   }
 }
 
@@ -232,6 +271,133 @@ void main() {
     final encoded = jsonEncode(secret);
     expect(message, isNot(contains(encoded.substring(1, encoded.length - 1))));
     expect('***'.allMatches(message), hasLength(2));
+  });
+  test(
+    'actions read unsaved form values, run while disabled and map failures',
+    () async {
+      final db = AppDatabase.forTest(NativeDatabase.memory());
+      addTearDown(db.close);
+      await db.pluginDao.setSecret('test.web', 'apiKey', 'saved-key');
+      final reads = <Object?>[];
+      Map<String, dynamic>? result = {'ok': true};
+      final host = PluginHostService(
+        dao: db.pluginDao,
+        registry: PluginRegistry(hostToolNames: {}),
+        packages: () async => [
+          package(
+            settings: {
+              'apiKey': {'type': 'secret', 'title': 'Key'},
+              'region': {'type': 'string', 'title': 'Region', 'default': 'cn'},
+            },
+            actions: {
+              'verify': {
+                'title': 'Verify',
+                'requires': ['apiKey'],
+              },
+            },
+          ),
+        ],
+        executorFactory: (call, stop) => _ActionExecutor(call, reads, result),
+        platform: 'macos',
+      );
+      addTearDown(host.dispose);
+      await host.start();
+      await host.setEnabled('test.web', false);
+
+      expect(
+        await host.runAction(
+          'test.web',
+          'verify',
+          settings: {'region': 'us'},
+          secrets: {'apiKey': 'draft-key'},
+        ),
+        (ok: true, code: null),
+      );
+      expect(reads, ['draft-key', 'us']);
+
+      reads.clear();
+      await host.runAction('test.web', 'verify');
+      expect(reads, ['saved-key', 'cn']);
+
+      // 待清空的凭据与未填的配置按清空后的值读取。
+      reads.clear();
+      result = {'ok': false, 'code': 'unauthorized', 'message': 'x'};
+      expect(
+        await host.runAction(
+          'test.web',
+          'verify',
+          settings: {'region': null},
+          secrets: {'apiKey': null},
+        ),
+        (ok: false, code: 'unauthorized'),
+      );
+      expect(reads, [null, 'cn']);
+
+      result = {'ok': false};
+      expect(await host.runAction('test.web', 'verify'), (
+        ok: false,
+        code: 'failed',
+      ));
+      result = null;
+      expect(await host.runAction('test.web', 'verify'), (
+        ok: false,
+        code: 'timeout',
+      ));
+      expect(await host.runAction('test.web', 'undeclared'), (
+        ok: false,
+        code: 'unavailable',
+      ));
+      // 草稿只作用于本次操作，不写入已保存配置。
+      expect(await db.pluginDao.secretValues('test.web'), ['saved-key']);
+    },
+  );
+  test('manifest parses actions and rejects invalid declarations', () {
+    final valid = package().manifest.json;
+    final settings = {
+      'apiKey': {'type': 'secret', 'title': 'Key'},
+    };
+    final manifest = PluginManifest.fromJson({
+      ...valid,
+      'settings': settings,
+      'actions': {
+        'verifyApiKey': {
+          'title': 'Verify',
+          'requires': ['apiKey'],
+        },
+      },
+    });
+    expect(manifest.actions.single.name, 'verifyApiKey');
+    expect(manifest.actions.single.title.resolve(const Locale('en')), 'Verify');
+    expect(manifest.actions.single.requires, ['apiKey']);
+    expect(package().manifest.actions, isEmpty);
+    for (final actions in [
+      [],
+      {
+        'bad-name': {'title': 'x'},
+      },
+      {'verify': 'x'},
+      {
+        'verify': {'title': ' '},
+      },
+      {
+        'verify': {'title': <String, String>{}},
+      },
+      {
+        'verify': {
+          'title': 'x',
+          'requires': ['missing'],
+        },
+      },
+    ]) {
+      expect(
+        () => PluginManifest.fromJson({
+          ...valid,
+          'settings': settings,
+          'actions': actions,
+        }),
+        throwsFormatException,
+      );
+    }
   });
   test('manifest rejects malformed contracts and paths', () {
     final valid = package().manifest.json;

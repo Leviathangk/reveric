@@ -345,4 +345,19 @@ class RevericIcons {
   static const user_focus = '$_base/user-focus.svg';
   static const user_square = '$_base/user-square.svg';
   static const smiley = '$_base/smiley.svg';
+  static const calendar_blank = '$_base/calendar-blank.svg';
+  static const calendar_dots = '$_base/calendar-dots.svg';
+  static const phone = '$_base/phone.svg';
+  static const camera = '$_base/camera.svg';
+  static const fast_forward = '$_base/fast-forward.svg';
+  static const heart_break = '$_base/heart-break.svg';
+  static const bell = '$_base/bell.svg';
+  static const bell_slash = '$_base/bell-slash.svg';
+  static const credit_card = '$_base/credit-card.svg';
+  static const printer = '$_base/printer.svg';
+  static const rewind = '$_base/rewind.svg';
+  static const shopping_cart = '$_base/shopping-cart.svg';
+  static const star_half = '$_base/star-half.svg';
+  static const speaker_low = '$_base/speaker-low.svg';
+  static const speaker_none = '$_base/speaker-none.svg';
 }

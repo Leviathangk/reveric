@@ -1,6 +1,8 @@
-// 职责: 发现、登记并激活插件，维护状态及每次调用的独立资源。
+// 职责: 发现、配置并激活插件，执行工具调用与设置页操作，维护状态及每次调用的独立资源。
 // 关联文件:
-//   lib/shared/services/plugins/host.dart
+//   lib/shared/services/plugins/config.dart
+//   lib/shared/services/plugins/runtime.dart
+//   lib/shared/models/plugin/manifest.dart
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -8,7 +10,10 @@ import 'package:flutter/services.dart';
 import '../../agent/agent_tool_dispatcher.dart';
 import '../../database/daos/plugin_dao.dart';
 import '../../logger/app_logger.dart';
+import '../../models/plugin/action.dart';
 import '../../models/plugin/manifest.dart';
+import '../../models/plugin/setting_field.dart';
+import 'config.dart';
 import 'http.dart';
 import 'registry.dart';
 import 'runtime.dart';
@@ -28,12 +33,16 @@ class PluginStatus {
     this.state = 'disabled',
     this.error,
     this.source = 'bundled',
+    this.needsConfig = false,
   });
   final String id, path, source;
   final PluginManifest? manifest;
   bool enabled;
   String state;
   String? error;
+
+  /// 必填配置未填写；此时不能开启插件。
+  bool needsConfig;
 }
 
 typedef PluginExecutorFactory =
@@ -136,6 +145,7 @@ class PluginHostService {
         manifest: manifest,
         enabled: row.enabled,
         source: package.source,
+        needsConfig: await _missingRequiredKey(manifest) != null,
       );
       ordered.add((package, row.createdAt));
     }
@@ -216,9 +226,69 @@ class PluginHostService {
       if (!_packages.containsKey(pluginId)) {
         throw StateError('Unknown plugin: $pluginId');
       }
+      if (enabled) {
+        final missing = await _missingRequiredKey(
+          _packages[pluginId]!.manifest,
+        );
+        if (missing != null) {
+          throw StateError('Required plugin configuration: $missing');
+        }
+      }
       await dao.setEnabled(pluginId, enabled);
       _statuses[pluginId]!.enabled = enabled;
       await _activate(pluginId);
+    });
+    _serial[pluginId] = next.catchError((Object _) {});
+    return next;
+  }
+
+  /// 第一个未填写的必填配置项；全部已填写时返回 null。
+  Future<String?> _missingRequiredKey(PluginManifest manifest) async {
+    final required = manifest.settings.where((field) => field.required);
+    if (required.isEmpty) {
+      return null;
+    }
+    final config = await readPluginConfig(dao, manifest);
+    for (final field in required) {
+      if (field.isSecret
+          ? !config.savedSecrets.contains(field.key)
+          : validatePluginSettingValue(field, config.values[field.key]) !=
+                null) {
+        return field.key;
+      }
+    }
+    return null;
+  }
+
+  PluginManifest _manifest(String pluginId) =>
+      _packages[pluginId]?.manifest ??
+      (throw StateError('Unknown plugin: $pluginId'));
+
+  Future<PluginConfig> loadConfig(String pluginId) =>
+      readPluginConfig(dao, _manifest(pluginId));
+
+  /// 与启停共用串行队列，避免清空必填凭据与开启插件交错。
+  Future<void> saveConfig(
+    String pluginId, {
+    required Map<String, Object?> settings,
+    required Map<String, String?> secrets,
+  }) {
+    final next = (_serial[pluginId] ?? Future<void>.value()).then((_) async {
+      final manifest = _manifest(pluginId);
+      final disabled = await PluginConfigOrchestrator().save(
+        dao: dao,
+        manifest: manifest,
+        settings: settings,
+        secrets: secrets,
+      );
+      final status = _statuses[pluginId]!;
+      status.needsConfig = await _missingRequiredKey(manifest) != null;
+      if (disabled) {
+        status.enabled = false;
+        await _activate(pluginId);
+      } else {
+        _emit();
+      }
     });
     _serial[pluginId] = next.catchError((Object _) {});
     return next;
@@ -273,33 +343,11 @@ class PluginHostService {
       if (cancellation?.isCancellationRequested == true) {
         return cancelled();
       }
-      final runtime = executorFactory((method, args) async {
-        if (method == 'http.fetch') {
-          return http.fetch(args);
-        }
-        if (['log.info', 'log.warn', 'log.error'].contains(method)) {
-          if (args['message'] is! String) {
-            throw PluginHostError(
-              'invalid_argument',
-              'Log message must be a string',
-            );
-          }
-          var message = jsonEncode(args);
-          for (final secret in secrets.where((s) => s.isNotEmpty)) {
-            final encoded = jsonEncode(secret);
-            message = message.replaceAll(
-              encoded.substring(1, encoded.length - 1),
-              '***',
-            );
-          }
-          AppLogger.info('[Plugin:$id] $method $message');
-          return null;
-        }
-        throw PluginHostError(
-          'unavailable',
-          'Host API not implemented: $method',
-        );
-      }, http.cancel);
+      final runtime = executorFactory(
+        _hostApi(id, package, http, secrets),
+        http.cancel,
+      );
+
       return await runtime.invoke(
         package.manifest,
         package.code,
@@ -326,6 +374,145 @@ class PluginHostService {
       http.cancel();
       _releaseQueue(id);
     }
+  }
+
+  /// 执行设置页操作。[settings]、[secrets] 是表单里尚未保存的值，覆盖已保存配置，
+  /// 凭据为 null 表示待清空。插件未开启时也可执行，便于开启前验证配置。
+  Future<PluginActionResult> runAction(
+    String pluginId,
+    String name, {
+    Map<String, Object?> settings = const {},
+    Map<String, String?> secrets = const {},
+    AgentCancellationToken? cancellation,
+  }) async {
+    await start();
+    final package = _packages[pluginId];
+    final redactions = [
+      for (final value in secrets.values)
+        if (value != null && value.isNotEmpty) value,
+    ];
+    PluginActionResult failed(String code, String message) {
+      AppLogger.warning(
+        '[Plugin] Action failed: $pluginId.$name $code '
+        '${_redact(message, redactions)}',
+      );
+      return (ok: false, code: code);
+    }
+
+    if (_disposed ||
+        package == null ||
+        !package.manifest.actions.any((action) => action.name == name)) {
+      return failed('unavailable', 'Unknown plugin action');
+    }
+    if (!package.manifest.platforms.contains(platform)) {
+      return failed('unsupported', 'Plugin does not support $platform');
+    }
+    if (!await _acquire(pluginId, cancellation: cancellation)) {
+      return failed('unavailable', 'No execution slot');
+    }
+    final http = PluginHttpApi();
+    try {
+      redactions.addAll(await dao.secretValues(pluginId));
+      final runtime = executorFactory(
+        _hostApi(
+          pluginId,
+          package,
+          http,
+          redactions,
+          draftSettings: settings,
+          draftSecrets: secrets,
+        ),
+        http.cancel,
+      );
+      final value = await runtime.runAction(
+        package.manifest,
+        package.code,
+        name,
+        '',
+        cancellation,
+      );
+      if (value['ok'] == true) {
+        return (ok: true, code: null);
+      }
+      return failed(
+        value['code'] is String ? value['code'] as String : 'failed',
+        '${value['message'] ?? ''}',
+      );
+    } on PluginExecutionError catch (error) {
+      return failed(
+        error.code == 'plugin_timeout' ? 'timeout' : error.code,
+        error.message,
+      );
+    } catch (error) {
+      return failed('plugin_error', error.toString());
+    } finally {
+      http.cancel();
+      _releaseQueue(pluginId);
+    }
+  }
+
+  /// 插件可调用的宿主 API。设置页操作传入表单草稿，覆盖已保存的配置。
+  PluginHostCall _hostApi(
+    String id,
+    PluginPackage package,
+    PluginHttpApi http,
+    List<String> secrets, {
+    Map<String, Object?> draftSettings = const {},
+    Map<String, String?> draftSecrets = const {},
+  }) => (method, args) async {
+    if (method == 'http.fetch') {
+      return http.fetch(args);
+    }
+    if (method == 'settings.get' || method == 'secrets.get') {
+      final key = args['key'];
+      final field = package.manifest.settings
+          .where((field) => field.key == key)
+          .firstOrNull;
+      if (key is! String ||
+          field == null ||
+          field.isSecret != (method == 'secrets.get')) {
+        throw PluginHostError(
+          'invalid_argument',
+          'Undeclared $method key: $key',
+        );
+      }
+      if (field.isSecret) {
+        if (draftSecrets.containsKey(key)) {
+          final value = draftSecrets[key];
+          return value == null || value.isEmpty ? null : value;
+        }
+        return readPluginSecret(dao, id, key);
+      }
+      if (draftSettings.containsKey(key)) {
+        return draftSettings[key] ?? field.defaultValue;
+      }
+      return readPluginSetting(dao, id, field);
+    }
+    if (['log.info', 'log.warn', 'log.error'].contains(method)) {
+      if (args['message'] is! String) {
+        throw PluginHostError(
+          'invalid_argument',
+          'Log message must be a string',
+        );
+      }
+      AppLogger.info(
+        '[Plugin:$id] $method ${_redact(jsonEncode(args), secrets)}',
+      );
+      return null;
+    }
+    throw PluginHostError('unavailable', 'Host API not implemented: $method');
+  };
+
+  /// 同时替换原文和 JSON 转义后的凭据。
+  String _redact(String text, Iterable<String> secrets) {
+    var result = text;
+    for (final secret in secrets.where((s) => s.isNotEmpty)) {
+      final encoded = jsonEncode(secret);
+      result = result
+          .replaceAll(secret, '***')
+          .replaceAll(encoded.substring(1, encoded.length - 1), '***');
+    }
+    return result;
   }
 
   Future<bool> _acquire(

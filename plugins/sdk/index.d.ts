@@ -23,6 +23,17 @@ export interface ToolRegistration {
   display?: ToolDisplay;
   handler(input: JsonObject, call: ToolCall): Promise<JsonObject>;
 }
+/** Result of a settings-page action. */
+export interface ActionResult {
+  ok: boolean;
+  /**
+   * "unauthorized", "network" and "timeout" are shown with host wording;
+   * any other code is shown as a generic failure.
+   */
+  code?: string;
+  /** Written to the host log only; never shown to the user. */
+  message?: string;
+}
 export interface HttpRequest {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD";
   headers?: Record<string, string>;
@@ -40,6 +51,17 @@ export interface HttpResponse {
 export interface PluginContext {
   readonly plugin: { readonly id: string; readonly version: string };
   readonly tools: { register(tool: ToolRegistration): void };
+  /**
+   * Handlers for actions declared in plugin.json `actions`. Every declared
+   * action must be registered. While an action runs, settings.get and
+   * secrets.get return the unsaved values from the settings form.
+   */
+  readonly actions: {
+    register(
+      name: string,
+      handler: (call: ToolCall) => Promise<ActionResult>,
+    ): void;
+  };
   readonly http: {
     fetch(url: string, init?: HttpRequest): Promise<HttpResponse>;
   };
@@ -48,7 +70,7 @@ export interface PluginContext {
     warn(message: string, data?: Json): void;
     error(message: string, data?: Json): void;
   };
-  /** M2: calls fail explicitly until implemented by the host. */
+  /** Plugin storage calls fail explicitly until implemented by the host. */
   readonly storage: {
     get(key: string): Promise<Json | null>;
     set(key: string, value: Json): Promise<void>;

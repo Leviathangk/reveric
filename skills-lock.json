@@ -7,6 +7,12 @@
       "skillPath": "skills/baoyu-design/SKILL.md",
       "computedHash": "6513cebcd052ddbec2147ce0e9ea8aff0fa0398730d87eabd6ba71e2f767d9a0"
     },
+    "cineview-design": {
+      "source": "AlienMu/cineview",
+      "sourceType": "github",
+      "skillPath": "skills/cineview-design/SKILL.md",
+      "computedHash": "38d25795a3bbfdb99ade96e2b6da89bb6d66f5b0082c9fa8b42edeb01dacc8a3"
+    },
     "domain-modeling": {
       "source": "mattpocock/skills",
       "sourceType": "github",
