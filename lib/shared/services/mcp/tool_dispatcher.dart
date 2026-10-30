@@ -200,11 +200,6 @@ class McpToolDispatcher {
             : 'mcp_connection_failed',
         error: mcpDiagnostic(error, config),
         cancelled: cancelled,
-        contentComplete: !sent,
-        contentIssues: [
-          if (tooLarge) {'code': 'result_too_large'},
-          if (sent) {'code': 'result_unavailable'},
-        ],
         recovery: sent
             ? 'Verify external state before another call. Do not automatically replay this operation.'
             : null,

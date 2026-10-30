@@ -57,10 +57,8 @@ for line in sys.stdin:
       ).call('mcp__fixture__large', {});
       expect(result.executionState, McpExecutionState.unknown);
       expect(result.errorCode, 'mcp_result_unavailable');
-      expect(
-        result.contentIssues.map((issue) => issue['code']),
-        containsAll(['result_too_large', 'result_unavailable']),
-      );
+      expect(result.error, isNotEmpty);
+      expect(result.recovery, contains('Do not automatically replay'));
       expect(await counter.readAsString(), 'call\n');
     },
     timeout: const Timeout(Duration(seconds: 30)),

@@ -339,7 +339,6 @@ class CodemodeOrchestrator {
                 ? McpResultAdapter.limit(
                     McpCallResult.fromJson(business),
                     McpResultAdapter.modelBudget,
-                    issue: 'output_budget_exceeded',
                   ).toJson()
                 : (Map<String, dynamic>.from(business)..remove('_metadata'));
             operation.finished = true;

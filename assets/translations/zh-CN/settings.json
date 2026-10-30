@@ -625,7 +625,6 @@
   "settings.mcp_login_failed": "登录未完成，请检查回调地址和客户端注册后重试。",
   "settings.mcp_callback": "OAuth 回调地址",
   "settings.mcp_unknown": "结果未知，请先核实外部服务状态，再决定是否重试。",
-  "settings.mcp_incomplete": "操作已完成，部分结果内容未显示。",
   "settings.mcp_revocation_failed": "本地凭据已清除，但服务端撤销未确认。可在服务提供方管理登录。",
   "settings.mcp_callback_expired": "此登录回调已失效，请重新登录。",
   "settings.mcp_command_missing": "找不到命令，请安装程序或检查可执行文件路径。",

@@ -392,7 +392,6 @@ for line in sys.stdin:
         expect(result.executionState, McpExecutionState.failed);
         expect(result.errorCode, 'mcp_unauthorized');
         expect(result.error, contains('HTTP 401'));
-        expect(result.contentComplete, true);
         expect(result.recovery, isNot(contains('Verify external state')));
       },
     );

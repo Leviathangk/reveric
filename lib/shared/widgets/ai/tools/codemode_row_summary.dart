@@ -36,7 +36,6 @@ Map<String, dynamic>? codemodeRowResult(AiNestedToolCall call) =>
     ? _select(call.resultPreview, const {
         'mcp_progress',
         'executionState',
-        'contentComplete',
         'ok',
       })
     : call.toolName == 'Replace'

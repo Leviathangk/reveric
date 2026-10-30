@@ -331,11 +331,9 @@ void main() {
           ((nested['structuredContent'] as Map)['data'] as String).length,
           600000,
         );
-        expect(nested['contentComplete'], true);
         final direct = await dispatcher.executeTool(name: name, input: input);
-        expect(direct['contentComplete'], false);
+        expect(jsonEncode(direct['content']), contains('[truncated]'));
         expect(utf8.encode(jsonEncode(direct)).length, lessThan(34 * 1024));
-        expect(nested['contentComplete'], true);
       }
     },
   );

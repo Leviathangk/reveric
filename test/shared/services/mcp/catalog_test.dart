@@ -1,15 +1,124 @@
-// 职责: 验证稳定 MCP 名称、部分目录、中文用途检索和摘要隔离。
+// 职责: 验证 MCP 目录身份、发现结果契约、中文检索和摘要隔离。
 // 关联文件:
 //   lib/shared/services/ai/tool_catalog.dart
 //   lib/shared/models/mcp/tool_descriptor.dart
+//   lib/shared/services/ai/mcp/run_command_handler.dart
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mcp_dart/mcp_dart.dart' as sdk;
 import 'package:reveric/shared/models/mcp/config.dart';
 import 'package:reveric/shared/models/mcp/tool_descriptor.dart';
 import 'package:reveric/shared/services/ai/tool_catalog.dart';
+import 'package:reveric/shared/services/ai/mcp/run_command_handler.dart';
 import 'package:reveric/shared/services/mcp/runtime.dart';
 import 'runtime_test.dart' show FakeConnection;
 
 void main() {
+  test(
+    'both describe entrances declare the actual MCP result envelope',
+    () async {
+      final runtime = McpRuntime(connect: (_) async => _SearchConnection());
+      addTearDown(runtime.close);
+      await runtime.configure(
+        McpSettings([
+          McpServerConfig(
+            name: 'notes',
+            enabled: true,
+            connection: McpHttpConfig(url: 'https://example.test'),
+          ),
+        ]),
+      );
+      await runtime.ensureReady('notes');
+      final catalog = AgentToolCatalog(runtime: runtime, builtins: () => []);
+      final handler = McpRunCommandHandler(catalog);
+      final definition = await catalog.describeTool('mcp__notes__search');
+      final described = await handler.execute('describe', {
+        'name': 'mcp__notes__search',
+      }, null);
+      expect(described['outputSchema'], definition['outputSchema']);
+      final schema = definition['outputSchema'] as Map<String, dynamic>;
+      final properties = schema['properties'] as Map;
+      expect(properties, contains('structuredContent'));
+      expect(properties, isNot(contains('results')));
+      final result = await handler.execute('call', {
+        'name': 'mcp__notes__search',
+        'arguments': <String, dynamic>{},
+      }, null);
+      sdk.JsonSchema.fromJson(schema).validate(result);
+      expect((result['structuredContent'] as Map)['results'], ['found']);
+      // The advertised payload schema must reject a malformed payload too.
+      expect(
+        () => sdk.JsonSchema.fromJson(schema).validate({
+          ...result,
+          'structuredContent': {'results': 42},
+        }),
+        throwsA(anything),
+      );
+      expect(
+        runtime.tools['mcp__notes__search']!.definition['outputSchema'],
+        _searchOutputSchema,
+      );
+    },
+  );
+
+  test(
+    'tools without output schemas still declare content and optional data',
+    () {
+      final definition = McpToolDescriptor(
+        server: 'notes',
+        name: 'plain',
+        definition: {'name': 'plain', 'inputSchema': <String, dynamic>{}},
+      ).toJson(full: true);
+      final schema = definition['outputSchema'] as Map<String, dynamic>;
+      final properties = schema['properties'] as Map;
+      expect(properties, contains('content'));
+      expect(properties, contains('structuredContent'));
+      expect(schema['required'], isNot(contains('structuredContent')));
+    },
+  );
+
+  test(
+    'schema nesting relocates references without rewriting literal data',
+    () {
+      const literal = {r'$ref': '#/literal'};
+      final descriptor = McpToolDescriptor(
+        server: 'notes',
+        name: 'search',
+        definition: {
+          'name': 'search',
+          'inputSchema': <String, dynamic>{},
+          'outputSchema': {
+            'type': 'object',
+            'properties': {
+              'child': {r'$ref': '#'},
+              r'$ref': {'type': 'string', 'default': '#/literal'},
+              'data': {
+                'const': literal,
+                'examples': [literal],
+              },
+              'external': {r'$ref': 'https://example.test/schema'},
+              'scoped': {r'$id': 'https://example.test/scoped', r'$ref': '#'},
+            },
+          },
+        },
+      );
+      final nested =
+          (descriptor.outputSchema['properties'] as Map)['structuredContent']
+              as Map;
+      final fields = nested['properties'] as Map;
+      expect(fields['child'], {r'$ref': '#/properties/structuredContent'});
+      expect(fields[r'$ref'], {'type': 'string', 'default': '#/literal'});
+      expect(fields['data'], {
+        'const': literal,
+        'examples': [literal],
+      });
+      expect(fields['external'], {r'$ref': 'https://example.test/schema'});
+      expect(fields['scoped'], {
+        r'$id': 'https://example.test/scoped',
+        r'$ref': '#',
+      });
+    },
+  );
+
   test(
     'verified descriptions survive disconnect and foreground transitions',
     () async {
@@ -132,6 +241,46 @@ void main() {
       );
     },
   );
+}
+
+const _searchOutputSchema = <String, dynamic>{
+  'type': 'object',
+  r'$defs': {
+    'hit': {'type': 'string'},
+  },
+  'properties': {
+    'results': {
+      'type': 'array',
+      'items': {r'$ref': r'#/$defs/hit'},
+    },
+  },
+  'required': ['results'],
+};
+
+class _SearchConnection extends FakeConnection {
+  @override
+  Future<List<Map<String, dynamic>>> listTools() async => [
+    {
+      'name': 'search',
+      'inputSchema': {'type': 'object'},
+      'outputSchema': _searchOutputSchema,
+    },
+  ];
+
+  @override
+  Future<Map<String, dynamic>> callTool(
+    String name,
+    Map<String, dynamic> arguments, {
+    sdk.AbortSignal? signal,
+    void Function(sdk.Progress)? onProgress,
+  }) async => {
+    'content': [
+      {'type': 'text', 'text': '{"results":["found"]}'},
+    ],
+    'structuredContent': {
+      'results': ['found'],
+    },
+  };
 }
 
 class _ToolsConnection extends FakeConnection {

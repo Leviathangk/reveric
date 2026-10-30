@@ -2,9 +2,11 @@
 // 关联文件:
 //   lib/shared/services/mcp/runtime.dart
 //   lib/shared/services/ai/tool_catalog.dart
+//   lib/shared/models/mcp/call_result.dart
 import 'dart:convert';
 import 'dart:math';
 import 'package:crypto/crypto.dart';
+import 'call_result.dart';
 
 String canonicalMcpJson(Object? value) {
   Object? canonical(Object? item) {
@@ -55,14 +57,15 @@ class McpToolDescriptor {
   String get description => definition['description'] as String? ?? '';
   Map<String, dynamic> get inputSchema =>
       Map<String, dynamic>.from(definition['inputSchema'] as Map);
+  Map<String, dynamic> get outputSchema =>
+      McpCallResult.outputSchema(definition['outputSchema']);
   Map<String, dynamic> toJson({bool full = false}) => {
     'name': name,
     'source': 'mcp',
     'server': server,
     'description': description,
     if (full) 'inputSchema': inputSchema,
-    if (full && definition.containsKey('outputSchema'))
-      'outputSchema': definition['outputSchema'],
+    if (full) 'outputSchema': outputSchema,
     if (full && definition.containsKey('annotations'))
       'annotations': definition['annotations'],
   };

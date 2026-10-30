@@ -72,14 +72,13 @@ server.serve_forever()
       final after = ProcessInfo.currentRss;
       final peak = ProcessInfo.maxRss;
       expect(result.ok, true);
-      expect(result.contentComplete, true);
       expect(result.text.single, '界😀' * 1048576);
       final preview = McpResultAdapter.limit(
         result,
         McpResultAdapter.modelBudget,
       );
       expect(preview.ok, true);
-      expect(preview.contentComplete, false);
+      expect(preview.text.join('\n'), contains('[truncated]'));
       expect(
         preview.jsonBytes,
         lessThanOrEqualTo(McpResultAdapter.modelBudget),

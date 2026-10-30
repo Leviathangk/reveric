@@ -63,11 +63,7 @@ void main() {
           'mcp_server': 'notes',
           'mcp_tool': 'write',
         },
-        result: const {
-          'ok': true,
-          'executionState': 'succeeded',
-          'contentComplete': false,
-        },
+        result: const {'ok': true, 'executionState': 'succeeded'},
       );
       final restored = AiToolCallBlock.fromJson(
         jsonDecode(jsonEncode(block.toJson())) as Map<String, dynamic>,

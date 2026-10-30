@@ -3890,7 +3890,6 @@ abstract final class LocaleKeys {
   static const settingsMcpLoginFailed = 'settings.mcp_login_failed';
   static const settingsMcpCallback = 'settings.mcp_callback';
   static const settingsMcpUnknown = 'settings.mcp_unknown';
-  static const settingsMcpIncomplete = 'settings.mcp_incomplete';
   // ── settings ────────────────────────────────────────
   static const settingsAddCustomProvider = 'settings.add_custom_provider';
   static const settingsAddCustomProviderNameHint =

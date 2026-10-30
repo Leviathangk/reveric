@@ -27,13 +27,12 @@ class McpResultAdapter {
       executionState: failed
           ? McpExecutionState.failed
           : McpExecutionState.succeeded,
-      text: text,
-      structuredContent: structured is Map<String, dynamic> ? structured : null,
-      contentComplete: unsupported.isEmpty,
-      contentIssues: [
+      text: [
+        ...text,
         if (unsupported.isNotEmpty)
-          {'code': 'unsupported_content', 'contentTypes': unsupported.toList()},
+          '[Unsupported MCP content omitted: ${unsupported.join(', ')}]',
       ],
+      structuredContent: structured is Map<String, dynamic> ? structured : null,
       errorCode: failed ? 'mcp_tool_error' : null,
       error: failed
           ? String.fromCharCodes(text.join('\n').runes.take(2048))
@@ -41,19 +40,10 @@ class McpResultAdapter {
     );
   }
 
-  static McpCallResult limit(
-    McpCallResult result,
-    int budget, {
-    String issue = 'result_too_large',
-  }) {
+  static McpCallResult limit(McpCallResult result, int budget) {
     if (result.jsonBytes <= budget) {
       return result;
     }
-    final issues = [
-      ...result.contentIssues,
-      if (!result.contentIssues.any((item) => item['code'] == issue))
-        {'code': issue},
-    ];
     // Only model-facing output and history previews are shortened here.
     // Full-output storage and readback are not implemented; omitted preview
     // content cannot be recovered through a result reference. Scripts receive
@@ -63,8 +53,6 @@ class McpResultAdapter {
       executionState: result.executionState,
       text: text,
       structuredContent: structured,
-      contentComplete: false,
-      contentIssues: issues,
       errorCode: result.errorCode,
       error: result.error,
       cancelled: result.cancelled,

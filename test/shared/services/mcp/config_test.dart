@@ -132,10 +132,6 @@ void main() {
     final result = McpCallResult(
       executionState: McpExecutionState.succeeded,
       structuredContent: {'ok': false, 'error': 'business'},
-      contentComplete: false,
-      contentIssues: [
-        {'code': 'unsupported_content'},
-      ],
     );
     expect(result.toJson()['ok'], true);
     expect(result.toJson().containsKey('error'), false);

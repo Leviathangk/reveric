@@ -625,7 +625,6 @@
   "settings.mcp_login_failed": "Could not sign in. Check the callback address and client registration, then try again.",
   "settings.mcp_callback": "OAuth callback",
   "settings.mcp_unknown": "Result unknown. Check the external service before retrying.",
-  "settings.mcp_incomplete": "The operation completed, but some result content was omitted.",
   "settings.mcp_revocation_failed": "Local credentials were cleared, but remote revocation could not be confirmed. Manage active sessions with the service provider.",
   "settings.mcp_callback_expired": "This sign-in callback has expired. Sign in again.",
   "settings.mcp_command_missing": "Command not found. Install the program or check its executable path.",

@@ -16,7 +16,7 @@ Run mcp search options={query, server?, limit?}: search MCP tools (limit 1–20,
 Run mcp describe options={name}: get the complete tool definition.
 Run mcp call options={name, arguments}: call the discovered tool name.
 Names come from discovery results; server is the exact configured service name.
-Tool calls report executionState separately from contentComplete. An unknown result must not be automatically replayed.''';
+Tool calls report executionState. An unknown result must not be automatically replayed.''';
 
 abstract interface class McpRunCommandHost {
   set mcpRunHandler(McpRunCommandHandler? handler);
@@ -92,7 +92,6 @@ class McpRunCommandHandler {
                         : McpResultAdapter.limit(
                             result,
                             McpResultAdapter.modelBudget - 256,
-                            issue: 'output_budget_exceeded',
                           ))
                     .toJson();
           } finally {

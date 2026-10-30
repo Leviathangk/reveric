@@ -161,7 +161,7 @@ class McpAgentToolDispatcher
         name: tool.name,
         description: tool.description,
         inputSchema: tool.inputSchema,
-        outputSchema: tool.definition['outputSchema'] as Map<String, dynamic>?,
+        outputSchema: tool.outputSchema,
       ),
   ];
   @override
@@ -225,11 +225,7 @@ class McpAgentToolDispatcher
             );
         final bounded = context?.parentToolCallId != null
             ? result
-            : McpResultAdapter.limit(
-                result,
-                McpResultAdapter.modelBudget,
-                issue: 'output_budget_exceeded',
-              );
+            : McpResultAdapter.limit(result, McpResultAdapter.modelBudget);
         final payload = {
           ...bounded.toJson(),
           '_metadata': {

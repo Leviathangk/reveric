@@ -260,7 +260,7 @@ void main() {
     expect(preview.structuredContent, {'id': '123'});
     expect(preview.text.single, startsWith('start '));
     expect(preview.text.single, endsWith(' end'));
-    expect(preview.contentComplete, false);
+    expect(preview.text.join('\n'), contains('[truncated]'));
     expect(preview.jsonBytes, lessThanOrEqualTo(McpResultAdapter.modelBudget));
   });
   test(
@@ -272,7 +272,6 @@ void main() {
         'structuredContent': data,
       });
       expect(result.structuredContent, data);
-      expect(result.contentComplete, true);
       final preview = McpResultAdapter.limit(
         result,
         McpResultAdapter.modelBudget,
@@ -280,7 +279,7 @@ void main() {
       expect(preview.text.single, contains('begin'));
       expect(preview.text.single, contains('end'));
       expect(preview.text.single, contains('[truncated]'));
-      expect(preview.contentComplete, false);
+      expect(preview.text.join('\n'), contains('[truncated]'));
       expect(
         preview.jsonBytes,
         lessThanOrEqualTo(McpResultAdapter.modelBudget),
@@ -301,14 +300,10 @@ void main() {
       },
     });
     expect(result.ok, true);
-    expect(result.contentComplete, false);
     expect((result.structuredContent!['large'] as String).length, 600000);
-    expect(result.text.single, '界😀' * 300000);
-    final model = McpResultAdapter.limit(
-      result,
-      McpResultAdapter.modelBudget,
-      issue: 'output_budget_exceeded',
-    );
+    expect(result.text.first, '界😀' * 300000);
+    expect(result.text.last, '[Unsupported MCP content omitted: image]');
+    final model = McpResultAdapter.limit(result, McpResultAdapter.modelBudget);
     expect(model.ok, true);
     expect(model.jsonBytes, lessThanOrEqualTo(McpResultAdapter.modelBudget));
   });

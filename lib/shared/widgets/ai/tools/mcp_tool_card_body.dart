@@ -1,4 +1,4 @@
-// 职责: 展示 MCP 服务来源、执行未知和结果内容不完整状态。
+// 职责: 展示 MCP 服务来源、执行状态和返回内容。
 // 关联文件:
 //   lib/shared/models/ai_message_block.dart
 //   lib/shared/widgets/ai/tools/tool_detail_body.dart
@@ -45,9 +45,6 @@ class McpToolCardBody extends StatelessWidget {
           Text(block.mcpServer!, style: typo.uiSemibold),
         if (result?['executionState'] == 'unknown')
           Text(context.t(LocaleKeys.settingsMcpUnknown), style: typo.ui),
-        if (result?['executionState'] == 'succeeded' &&
-            result?['contentComplete'] == false)
-          Text(context.t(LocaleKeys.settingsMcpIncomplete), style: typo.ui),
         if (result?['ok'] == false && result?['executionState'] != 'unknown')
           Text(context.t(LocaleKeys.settingsMcpError), style: typo.ui),
         if (result?['ok'] != false && (texts.isNotEmpty || structured != null))
