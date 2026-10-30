@@ -37,6 +37,8 @@ import '../../services/debug/sqlite_schema_repair_orchestrator.dart';
 import '../../theme/theme.dart';
 import '../a2ui/preview/preview_panel.dart';
 
+final _log = AppLogger.forModule('Settings Debug');
+
 /// 调试设置 section。
 class DebugSettingsSection extends HookConsumerWidget {
   const DebugSettingsSection({super.key, required this.onClose});
@@ -199,8 +201,8 @@ class DebugSettingsSection extends HookConsumerWidget {
                           ),
                         );
                       } catch (error, stackTrace) {
-                        AppLogger.error(
-                          '[Settings Debug] device ID regeneration failed',
+                        _log.error(
+                          'device ID regeneration failed',
                           error: error,
                           stackTrace: stackTrace,
                         );

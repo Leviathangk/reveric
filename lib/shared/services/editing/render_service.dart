@@ -25,6 +25,8 @@ import '../production/frame_capture.dart';
 import 'service.dart';
 import 'disk_space.dart';
 
+final _log = AppLogger.forModule('EditingRender');
+
 typedef EditingProgress = void Function(String stage, double progress);
 
 /// 字幕导出方式：烧录进画面、另存 SRT（标题仍烧录）、不导出。
@@ -77,7 +79,7 @@ class EditingRenderService {
             await entity.delete(recursive: true);
           }
         } on FileSystemException catch (error) {
-          AppLogger.warning('[EditingRender] stale cache sweep: $error');
+          _log.warning('stale cache sweep: $error');
         }
       }
     }
@@ -183,11 +185,7 @@ class EditingRenderService {
           size.$2,
         );
       } catch (error, stack) {
-        AppLogger.error(
-          '[EditingRender] frames failed',
-          error: error,
-          stackTrace: stack,
-        );
+        _log.error('frames failed', error: error, stackTrace: stack);
         rethrow;
       } finally {
         cancellation.onProgress = null;
@@ -449,11 +447,7 @@ class EditingRenderService {
       progress('done', 1);
       return EncodedMedia(output, info, temporary);
     } catch (error, stack) {
-      AppLogger.error(
-        '[EditingRender] composition failed',
-        error: error,
-        stackTrace: stack,
-      );
+      _log.error('composition failed', error: error, stackTrace: stack);
       await temporary.delete(recursive: true);
       rethrow;
     } finally {
@@ -813,7 +807,9 @@ class EditingRenderService {
         }
       } on FileSystemException catch (error) {
         // 另一个实例刚淘汰了这一块。
-        AppLogger.debug('[EditingRender] cache entry vanished: $error');
+        if (_log.isDebugEnabled) {
+          _log.debug('cache entry vanished: $error');
+        }
         continue;
       }
       total += bytes;
@@ -827,7 +823,9 @@ class EditingRenderService {
       try {
         await entry.$1.delete(recursive: true);
       } on FileSystemException catch (error) {
-        AppLogger.debug('[EditingRender] cache entry vanished: $error');
+        if (_log.isDebugEnabled) {
+          _log.debug('cache entry vanished: $error');
+        }
       }
       total -= entry.$2;
     }

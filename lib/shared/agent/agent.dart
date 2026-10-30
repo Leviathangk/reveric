@@ -295,10 +295,11 @@ class Agent {
     if (!_processing) {
       return;
     }
-    _log.debug(
-      '[CANCEL] id=$id isProcessing=$_processing _cancelled=$_cancelled',
-    );
-    _log.debug('[CANCEL] STACK:\n${StackTrace.current}');
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        '[CANCEL] id=$id isProcessing=$_processing _cancelled=$_cancelled',
+      );
+    }
     _activeCancellationController?.cancel();
     if (!_cancelled) {
       _cancelled = true;
@@ -494,9 +495,6 @@ class Agent {
     final runId = buildRandomId('run');
 
     try {
-      // debugPrint(
-      //   '[Agent:$id] process start taskLength=${task.length} allowedTools=${allowedTools?.join(',') ?? '<all>'}',
-      // );
       yield AgentStart(task: task);
       {
         final action = await _runOnStart(task);
@@ -559,9 +557,6 @@ class Agent {
 
       while (true) {
         if (_cancelled) {
-          // debugPrint(
-          //   '[Agent:$id] cancelled',
-          // );
           await _runOnCancelled();
           inbox?.close();
           yield const AgentCancelled();
@@ -586,7 +581,6 @@ class Agent {
         // Apply pending steering before each LLM round.
         final steered = _drainSteering();
         if (steered > 0) {
-          // debugPrint('[Agent:$id] steering applied count=$steered');
           yield AgentSteeringApplied(steered);
         }
         final nextTurn = _drainNextTurns();
@@ -596,9 +590,6 @@ class Agent {
         }
 
         _contextManager.roundIndex += 1;
-        // debugPrint(
-        //   '[Agent:$id] round start round=${_contextManager.roundIndex}',
-        // );
         yield AgentMessageStart(round: _contextManager.roundIndex);
         await _runBeforeRound(_contextManager.roundIndex);
 
@@ -1267,7 +1258,6 @@ class Agent {
             final picked = List<AgentMessage>.from(_followUpQueue);
             _followUpQueue.clear();
             _contextManager.addMessages(picked);
-            // debugPrint('[Agent:$id] followUp applied count=${picked.length}');
             yield AgentFollowUpApplied(picked.length);
             continue;
           }
@@ -1291,7 +1281,6 @@ class Agent {
           }
           // 检查空队列与关闭接收之间无 await，避免 accepted 后遗漏指令。
           inbox?.close();
-          // debugPrint('[Agent:$id] done finalTextChars=${lastText.length}');
           await _runOnDone(lastText);
           yield AgentDone(lastText);
           return;
@@ -1321,13 +1310,9 @@ class Agent {
           }
           final pre = _drainSteering();
           if (pre > 0) {
-            // debugPrint('[Agent:$id] steering applied before tool count=$pre');
             yield AgentSteeringApplied(pre);
           }
 
-          // debugPrint(
-          //   '[Agent:$id] tool start name=${call.toolName} callId=${call.callId} args=${jsonEncode(call.arguments)}',
-          // );
           {
             final action = await _runBeforeToolCall(
               BeforeToolCallContext(call, source: _toolSource(call)),
@@ -1494,9 +1479,6 @@ class Agent {
             result = _userCancelledToolResult();
           }
           result = normalizeToolFailureResult(result, input: call.arguments);
-          // debugPrint(
-          //   '[Agent:$id] tool result name=${call.toolName} callId=${call.callId} ok=${result['ok']} keys=${result.keys.join(',')}',
-          // );
 
           for (final event in _toolResultEvents(
             runId: runId,
@@ -1549,7 +1531,6 @@ class Agent {
       }
     } finally {
       inbox?.close();
-      // debugPrint('[Agent:$id] process end');
       for (final hook in hooks) {
         try {
           await hook.onEnd();

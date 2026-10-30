@@ -19,6 +19,8 @@ import 'video_tasks.dart';
 import 'settings_providers.dart';
 import '../services/proxy_client.dart';
 
+final _log = AppLogger.forModule('Depth');
+
 final depthTaskProvider = Provider<DepthTaskController>((ref) {
   final results = ref.watch(productionResultServiceProvider);
   const configuredSource = String.fromEnvironment('REVERIC_DEPTH_MODEL_SOURCE');
@@ -54,11 +56,7 @@ final depthTaskProvider = Provider<DepthTaskController>((ref) {
   ref.onDispose(unregister);
   unawaited(
     controller.initialize().catchError((Object error, StackTrace stack) {
-      AppLogger.error(
-        '[Depth] task recovery failed',
-        error: error,
-        stackTrace: stack,
-      );
+      _log.error('task recovery failed', error: error, stackTrace: stack);
     }),
   );
   return controller;

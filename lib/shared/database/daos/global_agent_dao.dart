@@ -34,10 +34,6 @@ class GlobalAgentDao extends DatabaseAccessor<AppDatabase>
                 ),
               ]))
             .get();
-    _log.debug(
-      'getAll count=${rows.length} '
-      'rows=${rows.map((agent) => '${agent.slug}:${agent.scope}:${agent.category}:${agent.enabled}').toList()}',
-    );
     return rows;
   }
 
@@ -71,11 +67,6 @@ class GlobalAgentDao extends DatabaseAccessor<AppDatabase>
                 ),
               ]))
             .get();
-    _log.debug(
-      'getByScope scope=$scope novelId=$novelId '
-      'count=${rows.length} '
-      'rows=${rows.map((agent) => '${agent.slug}:${agent.category}:${agent.enabled}').toList()}',
-    );
     return rows;
   }
 

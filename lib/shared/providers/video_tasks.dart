@@ -28,6 +28,8 @@ import '../services/ai/video/task_service.dart';
 import 'novel_providers.dart';
 import 'object_storage.dart';
 
+final _log = AppLogger.forModule('VideoTasks');
+
 final referenceStorageServiceProvider = Provider<ReferenceStorageService>((
   ref,
 ) {
@@ -65,7 +67,7 @@ final providerAssetServiceProvider = Provider<ProviderAssetService>((ref) {
   ref.onDispose(service.dispose);
   unawaited(
     service.resume().catchError((Object error, StackTrace stack) {
-      AppLogger.error(
+      _log.error(
         'provider asset resume failed',
         error: error,
         stackTrace: stack,
@@ -132,9 +134,7 @@ final videoTaskServiceProvider = FutureProvider<VideoTaskService>((ref) async {
       }
     } catch (error) {
       // Interface discovery is only a wake-up signal; HTTP failures retain normal backoff.
-      AppLogger.warning(
-        '[VideoTasks] interface observation failed type=${error.runtimeType}',
-      );
+      _log.warning('interface observation failed type=${error.runtimeType}');
     } finally {
       checking = false;
     }
@@ -149,11 +149,7 @@ final videoTaskServiceProvider = FutureProvider<VideoTaskService>((ref) async {
   try {
     await service.start();
   } catch (error, stack) {
-    AppLogger.error(
-      '[VideoTasks] startup recovery failed',
-      error: error,
-      stackTrace: stack,
-    );
+    _log.error('startup recovery failed', error: error, stackTrace: stack);
     rethrow;
   }
   return service;

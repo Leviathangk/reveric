@@ -13,6 +13,8 @@ import '../../logger/app_logger.dart';
 import '../storyboard/service.dart';
 import 'canvas_service.dart';
 
+final _log = AppLogger.forModule('Production');
+
 class ProductionResultService {
   ProductionResultService(this.database, this.resolve, {this.release});
   final Future<void> Function(ProductionCanvasService service)? release;
@@ -247,8 +249,8 @@ class ProductionResultService {
           );
         }
       } catch (error, stack) {
-        AppLogger.error(
-          '[Production] result/state awaiting application task=${task.id}',
+        _log.error(
+          'result/state awaiting application task=${task.id}',
           error: error,
           stackTrace: stack,
         );

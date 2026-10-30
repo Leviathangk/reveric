@@ -73,6 +73,8 @@ import 'third/form/flutter_hook_form.dart';
 
 part 'main.g.dart';
 
+final _lifecycleLog = AppLogger.forModule('Lifecycle');
+
 final _log = AppLogger.forModule('Startup');
 
 bool get _isMobilePlatform => Platform.isAndroid || Platform.isIOS;
@@ -697,8 +699,8 @@ class _AppLifecycleWatcherState extends ConsumerState<AppLifecycleWatcher>
         Object error,
         StackTrace stack,
       ) {
-        AppLogger.error(
-          '[MCP] Configuration initialization failed',
+        _lifecycleLog.error(
+          'component=MCP Configuration initialization failed',
           error: error,
           stackTrace: stack,
         );
@@ -709,8 +711,8 @@ class _AppLifecycleWatcherState extends ConsumerState<AppLifecycleWatcher>
         Object error,
         StackTrace stack,
       ) {
-        AppLogger.error(
-          '[Plugin] Initialization failed',
+        _lifecycleLog.error(
+          'component=Plugin Initialization failed',
           error: error,
           stackTrace: stack,
         );
@@ -754,8 +756,8 @@ class _AppLifecycleWatcherState extends ConsumerState<AppLifecycleWatcher>
             .read(mcpSettingsServiceProvider)
             .setForeground(state == AppLifecycleState.resumed)
             .catchError((Object error, StackTrace stack) {
-              AppLogger.error(
-                '[MCP] Lifecycle update failed',
+              _lifecycleLog.error(
+                'component=MCP Lifecycle update failed',
                 error: error,
                 stackTrace: stack,
               );
@@ -784,7 +786,7 @@ class _AppLifecycleWatcherState extends ConsumerState<AppLifecycleWatcher>
     if (state != AppLifecycleState.resumed) {
       // 最小化/隐藏/退出等生命周期切换经过引擎原生路径，崩溃高发；
       // checkpoint 立即落盘，崩溃后可据此定位最后状态。resumed 不打（高频）。
-      AppLogger.checkpoint('[Lifecycle] $state');
+      _lifecycleLog.checkpoint('$state');
     }
     if (state == AppLifecycleState.resumed) {
       unawaited(ref.read(anonymousOutboxServiceProvider).flush());

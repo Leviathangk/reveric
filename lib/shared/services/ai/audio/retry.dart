@@ -10,6 +10,8 @@ import '../../../logger/app_logger.dart';
 import '../../../models/audio/exception.dart';
 import '../media_diagnostics.dart';
 
+final _log = AppLogger.forModule('AudioRead');
+
 bool retryableAudioRead(Object error) {
   if (error is http.RequestAbortedException) {
     return false;
@@ -48,8 +50,8 @@ Future<T> retryAudioRead<T>(
       }
       final retry = attempt < 3 && retryableAudioRead(error);
       final wait = delay * attempt;
-      AppLogger.warning(
-        '[AudioRead] $context attempt=$attempt/3 retry=$retry '
+      _log.warning(
+        '$context attempt=$attempt/3 retry=$retry '
         'delay_ms=${retry ? wait.inMilliseconds : 0} '
         'type=${error.runtimeType} '
         'status=${error is AudioException ? error.statusCode : null} '

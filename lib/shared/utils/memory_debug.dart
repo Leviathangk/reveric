@@ -10,6 +10,8 @@ import 'package:flutter/material.dart';
 
 import '../logger/app_logger.dart';
 
+final _log = AppLogger.forModule('MEMORY');
+
 class MemoryDebug {
   MemoryDebug._();
 
@@ -29,8 +31,8 @@ class MemoryDebug {
     }
     _lastSnapshotAt[key] = now;
 
-    AppLogger.info(
-      '[MEMORY][process] label=$label '
+    _log.info(
+      '[process] label=$label '
       'pid=$pid '
       'rss=${_formatBytes(ProcessInfo.currentRss)} '
       'maxRss=${_formatBytes(ProcessInfo.maxRss)}',
@@ -50,8 +52,8 @@ class MemoryDebug {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final cache = PaintingBinding.instance.imageCache;
-      AppLogger.info(
-        '[MEMORY][image_cache] label=$label '
+      _log.info(
+        '[image_cache] label=$label '
         'count=${cache.currentSize} '
         'bytes=${_formatBytes(cache.currentSizeBytes)} '
         'maxCount=${cache.maximumSize} '
@@ -88,8 +90,8 @@ class MemoryDebug {
       final physicalWidth = (logicalSize.width * dpr).round();
       final physicalHeight = (logicalSize.height * dpr).round();
       final bytesPerSurface = physicalWidth * physicalHeight * 4;
-      AppLogger.info(
-        '[MEMORY][surface] label=$label '
+      _log.info(
+        '[surface] label=$label '
         'logical=${logicalSize.width.toStringAsFixed(0)}x${logicalSize.height.toStringAsFixed(0)} '
         'dpr=${dpr.toStringAsFixed(2)} '
         'physical=${physicalWidth}x$physicalHeight '
@@ -107,9 +109,7 @@ class MemoryDebug {
     final suffix = details.entries
         .map((entry) => '${entry.key}=${entry.value}')
         .join(' ');
-    AppLogger.info(
-      '[MEMORY][media] label=$label${suffix.isEmpty ? '' : ' $suffix'}',
-    );
+    _log.info('[media] label=$label${suffix.isEmpty ? '' : ' $suffix'}');
     logProcessSnapshot('media:$label');
     logImageCacheSnapshot('media:$label');
   }
@@ -121,8 +121,8 @@ class MemoryDebug {
     int? sourceBytes,
   }) {
     final decodedBytes = width * height * 4;
-    AppLogger.info(
-      '[MEMORY][ui_image_decode] label=$label '
+    _log.info(
+      '[ui_image_decode] label=$label '
       'decoded=${width}x$height '
       'estimatedRgba=${_formatBytes(decodedBytes)}'
       '${sourceBytes == null ? '' : ' sourceBytes=${_formatBytes(sourceBytes)}'}',
@@ -149,8 +149,8 @@ class MemoryDebug {
         stream.removeListener(listener);
         final image = imageInfo.image;
         final decodedBytes = image.width * image.height * 4;
-        AppLogger.info(
-          '[MEMORY][image_decode] label=$label '
+        _log.info(
+          '[image_decode] label=$label '
           'provider=${provider.runtimeType} '
           'decoded=${image.width}x${image.height} '
           'estimatedRgba=${_formatBytes(decodedBytes)} '
@@ -162,8 +162,8 @@ class MemoryDebug {
       },
       onError: (error, stackTrace) {
         stream.removeListener(listener);
-        AppLogger.warning(
-          '[MEMORY][image_decode_error] label=$label '
+        _log.warning(
+          '[image_decode_error] label=$label '
           'provider=${provider.runtimeType} error=$error',
         );
       },
@@ -184,8 +184,8 @@ class MemoryDebug {
     }
 
     final stat = file.existsSync() ? file.statSync() : null;
-    AppLogger.info(
-      '[MEMORY][image_file] label=$label '
+    _log.info(
+      '[image_file] label=$label '
       'exists=${stat != null} '
       'fileBytes=${stat == null ? 'n/a' : _formatBytes(stat.size)} '
       'path=${file.path}',

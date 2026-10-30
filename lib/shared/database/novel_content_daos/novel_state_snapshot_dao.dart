@@ -12,6 +12,8 @@ import '../../logger/app_logger.dart';
 
 part 'novel_state_snapshot_dao.drift.dart';
 
+final _log = AppLogger.forModule('NovelStateSnapshotDao');
+
 @DriftAccessor(tables: [NovelStateSnapshots])
 class NovelStateSnapshotDao extends DatabaseAccessor<NovelContentDatabase>
     with _$NovelStateSnapshotDaoMixin {
@@ -47,7 +49,7 @@ class NovelStateSnapshotDao extends DatabaseAccessor<NovelContentDatabase>
         )..where((t) => t.id.equals(id))).getSingle();
       });
     } catch (error, stackTrace) {
-      AppLogger.error(
+      _log.error(
         '[DB] table=novel_state_snapshots op=INSERT id=$id',
         error: error,
         stackTrace: stackTrace,

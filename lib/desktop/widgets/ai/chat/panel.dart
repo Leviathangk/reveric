@@ -687,9 +687,6 @@ class AiChatPanel extends HookConsumerWidget {
         final dbPath = databasePath;
         final nid = novelId;
         final targetId = activeSessionId;
-        _log.debug(
-          'chatPanel effect: targetId=$targetId sessionState.sessionId=${sessionState.sessionId}',
-        );
         if (dbPath == null || dbPath.isEmpty) {
           return null;
         }
@@ -770,22 +767,23 @@ class AiChatPanel extends HookConsumerWidget {
         Future(() async {
           try {
             if (stale() || s.pendingLoadTarget.value != targetId) {
-              _log.debug(
-                'load-specific: STALE targetId=$targetId pending=${s.pendingLoadTarget.value}',
-              );
+              if (_log.isDebugEnabled) {
+                _log.debug(
+                  'load-specific: STALE targetId=$targetId pending=${s.pendingLoadTarget.value}',
+                );
+              }
               return;
             }
             final session = await persistence.getSession(targetId);
-            _log.debug(
-              'load-specific: getSession returned ${session?.id} ${session?.title}',
-            );
             if (session == null) {
               return;
             }
             if (stale() || s.pendingLoadTarget.value != targetId) {
-              _log.debug(
-                'load-specific: STALE after getSession targetId=$targetId pending=${s.pendingLoadTarget.value}',
-              );
+              if (_log.isDebugEnabled) {
+                _log.debug(
+                  'load-specific: STALE after getSession targetId=$targetId pending=${s.pendingLoadTarget.value}',
+                );
+              }
               return;
             }
             await persistence.activateSession(
@@ -803,7 +801,11 @@ class AiChatPanel extends HookConsumerWidget {
               novelDatabase: novelDb,
             );
             if (stale()) return;
-            _log.debug('load-specific: ${persisted.messages.length} messages');
+            if (_log.isDebugEnabled) {
+              _log.debug(
+                'load-specific: ${persisted.messages.length} messages',
+              );
+            }
             providerContainer
                 .read(aiChatSessionProvider(targetId).notifier)
                 .loadSessionIfUnloaded(
@@ -816,7 +818,9 @@ class AiChatPanel extends HookConsumerWidget {
                   sessionMode: AiSessionMode.fromString(session.mode),
                   agentSlug: _resolvePersistedAgentSlug(session),
                 );
-            _log.debug('load-specific: hydration DONE sessionId=$targetId');
+            if (_log.isDebugEnabled) {
+              _log.debug('load-specific: hydration DONE sessionId=$targetId');
+            }
           } catch (error, stackTrace) {
             _log.error(
               'Load selected chat failed',
@@ -1094,13 +1098,9 @@ class AiChatPanel extends HookConsumerWidget {
               agentSlug: targetAgentSlug,
             );
         s.composerFocusNode.requestFocus();
-        _log.debug('draftSignal=$draftSignal selectedSlug=$targetAgentSlug');
         onHandoffDraftConsumedRef.value?.call(draft.id);
         if (draft.autoSend) {
           s.pendingAutoSendSessionId.value = draftSignal;
-          _log.debug(
-            'scheduling autoSend pendingHandoff=${s.pendingHandoff.value != null} composerText="${s.composerController.text}"',
-          );
         } else {
           s.composerFocusNode.requestFocus();
         }
@@ -1183,19 +1183,12 @@ class AiChatPanel extends HookConsumerWidget {
 
     final onboardingStep = this.onboardingStep;
     useEffect(() {
-      _log.debug('step changed -> $onboardingStep');
       if (onboardingStep == 2) {
         s.modelSelectorOpenTrigger.value++;
       }
       return null;
     }, [onboardingStep]);
 
-    useEffect(() {
-      _log.debug('AiChatPanel mounted/rebuild step=$onboardingStep');
-      return () {
-        _log.debug('AiChatPanel disposed (step=$onboardingStep)');
-      };
-    }, []);
     final onboardingActive = onboardingStep >= 1 && onboardingStep <= 2;
     final onboardingLink = switch (onboardingStep) {
       1 => s.composerInputLink,

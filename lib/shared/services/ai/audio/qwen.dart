@@ -13,6 +13,8 @@ import '../../../models/audio/request.dart';
 import '../media_diagnostics.dart';
 import 'client.dart';
 
+final _log = AppLogger.forModule('QwenAudio');
+
 /// 沿用渠道的主机和代理前缀，将兼容模式地址转换为原生语音接口。
 Uri qwenAudioEndpoint(String configuredBaseUrl, {String? modelId}) {
   final base = Uri.parse(configuredBaseUrl.trim());
@@ -126,10 +128,12 @@ class QwenAudioClient extends AudioClient {
 
   @override
   AudioGenerationResult decodeResult(Map<String, dynamic> json) {
-    AppLogger.debug(
-      '[QwenAudio] response usage=${safeMediaDiagnostic(jsonEncode(json['usage']), apiKey)} '
-      'body=${safeMediaDiagnostic(jsonEncode(json), apiKey)}',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'response usage=${safeMediaDiagnostic(jsonEncode(json['usage']), apiKey)} '
+        'body=${safeMediaDiagnostic(jsonEncode(json), apiKey)}',
+      );
+    }
     final output = json['output'] as Map<String, dynamic>;
     final audio = output['audio'] as Map<String, dynamic>;
     final url = Uri.parse(audio['url'] as String);

@@ -33,7 +33,7 @@ final class GlobalSubAgentsProvider
   GlobalSubAgents create() => GlobalSubAgents();
 }
 
-String _$globalSubAgentsHash() => r'fb579d52b7106f55521f1b440635f66b43b15894';
+String _$globalSubAgentsHash() => r'7f2f2f0029ba178abde17914bf33ada5fc402251';
 
 abstract class _$GlobalSubAgents extends $AsyncNotifier<List<SubAgent>> {
   FutureOr<List<SubAgent>> build();
@@ -134,7 +134,7 @@ final class NovelSubAgentsProvider
   }
 }
 
-String _$novelSubAgentsHash() => r'358db976d2e878083150d30da845dbc468160509';
+String _$novelSubAgentsHash() => r'093bf7d5c77092f7e9c5cde790b090e28983cac9';
 
 final class NovelSubAgentsFamily extends $Family
     with
@@ -297,4 +297,4 @@ final class MergedSubAgentsProvider
   }
 }
 
-String _$mergedSubAgentsHash() => r'ad353e6022bc3f0519cf2334d382bda3dde70fba';
+String _$mergedSubAgentsHash() => r'b4be7675d69c99dca33e61001e9f049792827099';

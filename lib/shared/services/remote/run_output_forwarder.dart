@@ -241,7 +241,9 @@ class RunOutputForwarder {
         'sendToUser failed chatId=${sub.chatId} chars=${truncated.length}',
       );
     } else {
-      _log.debug('forwarded chatId=${sub.chatId} chars=${truncated.length}');
+      if (_log.isDebugEnabled) {
+        _log.debug('forwarded chatId=${sub.chatId} chars=${truncated.length}');
+      }
     }
   }
 

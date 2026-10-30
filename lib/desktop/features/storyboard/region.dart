@@ -42,6 +42,8 @@ import '../production/edit_session.dart';
 import '../production/task_status.dart';
 import 'support.dart';
 
+final _log = AppLogger.forModule('Storyboard');
+
 class StoryboardRegion extends HookConsumerWidget {
   const StoryboardRegion({
     super.key,
@@ -135,11 +137,7 @@ class StoryboardRegion extends HookConsumerWidget {
       try {
         await action();
       } catch (e, stack) {
-        AppLogger.error(
-          '[Storyboard] UI operation failed',
-          error: e,
-          stackTrace: stack,
-        );
+        _log.error('UI operation failed', error: e, stackTrace: stack);
         if (context.mounted) {
           ScaffoldMessenger.of(
             context,

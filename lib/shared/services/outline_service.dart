@@ -212,7 +212,9 @@ class OutlineService {
       for (var index = 0; index < draft.beats.length; index++) {
         draft.beats[index].acceptPersistedIdentity(persistedBeats[index].id);
       }
-      _log.debug('[DB] table=outlines op=UPDATE id=${draft.documentId}');
+      if (_log.isDebugEnabled) {
+        _log.debug('[DB] table=outlines op=UPDATE id=${draft.documentId}');
+      }
     } catch (error, stackTrace) {
       _log.error(
         '[DB] table=outlines op=UPDATE id=${draft.documentId} failed',

@@ -372,7 +372,7 @@ final class NovelsProvider
   }
 }
 
-String _$novelsHash() => r'4a9fc67bb4dc1053cb11cf35b069a7d18d8ca4e6';
+String _$novelsHash() => r'836d37d1c2e466f470badb39df794e810ddd8b9b';
 
 @ProviderFor(novel)
 final novelProvider = NovelFamily._();
@@ -423,7 +423,7 @@ final class NovelProvider
   }
 }
 
-String _$novelHash() => r'cf2a4154eb1f20dc57b97f5366458f2bbe90e253';
+String _$novelHash() => r'56507444887f4dabb1ba39d6e90f14dff8680c5b';
 
 final class NovelFamily extends $Family
     with $FunctionalFamilyOverride<Stream<Novel?>, String> {

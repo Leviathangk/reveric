@@ -92,7 +92,9 @@ class SystemNotificationService {
     } catch (error, stackTrace) {
       // 通知能力不可用不应影响主流程，只记录一次诊断日志。
       _log.warning('Failed to initialize notifications: $error');
-      _log.debug('Notification init stack: $stackTrace');
+      if (_log.isDebugEnabled) {
+        _log.debug('Notification init stack: $stackTrace');
+      }
     }
   }
 

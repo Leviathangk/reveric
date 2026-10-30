@@ -15,6 +15,8 @@ import '../files/command_paths.dart';
 import 'arguments.dart';
 import 'sequence.dart';
 
+final _log = AppLogger.forModule('FFmpeg');
+
 class FfmpegOutputs {
   FfmpegOutputs(this.files, this.sessionId, this.parsed, this.cancellation);
   final SessionFiles files;
@@ -165,16 +167,16 @@ class FfmpegOutputs {
       await _verifyBudget();
     } catch (error, stack) {
       _failure = error;
-      AppLogger.error(
-        '[FFmpeg] sequence output limit check failed',
+      _log.error(
+        'sequence output limit check failed',
         error: error,
         stackTrace: stack,
       );
       try {
         await cancellation.cancel();
       } catch (cancelError, cancelStack) {
-        AppLogger.error(
-          '[FFmpeg] sequence cancellation failed',
+        _log.error(
+          'sequence cancellation failed',
           error: cancelError,
           stackTrace: cancelStack,
         );

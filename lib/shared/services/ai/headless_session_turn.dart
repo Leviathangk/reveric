@@ -79,10 +79,12 @@ Future<bool> ensureHeadlessSessionLoaded(
         sessionMode: AiSessionMode.fromString(session.mode),
         agentSlug: session.agentSlug,
       );
-  _log.debug(
-    'headless session loaded session=$sessionId '
-    'messages=${persisted.messages.length}',
-  );
+  if (_log.isDebugEnabled) {
+    _log.debug(
+      'headless session loaded session=$sessionId '
+      'messages=${persisted.messages.length}',
+    );
+  }
   return true;
 }
 
@@ -241,7 +243,9 @@ Future<ChatTurnOutcome> runHeadlessSessionTurn(
   AiRunNotifyCallback? notifyCallback,
 }) async {
   final novelId = novel.id;
-  _log.debug('headless turn START session=$sessionId');
+  if (_log.isDebugEnabled) {
+    _log.debug('headless turn START session=$sessionId');
+  }
   // 后台 turn 期间持有会话 provider，避免 autoDispose 中途回收。
   final sessionKeepAlive = container.listen(
     aiChatSessionProvider(sessionId),
@@ -387,7 +391,9 @@ Future<ChatTurnOutcome> runHeadlessSessionTurn(
       runtime.clearAiService(aiService);
     }
     sessionKeepAlive.close();
-    _log.debug('headless turn END session=$sessionId');
+    if (_log.isDebugEnabled) {
+      _log.debug('headless turn END session=$sessionId');
+    }
   }
 }
 
@@ -553,10 +559,12 @@ Future<HeadlessRunResult> startHeadlessRun(
         sessionMode: AiSessionMode.chat,
         agentSlug: builtinAgentSlugOrchestrator,
       );
-  _log.debug(
-    'startHeadlessRun session initialized novelId=$novelId sessionId=$sessionId '
-    'provider=${modelOption.providerId} model=${modelOption.model}',
-  );
+  if (_log.isDebugEnabled) {
+    _log.debug(
+      'startHeadlessRun session initialized novelId=$novelId sessionId=$sessionId '
+      'provider=${modelOption.providerId} model=${modelOption.model}',
+    );
+  }
 
   // 7. 准备 seed（落库）
   try {
@@ -595,10 +603,12 @@ Future<HeadlessRunResult> startHeadlessRun(
   }
 
   // 8. 后台跑一轮，不 await（调用方立即得到 sessionId）。turn 结束后释放 keepAlive。
-  _log.debug(
-    'startHeadlessRun dispatching background turn novelId=$novelId '
-    'sessionId=$sessionId',
-  );
+  if (_log.isDebugEnabled) {
+    _log.debug(
+      'startHeadlessRun dispatching background turn novelId=$novelId '
+      'sessionId=$sessionId',
+    );
+  }
   unawaited(
     _runHeadlessTurnInBackground(
       container,
@@ -623,7 +633,9 @@ Future<void> _runHeadlessTurnInBackground(
   required bool seedAlreadyAdded,
   AiRunNotifyCallback? notifyCallback,
 }) async {
-  _log.debug('headless background turn START session=$sessionId');
+  if (_log.isDebugEnabled) {
+    _log.debug('headless background turn START session=$sessionId');
+  }
   final outcome = await runHeadlessSessionTurn(
     container,
     sessionId: sessionId,
@@ -633,8 +645,10 @@ Future<void> _runHeadlessTurnInBackground(
     seedAlreadyAdded: seedAlreadyAdded,
     notifyCallback: notifyCallback,
   );
-  _log.debug(
-    'headless background turn END session=$sessionId '
-    'status=${outcome.status.name}',
-  );
+  if (_log.isDebugEnabled) {
+    _log.debug(
+      'headless background turn END session=$sessionId '
+      'status=${outcome.status.name}',
+    );
+  }
 }

@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import '../../../logger/app_logger.dart';
 import '../../../models/production/panorama.dart';
 
+final _log = AppLogger.forModule('Panorama');
+
 class PanoramaController extends ChangeNotifier {
   PanoramaController({required PanoramaView initial, required this.save})
     : _view = initial;
@@ -81,11 +83,7 @@ class PanoramaController extends ChangeNotifier {
         error = null;
       } catch (exception, stack) {
         error = exception;
-        AppLogger.error(
-          '[Panorama] save view failed',
-          error: exception,
-          stackTrace: stack,
-        );
+        _log.error('save view failed', error: exception, stackTrace: stack);
       }
       if (!_disposed) {
         notifyListeners();

@@ -12,6 +12,8 @@ import '../storyboard/export.dart';
 import 'canvas_service.dart';
 import 'ffmpeg_runner.dart';
 
+final _log = AppLogger.forModule('ProductionExport');
+
 class ProductionExportReport {
   const ProductionExportReport(
     this.directory,
@@ -85,8 +87,8 @@ class ProductionExportOrchestrator {
               '${(i + 1).toString().padLeft(4, '0')}_${title.isEmpty ? 'segment' : title.substring(0, title.length.clamp(0, 80))}${p.extension(file.path)}';
         } catch (error, stack) {
           missing.add(row.number);
-          AppLogger.error(
-            '[ProductionExport] unreadable shot=${row.shot.id}',
+          _log.error(
+            'unreadable shot=${row.shot.id}',
             error: error,
             stackTrace: stack,
           );
@@ -158,8 +160,8 @@ class ProductionExportOrchestrator {
         cancelled: cancellation.cancelled,
       );
     } catch (error, stack) {
-      AppLogger.error(
-        '[ProductionExport] failed completed=${completed.length}',
+      _log.error(
+        'failed completed=${completed.length}',
         error: error,
         stackTrace: stack,
       );

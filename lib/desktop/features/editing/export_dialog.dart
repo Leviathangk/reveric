@@ -35,6 +35,8 @@ import '../../../shared/theme/theme.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 import 'support.dart';
 
+final _log = AppLogger.forModule('EditingExport');
+
 enum _Phase { form, running, ready, saved }
 
 const _steps = ['verify', 'render', 'assemble', 'validate'];
@@ -102,11 +104,7 @@ class EditingExportDialog extends HookWidget {
         output.value = result;
         phase.value = _Phase.ready;
       } catch (error, stack) {
-        AppLogger.error(
-          '[EditingExport] failed',
-          error: error,
-          stackTrace: stack,
-        );
+        _log.error('failed', error: error, stackTrace: stack);
         if (context.mounted) {
           failed.value = error;
           phase.value = _Phase.ready;
@@ -173,11 +171,7 @@ class EditingExportDialog extends HookWidget {
           phase.value = _Phase.saved;
         }
       } catch (error, stack) {
-        AppLogger.error(
-          '[EditingExport] save failed',
-          error: error,
-          stackTrace: stack,
-        );
+        _log.error('save failed', error: error, stackTrace: stack);
         if (context.mounted) {
           failed.value = error;
         }
@@ -252,10 +246,7 @@ class EditingExportDialog extends HookWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: RevericTextField(
-                    controller: name,
-                    autocorrect: false,
-                  ),
+                  child: RevericTextField(controller: name, autocorrect: false),
                 ),
                 const SizedBox(width: RevericSpacing.xs),
                 Text(

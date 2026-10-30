@@ -33,6 +33,8 @@ import '../../../shared/theme/theme.dart';
 import 'controller.dart';
 import 'support.dart';
 
+final _log = AppLogger.forModule('EditingPreview');
+
 class EditingPreview extends HookConsumerWidget {
   const EditingPreview({
     super.key,
@@ -370,11 +372,11 @@ Uint8List? _useStill(
       still.value = bytes;
     } on MediaException catch (error) {
       if (error.reason != MediaFailure.cancelled) {
-        AppLogger.warning('[EditingPreview] still frame failed: $error');
+        _log.warning('still frame failed: $error');
       }
     } on FormatException catch (error) {
       // 源素材在该位置没有画面（例如超出实际时长）。
-      AppLogger.warning('[EditingPreview] still frame missing: $error');
+      _log.warning('still frame missing: $error');
       if (live.value && ticket == serial.value) {
         still.value = null;
       }

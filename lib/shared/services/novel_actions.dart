@@ -38,36 +38,18 @@ class NovelTitleConflictException implements Exception {
 class NovelActionsService {
   NovelActionsService(
     this._database, {
-    Future<void> Function(String novelId, String databasePath)?
-    onBeforeDeleteContentDatabase,
-    ImageLibraryService? imageLibraryService,
+    this._onBeforeDeleteContentDatabase,
+    this._imageLibraryService,
     @visibleForTesting
     NovelContentDatabase Function(String path)? contentDatabaseFactory,
-    @visibleForTesting
-    Future<void> Function(NovelContentDatabase database)? seedNovelWorkspace,
-    @visibleForTesting
-    Future<void> Function(
-      NovelContentDatabase database,
-      int? plannedEpisodeCount,
-    )?
-    seedScreenplayWorkspace,
+    @visibleForTesting this._seedNovelWorkspace,
+    @visibleForTesting this._seedScreenplayWorkspace,
     @visibleForTesting
     Future<void> Function(NovelContentDatabase database)? closeContentDatabase,
-    @visibleForTesting
-    Future<void> Function({
-      required String id,
-      required String contentDatabasePath,
-      required bool requestedDraft,
-    })?
-    finalizeScreenplayCreation,
-  }) : _onBeforeDeleteContentDatabase = onBeforeDeleteContentDatabase,
-       _imageLibraryService = imageLibraryService,
-       _contentDatabaseFactory =
+    @visibleForTesting this._finalizeScreenplayCreation,
+  }) : _contentDatabaseFactory =
            contentDatabaseFactory ?? NovelContentDatabase.new,
-       _seedNovelWorkspace = seedNovelWorkspace,
-       _seedScreenplayWorkspace = seedScreenplayWorkspace,
-       _closeContentDatabaseForCreation = closeContentDatabase,
-       _finalizeScreenplayCreation = finalizeScreenplayCreation;
+       _closeContentDatabaseForCreation = closeContentDatabase;
 
   final AppDatabase _database;
   final Future<void> Function(String novelId, String databasePath)?
@@ -104,9 +86,6 @@ class NovelActionsService {
     bool setNovelOnboardingEligible = true,
     bool draft = false,
   }) async {
-    _log.debug(
-      'createNovel enter title="$title" coverSourcePath=$coverSourcePath',
-    );
     if (!draft) {
       await _ensureShelfTitleAvailable(title);
     }
@@ -119,8 +98,6 @@ class NovelActionsService {
       novelId: novelId,
       coverSourcePath: coverSourcePath,
     );
-    _log.debug('coverAssetId=$coverAssetId');
-    _log.debug('novelId=$novelId');
     await _database.novelDao.create(
       id: novelId,
       title: title,
@@ -134,10 +111,8 @@ class NovelActionsService {
       sourceNovelId: sourceNovelId,
       draft: contentKind == contentKindScreenplay ? true : draft,
     );
-    _log.debug('novelDao.create done');
     try {
       final contentDatabasePath = await buildNovelContentDatabasePath(novelId);
-      _log.debug('contentDatabasePath=$contentDatabasePath');
       await _initializeContentDatabase(
         contentDatabasePath: contentDatabasePath,
         contentKind: contentKind,
@@ -171,7 +146,6 @@ class NovelActionsService {
       await _compensateFailedCreation(novelId, error, stackTrace);
       Error.throwWithStackTrace(error, stackTrace);
     }
-    _log.debug('returning novelId=$novelId');
     return novelId;
   }
 
@@ -216,7 +190,7 @@ class NovelActionsService {
           status: 'eligible',
         );
       } catch (error, stackTrace) {
-        AppLogger.error(
+        _log.error(
           '[DB][novel_states][UPSERT] key=novel_onboarding status=eligible failed path=$contentDatabasePath',
           error: error,
           stackTrace: stackTrace,
@@ -238,14 +212,13 @@ class NovelActionsService {
         if (operationError == null) {
           rethrow;
         }
-        AppLogger.error(
+        _log.error(
           '[DB][content][CLOSE] failed after create failure path=$contentDatabasePath',
           error: error,
           stackTrace: stackTrace,
         );
       }
     }
-    _log.debug('content database seeded and closed');
   }
 
   Future<void> _compensateFailedCreation(
@@ -256,12 +229,12 @@ class NovelActionsService {
     try {
       await _database.novelDao.softDelete(novelId);
     } catch (error, stackTrace) {
-      AppLogger.error(
+      _log.error(
         '[DB][novels][COMPENSATE_CREATE] failed id=$novelId; original=$creationError',
         error: error,
         stackTrace: stackTrace,
       );
-      AppLogger.error(
+      _log.error(
         '[DB][novels][CREATE] original failure id=$novelId',
         error: creationError,
         stackTrace: creationStackTrace,
@@ -296,7 +269,7 @@ class NovelActionsService {
         await _database.novelDao.updateDraft(id: novelId, draft: false);
       });
     } catch (error, stackTrace) {
-      AppLogger.error(
+      _log.error(
         '[DB][novels][PUBLISH] failed id=$novelId',
         error: error,
         stackTrace: stackTrace,
@@ -313,7 +286,7 @@ class NovelActionsService {
         await _database.novelDao.hardDelete(novel.id);
       });
     } catch (error, stackTrace) {
-      AppLogger.error(
+      _log.error(
         '[DB][novels][DELETE] failed id=${novel.id}',
         error: error,
         stackTrace: stackTrace,
@@ -497,39 +470,28 @@ WHERE session_id IN (
   }
 
   Future<String> ensureNovelContentDatabasePath(Novel novel) async {
-    _log.debug(
-      'ensureNovelContentDatabasePath novelId=${novel.id} existingPath=${novel.contentDatabasePath}',
-    );
     final existingPath = novel.contentDatabasePath;
     if (existingPath != null && existingPath.isNotEmpty) {
       // 解析存储路径后检查内容库是否存在。
       final resolvedPath = RevericPaths.resolveDatabasePath(existingPath);
-      _log.debug('checking existingPath=$existingPath resolved=$resolvedPath');
       final exists = await File(resolvedPath).exists();
-      _log.debug('existingFile exists=$exists');
       if (exists) {
-        _log.debug('opening NovelContentDatabase at existingPath');
         final contentDatabase = NovelContentDatabase(existingPath);
         await contentDatabase.seedDefaultWorkspace();
         await contentDatabase.close();
-        _log.debug('returning existingPath=$existingPath');
         // 返回存储原值（相对路径），保持其作为 Riverpod family key 的一致性。
         return existingPath;
       }
     }
 
-    _log.debug('building new database path');
     final databasePath = await buildNovelContentDatabasePath(novel.id);
-    _log.debug('new databasePath=$databasePath');
     final contentDatabase = NovelContentDatabase(databasePath);
     await contentDatabase.seedDefaultWorkspace();
     await contentDatabase.close();
-    _log.debug('updating novel contentDatabasePath');
     await _database.novelDao.updateContentDatabasePath(
       id: novel.id,
       contentDatabasePath: databasePath,
     );
-    _log.debug('returning new databasePath=$databasePath');
     return databasePath;
   }
 
@@ -566,7 +528,7 @@ WHERE session_id IN (
       await _onBeforeDeleteContentDatabase?.call(novelId, databasePath);
       await NovelContentDatabase.closeCached(databasePath);
     } catch (error, stackTrace) {
-      AppLogger.error(
+      _log.error(
         '[DB][novel_content_database][CLOSE] failed path=$databasePath',
         error: error,
         stackTrace: stackTrace,

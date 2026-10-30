@@ -12,6 +12,8 @@ import '../../logger/app_logger.dart';
 import '../../models/production/media.dart';
 import 'ffmpeg_runner.dart';
 
+final _log = AppLogger.forModule('Media');
+
 class EncodedMedia {
   EncodedMedia(this.file, this.info, this._directory);
   final File file;
@@ -49,8 +51,8 @@ class MediaService {
           try {
             await token.cancel();
           } catch (error, stack) {
-            AppLogger.error(
-              '[Media] timed-out probe cancellation request failed',
+            _log.error(
+              'timed-out probe cancellation request failed',
               error: error,
               stackTrace: stack,
             );
@@ -64,7 +66,9 @@ class MediaService {
           } catch (error) {
             // The timeout remains the cause even if native termination reports
             // cancellation or an encoding error afterwards.
-            AppLogger.debug('[Media] timed-out probe finished: $error');
+            if (_log.isDebugEnabled) {
+              _log.debug('timed-out probe finished: $error');
+            }
           }
           throw const MediaException(MediaFailure.timeout);
         },
@@ -73,7 +77,7 @@ class MediaService {
     } on MediaException {
       rethrow;
     } catch (error, stack) {
-      AppLogger.error('[Media] probe failed', error: error, stackTrace: stack);
+      _log.error('probe failed', error: error, stackTrace: stack);
       throw const MediaException(MediaFailure.invalid_media);
     }
   }
@@ -269,8 +273,8 @@ class MediaService {
       );
     } catch (error, stack) {
       await temporary.delete(recursive: true);
-      AppLogger.error(
-        '[Media] transform failed output=$extension',
+      _log.error(
+        'transform failed output=$extension',
         error: error,
         stackTrace: stack,
       );
@@ -347,11 +351,7 @@ class MediaService {
       return EncodedMedia(output, info, temporary);
     } catch (error, stack) {
       await temporary.delete(recursive: true);
-      AppLogger.error(
-        '[Media] encoding failed',
-        error: error,
-        stackTrace: stack,
-      );
+      _log.error('encoding failed', error: error, stackTrace: stack);
       rethrow;
     }
   }

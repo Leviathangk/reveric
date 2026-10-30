@@ -26,6 +26,8 @@ import '../../../shared/providers/production_media.dart';
 import '../../../shared/theme/theme.dart';
 import '../../../shared/widgets/confirm_dialog.dart';
 
+final _log = AppLogger.forModule('Production');
+
 enum _StyleField<T> implements FieldSchema {
   name<String>(),
   before<String>(),
@@ -111,11 +113,7 @@ class ProductionStyleEditor extends HookConsumerWidget {
           onClose();
         }
       } catch (error, stack) {
-        AppLogger.error(
-          '[Production] style save failed',
-          error: error,
-          stackTrace: stack,
-        );
+        _log.error('style save failed', error: error, stackTrace: stack);
         if (context.mounted) {
           failed.value = true;
         }

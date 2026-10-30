@@ -18,6 +18,8 @@ import '../logger/app_logger.dart';
 import '../models/local_settings.dart';
 import '../utils/storage_paths.dart';
 
+final _log = AppLogger.forModule('FileWorkspace');
+
 class FileWorkspaceLocation {
   const FileWorkspaceLocation({this.activeParent});
 
@@ -83,14 +85,14 @@ class FileWorkspaceOrchestrator {
       }
       final source = await _source(await load());
       final target = Directory(p.join(canonical, 'file_workspaces'));
-      AppLogger.info('[FileWorkspace] migration started');
+      _log.info('migration started');
       await target.create(recursive: true);
       if (await source.exists()) {
         await _copy(source, target);
       }
       await _save(FileWorkspaceLocation(activeParent: canonical));
       await RevericPaths.initialize(fileWorkspaceParent: canonical);
-      AppLogger.info('[FileWorkspace] migration completed; source retained');
+      _log.info('migration completed; source retained');
     } catch (error, stack) {
       logFileWorkspaceError('migration', error, stack);
       rethrow;
@@ -101,9 +103,7 @@ class FileWorkspaceOrchestrator {
   /// 只重置位置配置，已有工作区文件保持原样；由启动门重新初始化运行时。
   Future<void> useApplicationDirectory() async {
     await _save(const FileWorkspaceLocation());
-    AppLogger.info(
-      '[FileWorkspace] application directory selected for recovery',
-    );
+    _log.info('application directory selected for recovery');
   }
 
   /// Run before business providers or background writers are mounted.
@@ -200,7 +200,7 @@ class FileWorkspaceOrchestrator {
         throw const FileSystemException('Unsupported workspace entry');
       }
     }
-    AppLogger.info('[FileWorkspace] copy completed files=$copied');
+    _log.info('copy completed files=$copied');
   }
 
   Future<bool> _sameFile(File left, File right) async =>
@@ -236,8 +236,8 @@ void logFileWorkspaceError(String operation, Object error, StackTrace stack) {
     FormatException(:final message) => FormatException(message),
     _ => error.runtimeType,
   };
-  AppLogger.error(
-    '[FileWorkspace] $operation failed type=${error.runtimeType}',
+  _log.error(
+    '$operation failed type=${error.runtimeType}',
     error: diagnostic,
     stackTrace: stack,
   );

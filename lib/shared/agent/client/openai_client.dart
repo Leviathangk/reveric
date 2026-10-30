@@ -503,20 +503,24 @@ class OpenAiClient implements ProviderClient {
           }
           final rawArguments = tc.args.toString();
           final completeArguments = tryDecodeJsonObject(rawArguments);
-          final shape = _jsonShape(rawArguments);
-          final diagnostic =
-              'tool args terminal=$terminal index=${entry.key} '
-              'tool=${tc.name} callId=${tc.id} chars=${rawArguments.length} '
-              'jsonComplete=${completeArguments != null} '
-              'objectDepth=${shape.objectDepth} arrayDepth=${shape.arrayDepth} '
-              'inString=${shape.inString} '
-              'parsedKeys=${parseStreamingJson(rawArguments).keys.join(',')} '
-              'lastChar=${_lastNonWhitespace(rawArguments)} '
-              'cancelled=${abortCompleter.isCompleted}';
-          if (completeArguments == null && !abortCompleter.isCompleted) {
-            _log.warning(diagnostic);
-          } else {
-            _log.debug(diagnostic);
+          final shouldWarn =
+              completeArguments == null && !abortCompleter.isCompleted;
+          if (shouldWarn || _log.isDebugEnabled) {
+            final shape = _jsonShape(rawArguments);
+            final diagnostic =
+                'tool args terminal=$terminal index=${entry.key} '
+                'tool=${tc.name} callId=${tc.id} chars=${rawArguments.length} '
+                'jsonComplete=${completeArguments != null} '
+                'objectDepth=${shape.objectDepth} arrayDepth=${shape.arrayDepth} '
+                'inString=${shape.inString} '
+                'parsedKeys=${parseStreamingJson(rawArguments).keys.join(',')} '
+                'lastChar=${_lastNonWhitespace(rawArguments)} '
+                'cancelled=${abortCompleter.isCompleted}';
+            if (shouldWarn) {
+              _log.warning(diagnostic);
+            } else {
+              _log.debug(diagnostic);
+            }
           }
           events.add(
             ToolCallDelta(
@@ -633,10 +637,12 @@ class OpenAiClient implements ProviderClient {
               _ => StreamFinishReason.unknown,
             };
             if (partialToolCalls.isNotEmpty) {
-              _log.debug(
-                'tool stream finish reason=${finalFinishReason.name} '
-                'openToolCalls=${partialToolCalls.length}',
-              );
+              if (_log.isDebugEnabled) {
+                _log.debug(
+                  'tool stream finish reason=${finalFinishReason.name} '
+                  'openToolCalls=${partialToolCalls.length}',
+                );
+              }
             }
             for (final delta in terminalToolCallDeltas(
               keepIncomplete: false,
@@ -650,14 +656,16 @@ class OpenAiClient implements ProviderClient {
       }
       if (partialToolCalls.isNotEmpty) {
         openToolCallsAtEof = partialToolCalls.length;
-        final diagnostic =
-            'tool stream EOF before finish reason '
-            'openToolCalls=${partialToolCalls.length} '
-            'cancelled=${abortCompleter.isCompleted}';
-        if (abortCompleter.isCompleted) {
-          _log.debug(diagnostic);
-        } else {
-          _log.warning(diagnostic);
+        if (!abortCompleter.isCompleted || _log.isDebugEnabled) {
+          final diagnostic =
+              'tool stream EOF before finish reason '
+              'openToolCalls=${partialToolCalls.length} '
+              'cancelled=${abortCompleter.isCompleted}';
+          if (abortCompleter.isCompleted) {
+            _log.debug(diagnostic);
+          } else {
+            _log.warning(diagnostic);
+          }
         }
         // Some OpenAI-compatible relays close the SSE stream after the full
         // JSON arguments but omit the terminal finish_reason chunk. Recover

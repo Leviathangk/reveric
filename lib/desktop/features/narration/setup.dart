@@ -35,6 +35,8 @@ import '../../widgets/settings/settings_dialog.dart';
 import 'errors.dart';
 import 'voice.dart';
 
+final _log = AppLogger.forModule('Narration');
+
 typedef NarrationPlan = ({
   NarrationSettings settings,
   List<NarrationSegment> segments,
@@ -135,11 +137,7 @@ class NarrationSetup extends HookConsumerWidget {
           onStart((settings: settings, segments: segments));
         }
       } catch (failure, stack) {
-        AppLogger.error(
-          '[Narration] setup failed',
-          error: failure,
-          stackTrace: stack,
-        );
+        _log.error('setup failed', error: failure, stackTrace: stack);
         if (context.mounted) {
           error.value = failure;
         }

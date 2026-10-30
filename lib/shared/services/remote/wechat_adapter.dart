@@ -79,11 +79,7 @@ class WechatAdapterConfig {
 /// 3. [send] / [onMessageStart] / [onMessageEnd] — 出站与 typing。
 /// 4. [stop] — 关闭 client，排空 [consumeOne] 等待者（resolve null）。
 class WechatAdapter extends BaseChannelAdapter {
-  WechatAdapter({
-    WechatAdapterConfig config = const WechatAdapterConfig(),
-    http.Client? client,
-  }) : _config = config,
-       _client = client;
+  WechatAdapter({this._config = const WechatAdapterConfig(), this._client});
 
   final WechatAdapterConfig _config;
   http.Client? _client;
@@ -245,7 +241,9 @@ class WechatAdapter extends BaseChannelAdapter {
     );
     while (true) {
       final client = _ensureClient();
-      _log.debug('fetching QR code from ${_config.baseUrl}');
+      if (_log.isDebugEnabled) {
+        _log.debug('fetching QR code from ${_config.baseUrl}');
+      }
       final qr = await fetchWechatQrCode(_config.baseUrl, client: client);
       final qrcodePrefix = qr.qrcode.length > 10
           ? qr.qrcode.substring(0, 10)
@@ -262,9 +260,11 @@ class WechatAdapter extends BaseChannelAdapter {
       var pollCount = 0;
       while (true) {
         pollCount++;
-        _log.debug(
-          'poll #$pollCount — waiting ${_config.qrPollInterval.inSeconds}s before request',
-        );
+        if (_log.isDebugEnabled) {
+          _log.debug(
+            'poll #$pollCount — waiting ${_config.qrPollInterval.inSeconds}s before request',
+          );
+        }
         await Future<void>.delayed(_config.qrPollInterval);
         try {
           final resp = await pollWechatQrStatus(
@@ -315,7 +315,9 @@ class WechatAdapter extends BaseChannelAdapter {
             }
             lastStatus = resp.status;
           } else {
-            _log.debug('poll #$pollCount status unchanged: ${resp.status}');
+            if (_log.isDebugEnabled) {
+              _log.debug('poll #$pollCount status unchanged: ${resp.status}');
+            }
           }
 
           if (resp.status == WechatQrStatus.expired) {
@@ -323,7 +325,9 @@ class WechatAdapter extends BaseChannelAdapter {
           }
         } catch (error, stack) {
           _log.warning('poll #$pollCount failed: $error — retrying');
-          _log.debug('poll error stack: $stack');
+          if (_log.isDebugEnabled) {
+            _log.debug('poll error stack: $stack');
+          }
         }
       }
     }
@@ -522,7 +526,9 @@ class WechatAdapter extends BaseChannelAdapter {
         );
         ticket = config.typingTicket;
         if (ticket == null || ticket.isEmpty) {
-          _log.debug('typing: no typing_ticket for $chatId');
+          if (_log.isDebugEnabled) {
+            _log.debug('typing: no typing_ticket for $chatId');
+          }
           return;
         }
         _typingTickets[chatId] = ticket;
@@ -537,7 +543,9 @@ class WechatAdapter extends BaseChannelAdapter {
       );
     } catch (error) {
       // typing 失败不影响主链路，仅记录。
-      _log.debug('typing status=$status chatId=$chatId failed: $error');
+      if (_log.isDebugEnabled) {
+        _log.debug('typing status=$status chatId=$chatId failed: $error');
+      }
     }
   }
 

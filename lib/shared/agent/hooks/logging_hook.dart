@@ -11,28 +11,36 @@ import '../../services/ai/tool_error_normalize.dart';
 import '../agent_hook.dart';
 import '../agent_event.dart' show AgentRoundResult;
 
+final _log = AppLogger.forModule('AgentHook');
+
 class LoggingHook extends AgentHook {
   const LoggingHook({this.tag = 'Agent'});
 
   final String tag;
   @override
   FutureOr<HookAction<String>> onStart(String task) {
-    AppLogger.debug('[$tag] process start taskLength=${task.length}');
+    if (_log.isDebugEnabled) {
+      _log.debug('tag=$tag process start taskLength=${task.length}');
+    }
     return const HookAction.proceed();
   }
 
   @override
   FutureOr<HookAction<void>> beforeRound(int roundIndex) {
-    AppLogger.debug('[$tag] round start round=$roundIndex');
+    if (_log.isDebugEnabled) {
+      _log.debug('tag=$tag round start round=$roundIndex');
+    }
     return const HookAction.proceed();
   }
 
   @override
   FutureOr<HookAction<AgentRoundResult>> afterLLM(AgentRoundResult round) {
-    AppLogger.debug(
-      '[$tag] round resolved toolCalls=${round.toolCalls.length} '
-      'textChars=${round.text.length} thinkingChars=${round.thinking.length}',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'tag=$tag round resolved toolCalls=${round.toolCalls.length} '
+        'textChars=${round.text.length} thinkingChars=${round.thinking.length}',
+      );
+    }
     return const HookAction.proceed();
   }
 
@@ -40,9 +48,11 @@ class LoggingHook extends AgentHook {
   FutureOr<HookAction<BeforeToolCallContext>> beforeToolCall(
     BeforeToolCallContext ctx,
   ) {
-    AppLogger.debug(
-      '[$tag] tool start name=${ctx.source == AgentToolSource.mcp ? 'MCP' : ctx.call.toolName} callId=${ctx.call.callId}',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'tag=$tag tool start name=${ctx.source == AgentToolSource.mcp ? 'MCP' : ctx.call.toolName} callId=${ctx.call.callId}',
+      );
+    }
     return const HookAction.proceed();
   }
 
@@ -50,40 +60,49 @@ class LoggingHook extends AgentHook {
   FutureOr<HookAction<AfterToolCallContext>> afterToolCall(
     AfterToolCallContext ctx,
   ) {
-    final ok = toolResultIsSuccess(ctx.result);
-    AppLogger.debug(
-      '[$tag] tool result name=${ctx.source == AgentToolSource.mcp ? 'MCP' : ctx.call.toolName} callId=${ctx.call.callId} '
-      'ok=$ok keys=${ctx.result.keys.join(',')}',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'tag=$tag tool result name=${ctx.source == AgentToolSource.mcp ? 'MCP' : ctx.call.toolName} callId=${ctx.call.callId} '
+        'ok=${toolResultIsSuccess(ctx.result)} keys=${ctx.result.keys.join(',')}',
+      );
+    }
     return const HookAction.proceed();
   }
 
   @override
   void afterRound(AfterRoundContext ctx) {
-    AppLogger.debug(
-      '[$tag] round complete round=${ctx.roundIndex} '
-      'textChars=${ctx.roundResult.text.length} '
-      'toolCalls=${ctx.roundResult.toolCalls.length}',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'tag=$tag round complete round=${ctx.roundIndex} '
+        'textChars=${ctx.roundResult.text.length} '
+        'toolCalls=${ctx.roundResult.toolCalls.length}',
+      );
+    }
   }
 
   @override
   void onDone(String finalText) {
-    AppLogger.debug('[$tag] done finalTextChars=${finalText.length}');
+    if (_log.isDebugEnabled) {
+      _log.debug('tag=$tag done finalTextChars=${finalText.length}');
+    }
   }
 
   @override
   void onError(Object error, StackTrace? stackTrace) {
-    AppLogger.error('[$tag] error=$error');
+    _log.error('tag=$tag error=$error');
   }
 
   @override
   void onCancelled() {
-    AppLogger.debug('[$tag] cancelled');
+    if (_log.isDebugEnabled) {
+      _log.debug('tag=$tag cancelled');
+    }
   }
 
   @override
   void onEnd() {
-    AppLogger.debug('[$tag] process end');
+    if (_log.isDebugEnabled) {
+      _log.debug('tag=$tag process end');
+    }
   }
 }

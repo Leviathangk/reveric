@@ -176,6 +176,7 @@ void main() {
       );
       final log = lines.join('\n');
       expect(log, contains('status=503'));
+      expect(log, contains('provider=volcengine'));
       expect(log, contains('No available channel'));
       for (final sensitive in [
         'secret',
@@ -188,7 +189,7 @@ void main() {
         expect(log, isNot(contains(sensitive)));
       }
       expect(
-        lines.where((line) => line.contains('[AudioClient:')),
+        lines.where((line) => line.contains('[WARN] [AudioClient]')),
         hasLength(1),
       );
     },

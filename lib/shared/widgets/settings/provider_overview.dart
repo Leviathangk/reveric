@@ -20,6 +20,8 @@ import '../../models/provider_brand.dart';
 import '../../theme/theme.dart';
 import 'providers/registry.dart';
 
+final _log = AppLogger.forModule('ProviderConfig');
+
 String providerCapabilitySummary(BuildContext context, AiProvider config) =>
     !config.isTypeSupported
     ? context.t(LocaleKeys.settingsProviderUnsupportedBadge)
@@ -83,10 +85,10 @@ Future<void> openProviderChannelUrl(BuildContext context, String url) async {
     if (await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication)) {
       return;
     }
-    AppLogger.warning('[ProviderConfig] URL launch returned false: $url');
+    _log.warning('URL launch returned false: $url');
   } catch (error, stackTrace) {
-    AppLogger.error(
-      '[ProviderConfig] Failed to open API key page: $url',
+    _log.error(
+      'Failed to open API key page: $url',
       error: error,
       stackTrace: stackTrace,
     );

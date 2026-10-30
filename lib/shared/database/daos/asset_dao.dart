@@ -12,6 +12,8 @@ import '../app_database.dart';
 
 part 'asset_dao.drift.dart';
 
+final _log = AppLogger.forModule('AssetDao');
+
 @DriftAccessor(tables: [Assets])
 class AssetDao extends DatabaseAccessor<AppDatabase> with _$AssetDaoMixin {
   AssetDao(super.db);
@@ -58,7 +60,7 @@ class AssetDao extends DatabaseAccessor<AppDatabase> with _$AssetDaoMixin {
     try {
       await into(assets).insert(asset);
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] assets INSERT id=${asset.id.value}',
         error: error,
         stackTrace: stack,
@@ -121,7 +123,7 @@ class AssetDao extends DatabaseAccessor<AppDatabase> with _$AssetDaoMixin {
         ),
       );
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] assets UPDATE soft-delete id=$id',
         error: error,
         stackTrace: stack,
@@ -142,7 +144,7 @@ class AssetDao extends DatabaseAccessor<AppDatabase> with _$AssetDaoMixin {
             ),
           );
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] assets UPDATE favorite id=$id',
         error: error,
         stackTrace: stack,
@@ -163,7 +165,7 @@ class AssetDao extends DatabaseAccessor<AppDatabase> with _$AssetDaoMixin {
             ),
           );
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] assets UPDATE in_library id=$id',
         error: error,
         stackTrace: stack,

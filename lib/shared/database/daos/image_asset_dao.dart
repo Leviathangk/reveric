@@ -13,6 +13,8 @@ import '../app_database.dart';
 
 part 'image_asset_dao.drift.dart';
 
+final _log = AppLogger.forModule('ImageAssetDao');
+
 @DriftAccessor(
   tables: [Assets, ImageBatches, ImageBatchSlots, ImageAssetReferences],
 )
@@ -74,7 +76,7 @@ class ImageAssetDao extends DatabaseAccessor<AppDatabase>
             ),
           );
     } catch (error, stackTrace) {
-      AppLogger.error(
+      _log.error(
         '[DB] assets UPDATE metadata id=$id',
         error: error,
         stackTrace: stackTrace,

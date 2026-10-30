@@ -249,10 +249,12 @@ final remoteBridgeServiceProvider = Provider<RemoteBridgeService>((ref) {
         appDb,
         (saved) => saved.copyWith(chatContexts: chatContexts),
       );
-      _log.debug(
-        '[Persist] chat contexts saved chatId=$chatId '
-        'total=${chatContexts.length}',
-      );
+      if (_log.isDebugEnabled) {
+        _log.debug(
+          '[Persist] chat contexts saved chatId=$chatId '
+          'total=${chatContexts.length}',
+        );
+      }
     } catch (error, stackTrace) {
       _log.error(
         '[DB] chat contexts persist failed chatId=$chatId',

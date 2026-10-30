@@ -59,12 +59,8 @@ class TraceReporterService {
   int _sessionCacheWriteTokens = 0;
   int _sessionReasoningTokens = 0;
 
-  TraceReporterService({
-    required DeviceIdService deviceIdService,
-    required AnonymousOutboxService outbox,
-  }) : _deviceIdService = deviceIdService,
-       _outbox = outbox,
-       _platform = _detectPlatform() {
+  TraceReporterService({required this._deviceIdService, required this._outbox})
+    : _platform = _detectPlatform() {
     _log.info('init version=$appVersion platform=$_platform');
   }
 
@@ -98,9 +94,11 @@ class TraceReporterService {
     String model, {
     String sessionMode = 'chat',
   }) async {
-    _log.debug(
-      'onTurnStart sessionId=$sessionId model=$model mode=$sessionMode',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'onTurnStart sessionId=$sessionId model=$model mode=$sessionMode',
+      );
+    }
     await _enqueue(
       sessionId: sessionId,
       model: model,
@@ -118,11 +116,13 @@ class TraceReporterService {
     AiUsage usage, {
     String sessionMode = 'chat',
   }) async {
-    _log.debug(
-      'onTurnEnd sessionId=$sessionId model=$model mode=$sessionMode '
-      'req=$requestCount tools=$toolCallCount '
-      'in=${usage.inputTokens} out=${usage.outputTokens}',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'onTurnEnd sessionId=$sessionId model=$model mode=$sessionMode '
+        'req=$requestCount tools=$toolCallCount '
+        'in=${usage.inputTokens} out=${usage.outputTokens}',
+      );
+    }
     _sessionRequestCount += requestCount;
     _sessionToolCallCount += toolCallCount;
     _sessionInputTokens += usage.inputTokens;
@@ -221,7 +221,9 @@ class TraceReporterService {
         },
       ),
     );
-    _log.debug('enqueue type=$eventType');
+    if (_log.isDebugEnabled) {
+      _log.debug('enqueue type=$eventType');
+    }
   }
 
   /// LLM 请求失败：入队 request_error 诊断事件，走独立的 requestError
@@ -239,9 +241,11 @@ class TraceReporterService {
   }) async {
     final category = classifyRequestError(error);
     if (!shouldReportRequestError(category)) {
-      _log.debug(
-        'onRequestError skipped noise sid=$sessionId category=$category',
-      );
+      if (_log.isDebugEnabled) {
+        _log.debug(
+          'onRequestError skipped noise sid=$sessionId category=$category',
+        );
+      }
       return;
     }
     _log.info(
@@ -399,10 +403,12 @@ class TraceReporterService {
           result: result,
         );
 
-    _log.debug(
-      'onToolCallError sid=$sessionId model=$model tool=$toolName '
-      'errorCode=$errorCode exceptionType=$exceptionType',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'onToolCallError sid=$sessionId model=$model tool=$toolName '
+        'errorCode=$errorCode exceptionType=$exceptionType',
+      );
+    }
 
     final occurredAt = DateTime.now().toUtc();
     final deviceId = await _deviceIdService.getOrCreate();

@@ -23,6 +23,8 @@ import '../media_diagnostics.dart';
 import 'retry.dart';
 export '../../../models/audio/result.dart';
 
+final _log = AppLogger.forModule('AudioClient');
+
 abstract class AudioClient {
   AudioClient(
     this.client,
@@ -163,11 +165,13 @@ abstract class AudioClient {
       if (cancelled) {
         throw const AudioException('cancelled');
       }
-      AppLogger.debug(
-        '[AudioRequest:$providerType] phase=${method == "POST" ? "submit" : "query"} '
-        'host=${endpoint.host} path=${endpoint.path} attempt=$attempt/${method == "POST" ? 1 : 3} '
-        'model=${audioRequest?.modelId ?? ""}',
-      );
+      if (_log.isDebugEnabled) {
+        _log.debug(
+          'event=request provider=$providerType phase=${method == "POST" ? "submit" : "query"} '
+          'host=${endpoint.host} path=${endpoint.path} attempt=$attempt/${method == "POST" ? 1 : 3} '
+          'model=${audioRequest?.modelId ?? ""}',
+        );
+      }
       return await (() async {
         final post =
             http.AbortableRequest(method, endpoint, abortTrigger: abort.future)
@@ -211,9 +215,11 @@ abstract class AudioClient {
                 audioRequest,
               );
         if (binary != null) {
-          AppLogger.debug(
-            '[AudioResponse:$providerType] phase=submit status=$status bytes=${binary.bytes.length}',
-          );
+          if (_log.isDebugEnabled) {
+            _log.debug(
+              'event=response provider=$providerType phase=submit status=$status bytes=${binary.bytes.length}',
+            );
+          }
           return binary;
         }
         final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
@@ -230,8 +236,8 @@ abstract class AudioClient {
       if (cancelled || error is AudioException && error.code == 'cancelled') {
         throw const AudioException('cancelled');
       }
-      AppLogger.warning(
-        '[AudioClient:$providerType] $method ${endpoint.origin}${endpoint.path} '
+      _log.warning(
+        'provider=$providerType $method ${endpoint.origin}${endpoint.path} '
         'status=${status ?? "unknown"} type=${error.runtimeType} '
         'error=${safeMediaDiagnostic(error, apiKey)} '
         'message=${safeMediaDiagnostic(responseMessage ?? diagnosticBody ?? error, apiKey)}',
@@ -318,9 +324,11 @@ Future<Uint8List> downloadAudioOutput(
         }
         int? status;
         final clock = Stopwatch()..start();
-        AppLogger.debug(
-          '[AudioDownload] phase=download host=${url.host} attempt=$attempt/3 started',
-        );
+        if (_log.isDebugEnabled) {
+          _log.debug(
+            'event=download phase=download host=${url.host} attempt=$attempt/3 started',
+          );
+        }
         try {
           return await (() async {
             final request = http.AbortableRequest(
@@ -358,10 +366,12 @@ Future<Uint8List> downloadAudioOutput(
                 detail: 'Empty audio response',
               );
             }
-            AppLogger.debug(
-              '[AudioDownload] phase=download host=${url.host} attempt=$attempt/3 '
-              'status=$status bytes=${bytes.length} elapsed_ms=${clock.elapsedMilliseconds} completed',
-            );
+            if (_log.isDebugEnabled) {
+              _log.debug(
+                'event=download phase=download host=${url.host} attempt=$attempt/3 '
+                'status=$status bytes=${bytes.length} elapsed_ms=${clock.elapsedMilliseconds} completed',
+              );
+            }
             return Uint8List.fromList(bytes);
           })().timeout(
             timeout,

@@ -59,6 +59,8 @@ import 'codex_connection.dart';
 import '../../components/reveric_dialog.dart';
 import '../../components/reveric_button.dart';
 
+final _log = AppLogger.forModule('ProviderModels');
+
 /// AI provider 配置面板（表单）。
 class ProviderConfigPanel extends HookConsumerWidget {
   final String providerId;
@@ -853,8 +855,8 @@ Future<List<String>> fetchProviderModels(
         config.effectiveApiKey,
         '[redacted]',
       );
-      AppLogger.warning(
-        '[ProviderModels] GET ${url.origin}${url.path} '
+      _log.warning(
+        'GET ${url.origin}${url.path} '
         'status=${response.statusCode} type=ModelsFetchHttpException body=$body',
       );
       throw _ModelsFetchHttpException(response.statusCode);
@@ -956,10 +958,7 @@ class _FetchModelsDialogContentState extends State<_FetchModelsDialogContent> {
             .toSet();
       });
     } catch (e, stack) {
-      AppLogger.error(
-        '[ProviderModels] Fetch failed: type=${e.runtimeType}',
-        stackTrace: stack,
-      );
+      _log.error('Fetch failed: type=${e.runtimeType}', stackTrace: stack);
 
       if (!mounted) {
         return;

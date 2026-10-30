@@ -1231,19 +1231,6 @@ class NovelContentService {
     String? avatarAssetId,
     List<SubjectPhoto>? photos,
   }) async {
-    _log.debug(
-      'updateCharacterAvatarAndPhotos: entryId=$entryId '
-      'avatar=${avatarAssetId == null
-          ? "null"
-          : avatarAssetId.isEmpty
-          ? "(empty)"
-          : "set"} '
-      'photos=${photos == null
-          ? "null"
-          : photos.isEmpty
-          ? "(empty)"
-          : "set"}',
-    );
     try {
       await (_database.update(
         _database.characterProfiles,
@@ -1257,7 +1244,6 @@ class NovelContentService {
           updatedAt: Value(DateTime.now()),
         ),
       );
-      _log.debug('DB write succeeded');
     } catch (e, s) {
       _log.error('DB write FAILED: $e', error: e, stackTrace: s);
       rethrow;

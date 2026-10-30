@@ -18,6 +18,8 @@ import '../../models/narration.dart';
 import '../production/audio_generate_orchestrator.dart';
 import 'narration_orchestrator.dart';
 
+final _log = AppLogger.forModule('Narration');
+
 class NarrationService {
   NarrationService({
     required this.database,
@@ -48,7 +50,7 @@ class NarrationService {
         value: jsonEncode(settings.toJson()),
       );
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] UPSERT app_states screenplay_narration:$workId',
         error: error,
         stackTrace: stack,

@@ -19,6 +19,8 @@ import '../../database/novel_content_database.dart';
 import '../../logger/app_logger.dart';
 import '../../utils/windows_safe_path.dart';
 
+final _log = AppLogger.forModule('SqliteSchemaRepair');
+
 class SqliteSchemaRepairResult {
   const SqliteSchemaRepairResult({required this.success});
 
@@ -51,7 +53,7 @@ class SqliteSchemaRepairOrchestrator {
         contentStats += stats;
       }
 
-      AppLogger.info(
+      _log.info(
         '[DB] operation=REPAIR_SCHEMA result=success '
         'databases=${1 + contentPaths.length} '
         'tables=${appStats.tablesCreated + contentStats.tablesCreated} '
@@ -61,7 +63,7 @@ class SqliteSchemaRepairOrchestrator {
       );
       return const SqliteSchemaRepairResult(success: true);
     } catch (error, stackTrace) {
-      AppLogger.error(
+      _log.error(
         '[DB] operation=REPAIR_SCHEMA error=$error',
         error: error,
         stackTrace: stackTrace,

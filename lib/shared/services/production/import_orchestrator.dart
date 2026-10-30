@@ -23,6 +23,8 @@ import 'ffmpeg_runner.dart';
 import 'media_service.dart';
 import 'media_file.dart';
 
+final _log = AppLogger.forModule('MediaImport');
+
 class MediaImportOrchestrator {
   Future<AssetRow> run({
     required AppDatabase database,
@@ -45,8 +47,8 @@ class MediaImportOrchestrator {
     if (format == null) {
       throw const MediaException(MediaFailure.invalid_media);
     }
-    AppLogger.info(
-      '[MediaImport] started type=${format.$1} purpose=${purpose.value} novel=$novelId',
+    _log.info(
+      'started type=${format.$1} purpose=${purpose.value} novel=$novelId',
     );
     final imagePart =
         format.$1 == 'image' &&
@@ -161,7 +163,7 @@ class MediaImportOrchestrator {
                         ..where((table) => table.id.equals(existing.id)))
                       .write(AssetsCompanion(batchId: Value(batchId)));
                 } catch (error, stack) {
-                  AppLogger.error(
+                  _log.error(
                     '[DB] assets UPDATE batch id=${existing.id}',
                     error: error,
                     stackTrace: stack,
@@ -169,7 +171,7 @@ class MediaImportOrchestrator {
                   rethrow;
                 }
               }
-              AppLogger.info('[MediaImport] reused id=${existing.id}');
+              _log.info('reused id=${existing.id}');
               return (await database.assetDao.getAsset(existing.id))!;
             }
             final id = existing?.id ?? buildRandomId('ast');
@@ -228,7 +230,7 @@ class MediaImportOrchestrator {
                   ),
                 );
               } catch (error, stack) {
-                AppLogger.error(
+                _log.error(
                   '[DB] assets UPDATE path id=$id',
                   error: error,
                   stackTrace: stack,
@@ -286,13 +288,11 @@ class MediaImportOrchestrator {
           })
           .then((asset) {
             committed = true;
-            AppLogger.info(
-              '[MediaImport] committed id=${asset.id} type=${asset.type}',
-            );
+            _log.info('committed id=${asset.id} type=${asset.type}');
             return asset;
           });
     } catch (error, stack) {
-      AppLogger.error('[MediaImport] failed', error: error, stackTrace: stack);
+      _log.error('failed', error: error, stackTrace: stack);
       rethrow;
     } finally {
       // Only this uncommitted operation's newly allocated copy is rolled back.
@@ -323,8 +323,8 @@ class MediaImportOrchestrator {
       // 解码器遇到截断的文件头会直接抛越界异常，而不是返回 null。
       info = decoder.isValidFile(bytes) ? decoder.startDecode(bytes) : null;
     } catch (error, stack) {
-      AppLogger.error(
-        '[MediaImport] image header unreadable extension=$extension',
+      _log.error(
+        'image header unreadable extension=$extension',
         error: error,
         stackTrace: stack,
       );

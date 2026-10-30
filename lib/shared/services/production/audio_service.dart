@@ -34,6 +34,8 @@ import '../../models/production/asset_content.dart';
 import '../storyboard/service.dart';
 import 'audio_generate_orchestrator.dart';
 
+final _log = AppLogger.forModule('AudioTasks');
+
 class AudioTaskService {
   AudioTaskService({
     required this.database,
@@ -518,15 +520,9 @@ class AudioTaskService {
       _ => null,
     };
     if (code != null) {
-      AppLogger.warning(
-        '[AudioTasks] run failed id=$id type=${error.runtimeType} code=$code',
-      );
+      _log.warning('run failed id=$id type=${error.runtimeType} code=$code');
     } else {
-      AppLogger.error(
-        '[AudioTasks] run failed id=$id',
-        error: error,
-        stackTrace: stack,
-      );
+      _log.error('run failed id=$id', error: error, stackTrace: stack);
     }
     final hasOutput = task.outputHash != null || task.outputUrl != null;
     final canResumePrediction =

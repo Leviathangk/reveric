@@ -25,6 +25,8 @@ import '../../models/production/media.dart';
 import '../../database/app_database.dart' show AssetRow;
 import '../storyboard/service.dart';
 
+final _log = AppLogger.forModule('Panorama');
+
 typedef PanoramaCaptureRequest = ({PanoramaView view, String name});
 typedef PanoramaRender =
     Future<Uint8List> Function(ui.Image image, PanoramaView view, ui.Size size);
@@ -156,8 +158,8 @@ class PanoramaService {
               final failure = PanoramaCaptureFailure(stage, error);
               failures[request.name] = failure;
               viewFailures[index] = failure;
-              AppLogger.error(
-                '[Panorama] capture failed index=$index node=$nodeId',
+              _log.error(
+                'capture failed index=$index node=$nodeId',
                 error: error,
                 stackTrace: stack,
               );

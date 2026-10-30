@@ -246,8 +246,9 @@ void main() {
             expect(posts, 1);
             expect(
               lines.where(
-                (line) =>
-                    line.contains(audio ? '[AudioClient:' : '[VideoClient]'),
+                (line) => line.contains(
+                  audio ? '[WARN] [AudioClient]' : '[WARN] [VideoClient]',
+                ),
               ),
               hasLength(1),
             );

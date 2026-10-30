@@ -1515,11 +1515,13 @@ class ChatSessionController {
     final runtimeState = container.read(aiChatRuntimeProvider(sessionId));
     final runtime = container.read(aiChatRuntimeProvider(sessionId).notifier);
     if (!runtimeState.isRequestInFlight || runtimeState.requestSequence == 0) {
-      _log.debug(
-        'cancel IGNORED sessionId=$sessionId '
-        'isRequestInFlight=${runtimeState.isRequestInFlight} '
-        'seq=${runtimeState.requestSequence}',
-      );
+      if (_log.isDebugEnabled) {
+        _log.debug(
+          'cancel IGNORED sessionId=$sessionId '
+          'isRequestInFlight=${runtimeState.isRequestInFlight} '
+          'seq=${runtimeState.requestSequence}',
+        );
+      }
       return;
     }
     _log.info(
@@ -1527,7 +1529,6 @@ class ChatSessionController {
       'requestId=${runtimeState.requestSequence} '
       'isRequestInFlight=${runtimeState.isRequestInFlight}',
     );
-    _log.debug('STACK:\n${StackTrace.current}');
     final sessionNotifier = container.read(
       aiChatSessionProvider(sessionId).notifier,
     );

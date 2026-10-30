@@ -31,6 +31,8 @@ import '../theme/theme.dart';
 import 'ai/markdown_code_block.dart';
 import 'md/reveric_markdown_editor.dart';
 
+final _log = AppLogger.forModule('StoryProgress');
+
 /// 至少五个有张力数据的章节才能形成可读趋势。
 const int _minimumTensionPointCount = 5;
 
@@ -782,7 +784,7 @@ class _SnapshotEditCard extends HookConsumerWidget {
             );
         onClose();
       } catch (error, stackTrace) {
-        AppLogger.error(
+        _log.error(
           '[DB] table=novel_state_snapshots op=USER_EDIT_SNAPSHOT '
           'id=${snapshot.id}',
           error: error,
@@ -846,9 +848,7 @@ class _SnapshotEditCard extends HookConsumerWidget {
                       alpha: 0.4,
                     ),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        RevericRadius.button,
-                      ),
+                      borderRadius: BorderRadius.circular(RevericRadius.button),
                     ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: RevericSpacing.x4l,

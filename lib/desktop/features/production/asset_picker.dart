@@ -38,6 +38,8 @@ import 'node_card.dart' show ProductionAssetThumb;
 import 'support.dart' show productionRun;
 import 'builtin_voices.dart';
 
+final _log = AppLogger.forModule('Production');
+
 /// 类型标签顺序与文案；只列调用方允许的类型。
 const _typeLabels = {
   'image': LocaleKeys.mediaImages,
@@ -122,8 +124,8 @@ class ProductionAssetPicker extends HookWidget {
           picked.value = asset;
         }
       } catch (error, stack) {
-        AppLogger.error(
-          '[Production] asset picker import failed',
+        _log.error(
+          'asset picker import failed',
           error: error,
           stackTrace: stack,
         );
@@ -321,9 +323,7 @@ class _Card extends HookWidget {
                   fit: StackFit.expand,
                   children: [
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        RevericRadius.medium,
-                      ),
+                      borderRadius: BorderRadius.circular(RevericRadius.medium),
                       child: ProductionAssetThumb(
                         service: service,
                         asset: asset,

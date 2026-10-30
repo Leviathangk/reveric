@@ -17,6 +17,8 @@ import 'canvas_service.dart';
 import 'ffmpeg_runner.dart';
 import 'media_service.dart';
 
+final _log = AppLogger.forModule('VideoTool');
+
 /// 截帧位置：[at] 为 null 时按 [last] 取首帧或尾帧。
 typedef VideoFramePosition = ({Duration? at, bool last});
 
@@ -121,7 +123,7 @@ class VideoToolOrchestrator {
     VideoToolSource? inputSource,
     MediaCancellation? cancellation,
   ) async {
-    AppLogger.info('[VideoTool] started operation=$operation node=$nodeId');
+    _log.info('started operation=$operation node=$nodeId');
     final source = inputSource?.asset ?? await service.videoSource(nodeId);
     final token = cancellation ?? MediaCancellation();
     if (token.cancelled) {
@@ -149,8 +151,8 @@ class VideoToolOrchestrator {
         asset.id,
         placement: place?.call(),
       );
-      AppLogger.info(
-        '[VideoTool] completed operation=$operation node=$nodeId output=${node.id}',
+      _log.info(
+        'completed operation=$operation node=$nodeId output=${node.id}',
       );
       return node;
     } finally {

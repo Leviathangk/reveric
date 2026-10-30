@@ -49,6 +49,8 @@ import '../new_api.dart';
 import 'reference_storage_service.dart';
 import 'wan.dart';
 
+final _log = AppLogger.forModule('VideoTasks');
+
 class VideoSourceInput {
   const VideoSourceInput({
     required this.file,
@@ -957,8 +959,8 @@ class VideoTaskService {
           ),
         );
       } catch (error, stack) {
-        AppLogger.error(
-          '[VideoTasks] result asset registration failed id=${task.id}',
+        _log.error(
+          'result asset registration failed id=${task.id}',
           error: error,
           stackTrace: stack,
         );
@@ -1093,15 +1095,11 @@ class VideoTaskService {
     StackTrace stack,
   ) {
     if (error is VideoException) {
-      AppLogger.warning(
-        '[VideoTasks] $operation failed id=$id code=${error.code.name} status=${error.statusCode}',
+      _log.warning(
+        '$operation failed id=$id code=${error.code.name} status=${error.statusCode}',
       );
     } else {
-      AppLogger.error(
-        '[VideoTasks] $operation failed id=$id',
-        error: error,
-        stackTrace: stack,
-      );
+      _log.error('$operation failed id=$id', error: error, stackTrace: stack);
     }
   }
 

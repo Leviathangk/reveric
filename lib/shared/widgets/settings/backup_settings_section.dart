@@ -51,6 +51,8 @@ import 'webdav_backup_settings.dart';
 import 'webdav_restore_page.dart';
 import '../../components/reveric_dialog.dart';
 
+final _log = AppLogger.forModule('Backup');
+
 /// 备份配置区（变更记录保留 + 备份）。
 class BackupSettingsSection extends HookConsumerWidget {
   const BackupSettingsSection({super.key, this.compact = false});
@@ -771,7 +773,7 @@ class BackupSettingsSection extends HookConsumerWidget {
     ValueNotifier<String?> message,
     ValueNotifier<bool> isError,
   ) async {
-    AppLogger.info('[Backup] _performBackup started');
+    _log.info('_performBackup started');
     isBackingUp.value = true;
     message.value = null;
     final supportsCustomDirectory = backupSupportsCustomDirectory();
@@ -796,8 +798,8 @@ class BackupSettingsSection extends HookConsumerWidget {
       return;
     }
 
-    AppLogger.info(
-      '[Backup] Calling BackupOrchestrator, '
+    _log.info(
+      'Calling BackupOrchestrator, '
       'supportsCustomDirectory=$supportsCustomDirectory',
     );
     final stopwatch = Stopwatch()..start();
@@ -814,8 +816,8 @@ class BackupSettingsSection extends HookConsumerWidget {
             webDavConfig: settings.webDavBackupConfig,
           );
     stopwatch.stop();
-    AppLogger.info(
-      '[Backup] createBackup completed in ${stopwatch.elapsedMilliseconds}ms, '
+    _log.info(
+      'createBackup completed in ${stopwatch.elapsedMilliseconds}ms, '
       'success=${result.success}, failureReason=${result.failureReason}',
     );
     if (result.success) {
@@ -862,10 +864,10 @@ class BackupSettingsSection extends HookConsumerWidget {
           fileNameOverrides: [File(zipPath).uri.pathSegments.last],
         ),
       );
-      AppLogger.info('[Backup] Save-a-copy sheet closed: ${result.status}');
+      _log.info('Save-a-copy sheet closed: ${result.status}');
     } catch (error, stackTrace) {
-      AppLogger.error(
-        '[Backup] Save-a-copy failed path=$zipPath',
+      _log.error(
+        'Save-a-copy failed path=$zipPath',
         error: error,
         stackTrace: stackTrace,
       );
@@ -928,8 +930,8 @@ class BackupSettingsSection extends HookConsumerWidget {
         ],
       );
     } catch (error, stackTrace) {
-      AppLogger.error(
-        '[Backup] Restore file selection failed',
+      _log.error(
+        'Restore file selection failed',
         error: error,
         stackTrace: stackTrace,
       );
@@ -982,9 +984,7 @@ class BackupSettingsSection extends HookConsumerWidget {
         novelIds: execution.selection.novelIds,
         onBeforeFileRestore: () async {
           final mode = execution.selection.mode;
-          AppLogger.info(
-            '[Backup] Restore: closing database executors mode=${mode.name}',
-          );
+          _log.info('Restore: closing database executors mode=${mode.name}');
           if (mode == RestoreMode.fullReplacement) {
             final container = ProviderScope.containerOf(context, listen: false);
             if (container.exists(videoTaskServiceProvider)) {
@@ -996,10 +996,10 @@ class BackupSettingsSection extends HookConsumerWidget {
               await container.read(imageTaskServiceProvider).shutdown();
             }
             await app_db.AppDatabase.closeCachedForFileReplacement();
-            AppLogger.info('[Backup] Restore: main database executor closed');
+            _log.info('Restore: main database executor closed');
           }
           await NovelContentDatabase.closeAllCachedForFileReplacement();
-          AppLogger.info('[Backup] Restore: content database executors closed');
+          _log.info('Restore: content database executors closed');
         },
       );
       if (!context.mounted) {
@@ -1198,8 +1198,8 @@ Future<void> _deleteFileIfPresent(String path) async {
       await file.delete();
     }
   } catch (error, stackTrace) {
-    AppLogger.error(
-      '[Backup] Failed to delete temporary restore file',
+    _log.error(
+      'Failed to delete temporary restore file',
       error: error,
       stackTrace: stackTrace,
     );

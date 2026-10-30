@@ -13,10 +13,9 @@ final _log = AppLogger.forModule('EmbeddingSync');
 
 class ChapterEmbeddingSyncQueue {
   ChapterEmbeddingSyncQueue({
-    required NovelContentService contentService,
+    required this._contentService,
     required String? embeddingModel,
-  }) : _contentService = contentService,
-       _embeddingModel = (() {
+  }) : _embeddingModel = (() {
          final t = embeddingModel?.trim();
          return (t == null || t.isEmpty) ? null : t;
        })();
@@ -80,15 +79,19 @@ class ChapterEmbeddingSyncQueue {
       return false;
     }
     if (_inProgressChapterIds.contains(chapterId)) {
-      _log.debug(
-        'enqueue skipped for chapter $chapterId — already being synced',
-      );
+      if (_log.isDebugEnabled) {
+        _log.debug(
+          'enqueue skipped for chapter $chapterId — already being synced',
+        );
+      }
       return false;
     }
     if (_embeddingModel == null) {
-      _log.debug(
-        'enqueue skipped for chapter $chapterId — embeddingModel is null',
-      );
+      if (_log.isDebugEnabled) {
+        _log.debug(
+          'enqueue skipped for chapter $chapterId — embeddingModel is null',
+        );
+      }
       return false;
     }
     _pendingChapterIds.add(chapterId);
@@ -109,9 +112,11 @@ class ChapterEmbeddingSyncQueue {
         _pendingChapterIds.add(chapter.id);
       }
     }
-    _log.debug(
-      'drainPending: found ${_pendingChapterIds.length} pending chapters',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'drainPending: found ${_pendingChapterIds.length} pending chapters',
+      );
+    }
     if (_pendingChapterIds.isNotEmpty) {
       unawaited(_drain());
     }

@@ -31,6 +31,8 @@ import 'derived_placement.dart';
 import '../../models/production/media.dart';
 import '../../database/app_database.dart' show AssetRow;
 
+final _log = AppLogger.forModule('Grid');
+
 /// 支持的倍率必须同时满足分辨率与单张参考图能力，不能静默降级。
 Set<int> gridUpscaleMultipliers(ProductionImageCapabilities capabilities) => {
   for (final factor in [2, 4])
@@ -193,8 +195,8 @@ class GridOrchestrator {
         await Future.any([prepared.future, observed]);
         results[entry.key] = {'ok': true, 'submitted': true, 'task_id': taskId};
       } catch (error, stack) {
-        AppLogger.error(
-          '[Grid] image preparation/submission failed node=${entry.key}',
+        _log.error(
+          'image preparation/submission failed node=${entry.key}',
           error: error,
           stackTrace: stack,
         );
@@ -211,8 +213,8 @@ class GridOrchestrator {
             recorded = true;
           }
         } catch (recordError, recordStack) {
-          AppLogger.error(
-            '[Grid] failed to record rejected task node=${entry.key}',
+          _log.error(
+            'failed to record rejected task node=${entry.key}',
             error: recordError,
             stackTrace: recordStack,
           );

@@ -79,7 +79,9 @@ class NovelImportService {
     final text = decodeImportedTextBytes(
       bytes,
       onGbkDecodeFailure: (error) {
-        _log.debug('GBK decode failed, fallback to UTF-8: $error');
+        if (_log.isDebugEnabled) {
+          _log.debug('GBK decode failed, fallback to UTF-8: $error');
+        }
       },
     );
     final fallbackTitle = p.basenameWithoutExtension(filePath).trim();

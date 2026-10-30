@@ -34,6 +34,8 @@ import '../../../shared/services/subjects.dart';
 import '../../../shared/theme/theme.dart';
 import 'node_card.dart' show ProductionAssetThumb;
 
+final _log = AppLogger.forModule('Director');
+
 enum SceneRecognitionSource { upload, canvas, scenes, history }
 
 typedef SceneRecognitionChoice = ({String assetId, bool overwrite});
@@ -241,11 +243,7 @@ class _UploadPane extends HookWidget {
           onPicked(asset.id);
         }
       } catch (error, stack) {
-        AppLogger.error(
-          '[Director] recognize upload failed',
-          error: error,
-          stackTrace: stack,
-        );
+        _log.error('recognize upload failed', error: error, stackTrace: stack);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(context.t(LocaleKeys.mediaImportFailed))),
@@ -496,9 +494,7 @@ class _ImageGrid extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        RevericRadius.medium,
-                      ),
+                      borderRadius: BorderRadius.circular(RevericRadius.medium),
                       child: ProductionAssetThumb(
                         service: service,
                         assetId: image.assetId,

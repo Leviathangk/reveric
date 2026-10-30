@@ -55,6 +55,8 @@ import 'upload.dart';
 import 'view/method.dart';
 import '../../widgets/settings/settings_dialog.dart';
 
+final _log = AppLogger.forModule('ProductionImage');
+
 class ProductionImageComposer extends HookWidget {
   const ProductionImageComposer({
     super.key,
@@ -224,8 +226,8 @@ class _ImageForm extends HookConsumerWidget {
         }
         return true;
       } catch (failure, stack) {
-        AppLogger.error(
-          '[ProductionImage] draft save failed node=${node.id}',
+        _log.error(
+          'draft save failed node=${node.id}',
           error: failure,
           stackTrace: stack,
         );

@@ -9,6 +9,8 @@ import 'package:flutter/foundation.dart';
 
 import 'app_logger.dart';
 
+final _log = AppLogger.forModule('FlutterError');
+
 typedef FlutterErrorLogSink =
     void Function(String message, {Object? error, StackTrace? stackTrace});
 typedef FlutterErrorReportSink =
@@ -21,8 +23,8 @@ void installFlutterErrorLogger({
 }) {
   FlutterError.onError = (details) {
     (presentErrorOverride ?? FlutterError.presentError)(details);
-    (logErrorOverride ?? AppLogger.error)(
-      '[FlutterError] ${details.exceptionAsString()}',
+    (logErrorOverride ?? _log.error)(
+      details.exceptionAsString(),
       error: details.exception,
       stackTrace: details.stack,
     );

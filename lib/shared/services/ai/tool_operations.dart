@@ -16,6 +16,8 @@ import '../../logger/app_logger.dart';
 import '../../utils/random_id.dart';
 import '../tool_permission_gate.dart';
 
+final _log = AppLogger.forModule('ToolOperation');
+
 enum ToolOperationStatus {
   waiting_approval,
   queued,
@@ -265,9 +267,8 @@ class ToolOperationContext {
     this.cancellation,
     this.report,
     this.input, {
-    Future<void> Function(ToolActionRequest, Future<void> Function())?
-    authorize,
-  }) : _authorize = authorize;
+    this._authorize,
+  });
   final Future<void> Function(ToolActionRequest, Future<void> Function())?
   _authorize;
 
@@ -524,8 +525,8 @@ class ToolOperationManager {
           });
           result = await execute(execution);
         } on MediaException catch (error, stack) {
-          AppLogger.error(
-            '[ToolOperation] media failed run=${record.runId} '
+          _log.error(
+            'media failed run=${record.runId} '
             'kind=${record.kind} stage=${record.progress?['stage'] ?? 'execute'}',
             error: error,
             stackTrace: stack,
@@ -563,8 +564,8 @@ class ToolOperationManager {
             if (error.code == 'cancelled') 'cancelled': true,
           };
         } catch (error, stack) {
-          AppLogger.error(
-            '[ToolOperation] execution failed run=${record.runId}',
+          _log.error(
+            'execution failed run=${record.runId}',
             error: error,
             stackTrace: stack,
           );
@@ -584,8 +585,8 @@ class ToolOperationManager {
         try {
           await release?.call();
         } catch (error, stack) {
-          AppLogger.error(
-            '[ToolOperation] release failed run=${record.runId}',
+          _log.error(
+            'release failed run=${record.runId}',
             error: error,
             stackTrace: stack,
           );
@@ -606,8 +607,8 @@ class ToolOperationManager {
         try {
           await onFinished?.call(record);
         } catch (error, stack) {
-          AppLogger.error(
-            '[ToolOperation] history persistence failed run=${record.runId}',
+          _log.error(
+            'history persistence failed run=${record.runId}',
             error: error,
             stackTrace: stack,
           );

@@ -6,11 +6,8 @@ import '../services/ai/builtin_agent_tools.dart';
 import '../localization/locale_keys.dart';
 import '../models/agent_profile.dart';
 import '../services/ai/prompt_template.dart';
-import '../logger/app_logger.dart';
 
 part 'agent_profile_providers.g.dart';
-
-final _log = AppLogger.forModule('AgentProfile');
 
 const _agentAvatarBySlug = {
   'planner': '🧠',
@@ -129,16 +126,10 @@ List<AgentProfile> _onlyPrimary(Iterable<AgentProfile> agents) => agents
 class GlobalAgentProfiles extends _$GlobalAgentProfiles {
   @override
   Future<List<AgentProfile>> build() async {
-    _log.debug('global build start');
     final db = AppDatabase();
     final agents = await db.globalAgentDao.getByScope(agentScopeGlobal);
     final profiles = _onlyPrimary(
       agents.where((agent) => agent.category == 'primary').map(_mapAgent),
-    );
-    _log.debug(
-      'global daoRows=${agents.length} '
-      'profiles=${profiles.length} '
-      'rows=${agents.map((agent) => '${agent.slug}:${agent.category}:${agent.enabled}').toList()}',
     );
     return profiles;
   }
@@ -205,7 +196,6 @@ Stream<List<AgentProfile>> globalAgentProfilesStream(Ref ref) async* {
 class NovelAgentProfiles extends _$NovelAgentProfiles {
   @override
   Future<List<AgentProfile>> build(String novelId) async {
-    _log.debug('novel build start novelId=$novelId');
     final db = AppDatabase();
     final agents = await db.globalAgentDao.getByScope(
       agentScopeNovel,
@@ -213,11 +203,6 @@ class NovelAgentProfiles extends _$NovelAgentProfiles {
     );
     final profiles = _onlyPrimary(
       agents.where((agent) => agent.category == 'primary').map(_mapAgent),
-    );
-    _log.debug(
-      'novel novelId=$novelId daoRows=${agents.length} '
-      'profiles=${profiles.length} '
-      'rows=${agents.map((agent) => '${agent.slug}:${agent.category}:${agent.enabled}').toList()}',
     );
     return profiles;
   }
@@ -300,11 +285,6 @@ List<AgentProfile> mergedAgentProfiles(Ref ref, {String? novelId}) {
       if (!novelBySlug.containsKey(profile.slug)) profile,
   ];
   merged.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-  _log.debug(
-    'merged novelId=$novelId '
-    'global=${globalProfiles.length} novel=${novelProfiles.length} '
-    'merged=${merged.length}',
-  );
   return merged;
 }
 

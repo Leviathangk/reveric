@@ -546,11 +546,18 @@ Future<Map<String, Object?>> _apiGet(
 }) async {
   final uri = Uri.parse('${_normalizeBaseUrl(baseUrl)}/$path');
   final start = DateTime.now();
-  _log.debug('GET $uri headers=${headers.keys} timeout=${timeout.inSeconds}s');
+  if (_log.isDebugEnabled) {
+    _log.debug(
+      'GET $uri headers=${headers.keys} timeout=${timeout.inSeconds}s',
+    );
+  }
   try {
     final response = await client.get(uri, headers: headers).timeout(timeout);
-    final duration = DateTime.now().difference(start).inMilliseconds;
-    _log.debug('GET $uri status=${response.statusCode} duration=${duration}ms');
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'GET $uri status=${response.statusCode} duration=${DateTime.now().difference(start).inMilliseconds}ms',
+      );
+    }
     return _parseJsonResponse(response, path);
   } on TimeoutException {
     final duration = DateTime.now().difference(start).inMilliseconds;
@@ -571,17 +578,20 @@ Future<Map<String, Object?>> _apiPost(
 }) async {
   final uri = Uri.parse('${_normalizeBaseUrl(baseUrl)}/$endpoint');
   final start = DateTime.now();
-  _log.debug(
-    'POST $uri timeout=${timeout.inSeconds}s bodyKeys=${(body as Map).keys}',
-  );
+  if (_log.isDebugEnabled) {
+    _log.debug(
+      'POST $uri timeout=${timeout.inSeconds}s bodyKeys=${(body as Map).keys}',
+    );
+  }
   try {
     final response = await client
         .post(uri, headers: buildWechatHeaders(token), body: jsonEncode(body))
         .timeout(timeout);
-    final duration = DateTime.now().difference(start).inMilliseconds;
-    _log.debug(
-      'POST $uri status=${response.statusCode} duration=${duration}ms',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'POST $uri status=${response.statusCode} duration=${DateTime.now().difference(start).inMilliseconds}ms',
+      );
+    }
     return _parseJsonResponse(response, endpoint);
   } on TimeoutException {
     final duration = DateTime.now().difference(start).inMilliseconds;
@@ -602,19 +612,23 @@ Future<WechatQrCodeResponse> fetchWechatQrCode(
   String baseUrl, {
   required http.Client client,
 }) async {
-  _log.debug('fetchWechatQrCode baseUrl=$baseUrl');
+  if (_log.isDebugEnabled) {
+    _log.debug('fetchWechatQrCode baseUrl=$baseUrl');
+  }
   final json = await _apiGet(
     baseUrl,
     'ilink/bot/get_bot_qrcode?bot_type=3',
     client: client,
   );
   final resp = WechatQrCodeResponse.fromJson(json);
-  final qrcodePrefix = resp.qrcode.length > 10
-      ? resp.qrcode.substring(0, 10)
-      : resp.qrcode;
-  _log.debug(
-    'fetchWechatQrCode completed qrcode=$qrcodePrefix... qrcodeImgContent=${resp.qrcodeImgContent}',
-  );
+  if (_log.isDebugEnabled) {
+    final qrcodePrefix = resp.qrcode.length > 10
+        ? resp.qrcode.substring(0, 10)
+        : resp.qrcode;
+    _log.debug(
+      'fetchWechatQrCode completed qrcode=$qrcodePrefix... qrcodeImgContent=${resp.qrcodeImgContent}',
+    );
+  }
   return resp;
 }
 
@@ -624,8 +638,10 @@ Future<WechatQrStatusResponse> pollWechatQrStatus(
   String qrcode, {
   required http.Client client,
 }) async {
-  final qrcodePrefix = qrcode.length > 10 ? qrcode.substring(0, 10) : qrcode;
-  _log.debug('pollWechatQrStatus qrcode=$qrcodePrefix...');
+  if (_log.isDebugEnabled) {
+    final qrcodePrefix = qrcode.length > 10 ? qrcode.substring(0, 10) : qrcode;
+    _log.debug('pollWechatQrStatus qrcode=$qrcodePrefix...');
+  }
   final json = await _apiGet(
     baseUrl,
     'ilink/bot/get_qrcode_status?qrcode=${Uri.encodeQueryComponent(qrcode)}',
@@ -634,9 +650,11 @@ Future<WechatQrStatusResponse> pollWechatQrStatus(
     timeout: const Duration(seconds: 40),
   );
   final resp = WechatQrStatusResponse.fromJson(json);
-  _log.debug(
-    'pollWechatQrStatus status=${resp.status} botToken=${resp.botToken != null ? "present" : "null"}',
-  );
+  if (_log.isDebugEnabled) {
+    _log.debug(
+      'pollWechatQrStatus status=${resp.status} botToken=${resp.botToken != null ? "present" : "null"}',
+    );
+  }
   return resp;
 }
 

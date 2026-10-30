@@ -115,12 +115,10 @@ class _AddOp {
 
 class MemoryDreamingService {
   MemoryDreamingService({
-    required AppDatabase appDb,
-    required Future<AiClient?> Function() clientFactory,
-    Duration timeout = memoryDreamingTimeout,
-  }) : _appDb = appDb,
-       _clientFactory = clientFactory,
-       _timeout = timeout;
+    required this._appDb,
+    required this._clientFactory,
+    this._timeout = memoryDreamingTimeout,
+  });
 
   final AppDatabase _appDb;
   final Future<AiClient?> Function() _clientFactory;
@@ -133,7 +131,9 @@ class MemoryDreamingService {
       novelId: novelId,
     );
     if (memories.length < 2) {
-      _log.debug('too few memories (${memories.length}), skipping');
+      if (_log.isDebugEnabled) {
+        _log.debug('too few memories (${memories.length}), skipping');
+      }
       return 0;
     }
 
@@ -226,10 +226,12 @@ class MemoryDreamingService {
           }
         }
         changes++;
-        _log.debug(
-          'merged ${op.mergeIndices.length + 1} memories -> ${keep.id}'
-          '${op.reason.isNotEmpty ? ' reason=${op.reason}' : ''}',
-        );
+        if (_log.isDebugEnabled) {
+          _log.debug(
+            'merged ${op.mergeIndices.length + 1} memories -> ${keep.id}'
+            '${op.reason.isNotEmpty ? ' reason=${op.reason}' : ''}',
+          );
+        }
       } catch (e) {
         _log.error('merge error: $e', error: e);
       }
@@ -247,7 +249,9 @@ class MemoryDreamingService {
           priority: memoryPriorityCore,
         );
         changes++;
-        _log.debug('upgraded ${mem.id} to core');
+        if (_log.isDebugEnabled) {
+          _log.debug('upgraded ${mem.id} to core');
+        }
       } catch (e) {
         _log.error('upgrade error: $e', error: e);
       }
@@ -260,7 +264,9 @@ class MemoryDreamingService {
         await _appDb.memoryDao.softDelete(memories[idx].id);
         deletedIndices.add(idx);
         changes++;
-        _log.debug('deleted ${memories[idx].id}');
+        if (_log.isDebugEnabled) {
+          _log.debug('deleted ${memories[idx].id}');
+        }
       } catch (e) {
         _log.error('delete error: $e', error: e);
       }

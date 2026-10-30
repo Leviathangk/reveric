@@ -20,17 +20,13 @@ final _log = AppLogger.forModule('Embedding');
 
 class AiEmbeddingService {
   AiEmbeddingService({
-    required ProviderClient? providerClient,
-    required AiProvider config,
-    required NovelContentService? novelContentService,
-    required String? embeddingModel,
-    required String? segmenterModel,
+    required this._providerClient,
+    required this._config,
+    required this._novelContentService,
+    required this._embeddingModel,
+    required this._segmenterModel,
     this.embeddingConfig = const AiEmbeddingConfig(),
-  }) : _providerClient = providerClient,
-       _config = config,
-       _novelContentService = novelContentService,
-       _embeddingModel = embeddingModel,
-       _segmenterModel = segmenterModel;
+  });
 
   final ProviderClient? _providerClient;
   final AiProvider _config;
@@ -205,10 +201,12 @@ class AiEmbeddingService {
     List<String> texts, {
     String? tag,
   }) async {
-    _log.debug(
-      '[Router]${tag != null ? " chapter=$tag" : ""}'
-      ' provider=${_config.name} type=${_config.typeEnum.name}',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        '[Router]${tag != null ? " chapter=$tag" : ""}'
+        ' provider=${_config.name} type=${_config.typeEnum.name}',
+      );
+    }
     if (_config.typeEnum == AiProviderType.doubao) {
       return _embedTextsDoubao(texts, tag: tag);
     }
@@ -255,10 +253,12 @@ class AiEmbeddingService {
         ],
         'encoding_format': 'float',
       });
-      _log.debug(
-        '[Doubao]${tag != null ? " chapter=$tag" : ""}'
-        ' provider=${_config.name} model=$model POST $url chars=${text.length}',
-      );
+      if (_log.isDebugEnabled) {
+        _log.debug(
+          '[Doubao]${tag != null ? " chapter=$tag" : ""}'
+          ' provider=${_config.name} model=$model POST $url chars=${text.length}',
+        );
+      }
       final response = await http.post(
         url,
         headers: {
@@ -277,9 +277,11 @@ class AiEmbeddingService {
       final embedding = data['embedding'] as List;
       results.add(embedding.map((e) => (e as num).toDouble()).toList());
     }
-    _log.debug(
-      '[Doubao]${tag != null ? " chapter=$tag" : ""} done vectors=${results.length}',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        '[Doubao]${tag != null ? " chapter=$tag" : ""} done vectors=${results.length}',
+      );
+    }
     return results;
   }
 
@@ -313,10 +315,12 @@ class AiEmbeddingService {
         'input': batch,
         'encoding_format': 'float',
       });
-      _log.debug(
-        '[OpenAI]${tag != null ? " chapter=$tag" : ""}'
-        ' provider=${_config.name} POST $url model=$model batch=${batch.length}',
-      );
+      if (_log.isDebugEnabled) {
+        _log.debug(
+          '[OpenAI]${tag != null ? " chapter=$tag" : ""}'
+          ' provider=${_config.name} POST $url model=$model batch=${batch.length}',
+        );
+      }
       final response = await http.post(
         url,
         headers: {
@@ -337,9 +341,11 @@ class AiEmbeddingService {
         results.add(embedding.map((e) => (e as num).toDouble()).toList());
       }
     }
-    _log.debug(
-      '[OpenAI]${tag != null ? " chapter=$tag" : ""} done vectors=${results.length}',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        '[OpenAI]${tag != null ? " chapter=$tag" : ""} done vectors=${results.length}',
+      );
+    }
     return results;
   }
 

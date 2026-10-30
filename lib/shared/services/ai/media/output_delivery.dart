@@ -9,6 +9,8 @@ import '../files/session_files.dart';
 import '../ffmpeg/outputs.dart';
 import '../tool_operations.dart';
 
+final _log = AppLogger.forModule('MediaDelivery');
+
 class MediaOutputDelivery {
   MediaOutputDelivery(this.files);
   final SessionFiles files;
@@ -44,9 +46,7 @@ class MediaOutputDelivery {
       }
       operation.checkCancelled();
     } on FileSystemException catch (error) {
-      AppLogger.warning(
-        '[MediaDelivery] delivery failed os_code=${error.osError?.errorCode}',
-      );
+      _log.warning('delivery failed os_code=${error.osError?.errorCode}');
       if (owned && await destination.exists()) {
         await destination.delete();
       }

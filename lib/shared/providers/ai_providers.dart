@@ -727,9 +727,11 @@ class AiChatRuntime extends _$AiChatRuntime {
   }) {
     final tracker = ref.read(aiModeProcessingTrackerProvider.notifier);
     final sessionNotifier = ref.read(aiChatSessionProvider(sessionId).notifier);
-    _aiProvidersLog.debug(
-      'AskUser registered runId=${state.requestSequence} callId=${request.callId}',
-    );
+    if (_aiProvidersLog.isDebugEnabled) {
+      _aiProvidersLog.debug(
+        'AskUser registered runId=${state.requestSequence} callId=${request.callId}',
+      );
+    }
     pendingAskUserRequests[request.callId]?.cancel();
     final pending = PendingAskUser(
       request: request,
@@ -742,9 +744,11 @@ class AiChatRuntime extends _$AiChatRuntime {
         }
         pendingAskUserRequests.remove(request.callId);
         final status = AiAskUserStatus.fromResult(result);
-        _aiProvidersLog.debug(
-          'AskUser resolved runId=${pending.runId} callId=${request.callId} status=${status.name}',
-        );
+        if (_aiProvidersLog.isDebugEnabled) {
+          _aiProvidersLog.debug(
+            'AskUser resolved runId=${pending.runId} callId=${request.callId} status=${status.name}',
+          );
+        }
         if (_disposed) {
           return;
         }
@@ -2061,20 +2065,10 @@ class AiChatSession extends _$AiChatSession {
 
   void selectModel({required String providerId, required String model}) {
     final settings = ref.read(aiSettingsProvider);
-    final option = settings.findModelOptionById(
-      kind: AiModelKind.chat,
-      optionId: '$providerId::$model',
-    );
     final reasoningEffort = resolveSessionReasoningEffort(
       providerId: providerId,
       model: model,
       settings: settings,
-    );
-    // [DEBUG effort] 确认选模型时设置的 reasoningEffort。
-    AppLogger.debug(
-      '[effort-debug] selectModel option=${option?.id} '
-      'efforts=${option?.reasoningEfforts} '
-      'effort=$reasoningEffort',
     );
     state = state.copyWith(
       providerId: providerId,

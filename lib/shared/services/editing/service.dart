@@ -20,6 +20,8 @@ import '../production/media_file.dart';
 import '../production/ffmpeg_runner.dart';
 import '../storyboard/service.dart';
 
+final _log = AppLogger.forModule('Editing');
+
 class EditingSourceProblem implements Exception {
   const EditingSourceProblem(this.ids);
   final List<String> ids;
@@ -120,8 +122,8 @@ class EditingService {
           broken.add(c.id);
         }
       } catch (error, stack) {
-        AppLogger.error(
-          '[Editing] source verification failed clip=${c.id}',
+        _log.error(
+          'source verification failed clip=${c.id}',
           error: error,
           stackTrace: stack,
         );
@@ -204,8 +206,8 @@ class EditingService {
           ],
         );
       } catch (error, stack) {
-        AppLogger.error(
-          '[Editing] import failed clip=${row.id}',
+        _log.error(
+          'import failed clip=${row.id}',
           error: error,
           stackTrace: stack,
         );

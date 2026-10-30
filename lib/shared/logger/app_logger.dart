@@ -8,17 +8,21 @@ import 'log_manager.dart';
 
 /// 全局日志入口。
 ///
-/// - 一次性日志：直接用 `AppLogger.info/warning/error`。
-/// - 模块日志：在文件顶部声明 `final _log = AppLogger.forModule('ModuleName');`，
+/// - 业务日志：在文件顶部声明 `final _log = AppLogger.forModule('ModuleName');`，
 ///   后续用 `_log.info/debug/warning/error`，自动添加 `[ModuleName]` 前缀。
+/// - debug / trace 动态消息先用 `isDebugEnabled/isTraceEnabled` 判断再构造。
+/// - 静态输出方法供模块日志器内部转发；级别配置通过 AppLogger 管理。
 ///
 /// 所有日志在 LogManager 初始化后写入文件；初始化前 fallback 到 debugPrint。
 class AppLogger {
   // ---------------------------------------------------------------------------
-  // 静态便捷 API（无 tag，适用于一次性日志）
+  // 静态输出 API（无 tag，供模块日志器转发）
   // ---------------------------------------------------------------------------
 
   static void trace(String message) {
+    if (!isEnabled(Level.trace)) {
+      return;
+    }
     if (LogManager.instance.isInitialized) {
       LogManager.instance.trace(message);
     } else {
@@ -27,12 +31,21 @@ class AppLogger {
   }
 
   static void debug(String message) {
+    if (!isEnabled(Level.debug)) {
+      return;
+    }
     if (LogManager.instance.isInitialized) {
       LogManager.instance.debug(message);
     } else {
       debugPrint('[DEBUG] $message');
     }
   }
+
+  /// 是否允许输出该级别；初始化前使用当前构建和环境变量的默认级别。
+  static bool isEnabled(Level level) => LogManager.instance.isEnabled(level);
+
+  static bool get isDebugEnabled => isEnabled(Level.debug);
+  static bool get isTraceEnabled => isEnabled(Level.trace);
 
   static void info(String message, {Map<String, dynamic>? extra}) {
     if (LogManager.instance.isInitialized) {
@@ -97,8 +110,22 @@ class ModuleLogger {
   final String _tag;
   const ModuleLogger(this._tag);
 
-  void trace(String message) => AppLogger.trace('[$_tag] $message');
-  void debug(String message) => AppLogger.debug('[$_tag] $message');
+  bool isEnabled(Level level) => AppLogger.isEnabled(level);
+  bool get isDebugEnabled => AppLogger.isDebugEnabled;
+  bool get isTraceEnabled => AppLogger.isTraceEnabled;
+
+  void trace(String message) {
+    if (isEnabled(Level.trace)) {
+      AppLogger.trace('[$_tag] $message');
+    }
+  }
+
+  void debug(String message) {
+    if (isEnabled(Level.debug)) {
+      AppLogger.debug('[$_tag] $message');
+    }
+  }
+
   void info(String message, {Map<String, dynamic>? extra}) =>
       AppLogger.info('[$_tag] $message', extra: extra);
   void warning(String message) => AppLogger.warning('[$_tag] $message');

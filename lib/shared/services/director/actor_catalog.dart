@@ -7,6 +7,8 @@ import 'package:flutter/foundation.dart';
 import '../../logger/app_logger.dart';
 import '../../models/director/actor_catalog.dart';
 
+final _log = AppLogger.forModule('DirectorActorCatalog');
+
 class DirectorActorCatalogController extends ChangeNotifier {
   DirectorActorCatalogController(this.source)
     : actors = List.unmodifiable(source.initialActors ?? const []);
@@ -38,7 +40,7 @@ class DirectorActorCatalogController extends ChangeNotifier {
         actors = List.unmodifiable(merged.values);
       }
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         'Director actor catalog load failed',
         error: error,
         stackTrace: stack,

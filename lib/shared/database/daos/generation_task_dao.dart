@@ -14,6 +14,8 @@ import '../app_database.dart';
 
 part 'generation_task_dao.drift.dart';
 
+final _log = AppLogger.forModule('GenerationTaskDao');
+
 @DriftAccessor(tables: [GenerationTasks])
 class GenerationTaskDao extends DatabaseAccessor<AppDatabase>
     with _$GenerationTaskDaoMixin {
@@ -99,7 +101,7 @@ class GenerationTaskDao extends DatabaseAccessor<AppDatabase>
         return true;
       });
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] generation_tasks UPDATE cancellation id=$id',
         error: error,
         stackTrace: stack,
@@ -138,7 +140,7 @@ class GenerationTaskDao extends DatabaseAccessor<AppDatabase>
         await into(generationTasks).insert(task);
       });
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] generation_tasks INSERT id=${task.id.value}',
         error: error,
         stackTrace: stack,
@@ -278,7 +280,7 @@ class GenerationTaskDao extends DatabaseAccessor<AppDatabase>
         return asset.id;
       });
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] assets INSERT / generation_tasks UPDATE result id=$id',
         error: error,
         stackTrace: stack,
@@ -364,7 +366,7 @@ class GenerationTaskDao extends DatabaseAccessor<AppDatabase>
               .write(values.copyWith(updatedAt: Value(DateTime.now()))) ==
           1;
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] generation_tasks UPDATE id=$id',
         error: error,
         stackTrace: stack,

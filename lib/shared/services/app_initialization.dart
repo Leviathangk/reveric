@@ -83,7 +83,9 @@ Future<void> ensureAppInitializationTasks({
       final settingKey = '$_appInitializationKeyPrefix${task.id}';
       final completedAt = completedKeys[settingKey];
       if (completedAt != null && completedAt.isNotEmpty) {
-        _log.debug('skip task=${task.id} completedAt=$completedAt');
+        if (_log.isDebugEnabled) {
+          _log.debug('skip task=${task.id} completedAt=$completedAt');
+        }
         continue;
       }
       _log.info('run task=${task.id}');

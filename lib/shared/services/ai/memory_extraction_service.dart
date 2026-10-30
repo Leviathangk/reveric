@@ -112,12 +112,10 @@ class _ConversationMessage {
 
 class MemoryExtractionService {
   MemoryExtractionService({
-    required AppDatabase appDb,
-    required Future<AiClient?> Function() clientFactory,
-    Duration timeout = memoryExtractionTimeout,
-  }) : _appDb = appDb,
-       _clientFactory = clientFactory,
-       _timeout = timeout;
+    required this._appDb,
+    required this._clientFactory,
+    this._timeout = memoryExtractionTimeout,
+  });
 
   final AppDatabase _appDb;
   final Future<AiClient?> Function() _clientFactory;
@@ -134,7 +132,9 @@ class MemoryExtractionService {
       limit: maxSessions,
     );
     if (sessions.isEmpty) {
-      _log.debug('no sessions for novelId=$novelId');
+      if (_log.isDebugEnabled) {
+        _log.debug('no sessions for novelId=$novelId');
+      }
       return const [];
     }
 

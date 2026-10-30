@@ -61,6 +61,8 @@ import 'upload.dart';
 import '../../widgets/settings/settings_dialog.dart';
 import '../../../shared/widgets/settings/provider_video_highlights.dart';
 
+final _log = AppLogger.forModule('Production');
+
 /// 将参考输入校验失败映射为当前渠道和模式下可操作的提示。
 String productionReferenceErrorKey({
   required VideoChannelModel channel,
@@ -266,11 +268,7 @@ class _ComposerForm extends HookConsumerWidget {
         }
         return true;
       } catch (e, st) {
-        AppLogger.error(
-          '[Production] Composer autosave failed',
-          error: e,
-          stackTrace: st,
-        );
+        _log.error('Composer autosave failed', error: e, stackTrace: st);
         if (context.mounted) {
           error.value = context.t(LocaleKeys.productionInvalid);
         }

@@ -266,7 +266,7 @@ void main() {
     await host.start();
     await host.execute('WebFetch', {});
     final message = messages.singleWhere(
-      (value) => value.contains('[Plugin:test.web]'),
+      (value) => value.contains('[Plugin] plugin=test.web '),
     );
     final encoded = jsonEncode(secret);
     expect(message, isNot(contains(encoded.substring(1, encoded.length - 1))));

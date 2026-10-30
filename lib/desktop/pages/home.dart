@@ -270,9 +270,6 @@ class NovelHomePage extends HookConsumerWidget {
       required bool removeCover,
       required List<String> tags,
     }) async {
-      _log.debug(
-        'enter title="$title" coverSourcePath=$coverSourcePath removeCover=$removeCover',
-      );
       final actions = ref.read(novelActionsProvider);
       final messenger = ScaffoldMessenger.of(feedbackContext);
       final navigator = Navigator.of(context);
@@ -290,10 +287,8 @@ class NovelHomePage extends HookConsumerWidget {
           coverSourcePath: coverSourcePath,
           tags: tags,
         );
-        _log.debug('createNovel returned novelId=$novelId');
 
         if (!context.mounted) {
-          _log.debug('context not mounted after createNovel');
           return true;
         }
         novelSerial.value += 1;
@@ -303,7 +298,6 @@ class NovelHomePage extends HookConsumerWidget {
         if (context.mounted) {
           Navigator.of(context, rootNavigator: true).pop();
         }
-        _log.debug('pushing WorkspaceEditorPage after creation');
         if (context.mounted) {
           navigator.push(
             MaterialPageRoute(
@@ -314,7 +308,6 @@ class NovelHomePage extends HookConsumerWidget {
             ),
           );
         }
-        _log.debug('returning true (success)');
         return true;
       } on NovelTitleConflictException catch (error) {
         _log.error('createNovel title conflict', error: error);
@@ -342,7 +335,6 @@ class NovelHomePage extends HookConsumerWidget {
             content: Text(context.t(LocaleKeys.libraryCreateNovelFailed)),
           ),
         );
-        _log.debug('returning false (error)');
         return false;
       }
     }

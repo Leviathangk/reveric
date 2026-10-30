@@ -26,6 +26,8 @@ import 'production.dart';
 import 'frames.dart';
 import '../../production/contact_sheet.dart';
 
+final _log = AppLogger.forModule('EditingPreview');
+
 class EditingToolHost {
   EditingToolHost(this.production, {FfmpegRunner? runner})
     : runner = runner ?? FfmpegRunner();
@@ -485,11 +487,7 @@ class EditingToolHost {
         'missing': missing,
       };
     } on FileSystemException catch (error, stack) {
-      AppLogger.error(
-        '[EditingPreview] cleanup failed run=$runId',
-        error: error,
-        stackTrace: stack,
-      );
+      _log.error('cleanup failed run=$runId', error: error, stackTrace: stack);
       throw const ToolOperationException(
         'file_cleanup_failed',
         'Some preview files could not be removed. Retry cleanup for this run.',

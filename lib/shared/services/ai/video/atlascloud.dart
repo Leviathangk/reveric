@@ -12,6 +12,8 @@ import '../../../logger/app_logger.dart';
 import '../media_diagnostics.dart';
 import 'client.dart';
 
+final _log = AppLogger.forModule('AtlasCloudVideo');
+
 class AtlasCloudVideoClient extends VideoClient {
   AtlasCloudVideoClient({
     required super.httpClient,
@@ -223,8 +225,8 @@ class AtlasCloudVideoClient extends VideoClient {
     final prediction = _prediction(json);
     final status = prediction['status'] as String;
     if (status == 'failed') {
-      AppLogger.warning(
-        '[AtlasCloudVideo] prediction failed endpoint=$endpoint '
+      _log.warning(
+        'prediction failed endpoint=$endpoint '
         'response=${safeMediaDiagnostic(prediction, apiKey)}',
       );
     }

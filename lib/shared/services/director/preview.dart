@@ -14,6 +14,8 @@ import 'package:uuid/uuid.dart';
 import '../../logger/app_logger.dart';
 import 'storage.dart';
 
+final _log = AppLogger.forModule('Director');
+
 class DirectorPreview {
   DirectorPreview(this.storage);
   final DirectorStorage storage;
@@ -44,11 +46,7 @@ class DirectorPreview {
       }
       return await image.readAsBytes();
     } on FileSystemException catch (error, stack) {
-      AppLogger.error(
-        '[Director] preview cache read failed',
-        error: error,
-        stackTrace: stack,
-      );
+      _log.error('preview cache read failed', error: error, stackTrace: stack);
       return null;
     }
   }

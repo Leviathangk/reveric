@@ -116,7 +116,7 @@ final class AiChatRuntimeProvider
   }
 }
 
-String _$aiChatRuntimeHash() => r'a6ddd79045f40d5644e24a928ff6f0ae68d36860';
+String _$aiChatRuntimeHash() => r'5d378f71b9630f32725358a8a6da8f12ac79d40b';
 
 final class AiChatRuntimeFamily extends $Family
     with
@@ -217,7 +217,7 @@ final class AiChatSessionProvider
   }
 }
 
-String _$aiChatSessionHash() => r'3aca3182536f39a3788a751238a28e50065b1ac6';
+String _$aiChatSessionHash() => r'1e770d3a9a3ef9363d7738f997404bae01c38aa0';
 
 /// AI 聊天会话 Notifier
 

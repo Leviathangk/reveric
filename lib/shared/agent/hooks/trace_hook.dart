@@ -79,7 +79,9 @@ class TraceHook extends AgentHook {
     final sid = _sessionId();
     final model = _model();
     final sessionMode = _sessionMode();
-    _log.debug('onStart sid=$sid model=$model mode=$sessionMode');
+    if (_log.isDebugEnabled) {
+      _log.debug('onStart sid=$sid model=$model mode=$sessionMode');
+    }
     if (sid != null && model != null) {
       await _reporter.onTurnStart(sid, model, sessionMode: sessionMode);
     }
@@ -102,7 +104,9 @@ class TraceHook extends AgentHook {
         reasoningTokens: _turnUsage.reasoningTokens + usage.reasoningTokens,
       );
     }
-    _log.debug('afterLLM req=$_turnRequestCount usage=${usage != null}');
+    if (_log.isDebugEnabled) {
+      _log.debug('afterLLM req=$_turnRequestCount usage=${usage != null}');
+    }
     return const HookAction.proceed();
   }
 
@@ -149,10 +153,12 @@ class TraceHook extends AgentHook {
       }
       return const HookAction.proceed();
     }
-    _log.debug(
-      'afterToolCall failed tool=${ctx.call.toolName} '
-      'code=${ctx.result['error_code']} collection=${ctx.result['collection']}',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'afterToolCall failed tool=${ctx.call.toolName} '
+        'code=${ctx.result['error_code']} collection=${ctx.result['collection']}',
+      );
+    }
     if (sid != null && model != null) {
       await _reporter.onToolCallError(
         sid,
@@ -216,9 +222,11 @@ class TraceHook extends AgentHook {
   }) async {
     final sid = _sessionId();
     final model = _model();
-    _log.debug(
-      'onLLMError sid=$sid model=$model attempt=$attempt error=$error',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'onLLMError sid=$sid model=$model attempt=$attempt error=$error',
+      );
+    }
     if (isStreamError &&
         !isContextLengthExceeded(error) &&
         sid != null &&
@@ -260,7 +268,11 @@ class TraceHook extends AgentHook {
     final sid = _sessionId();
     final model = _model();
     final sessionMode = _sessionMode();
-    _log.debug('onError sid=$sid model=$model mode=$sessionMode error=$error');
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'onError sid=$sid model=$model mode=$sessionMode error=$error',
+      );
+    }
     if (sid != null && model != null) {
       await _reporter.onRequestError(
         sid,
@@ -284,10 +296,12 @@ class TraceHook extends AgentHook {
     final sid = _sessionId();
     final model = _model();
     final sessionMode = _sessionMode();
-    _log.debug(
-      'onEnd sid=$sid model=$model mode=$sessionMode '
-      'req=$_turnRequestCount tools=$_turnToolCallCount',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'onEnd sid=$sid model=$model mode=$sessionMode '
+        'req=$_turnRequestCount tools=$_turnToolCallCount',
+      );
+    }
     if (sid != null && model != null) {
       final cancelSource = _cancelSource?.call();
       // failed / recovered 是明确终态，优先于晚到的 dispose/cancel source，

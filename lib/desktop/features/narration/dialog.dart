@@ -27,6 +27,8 @@ import '../../../shared/theme/theme.dart';
 import 'playback.dart';
 import 'setup.dart';
 
+final _log = AppLogger.forModule('Narration');
+
 class NarrationDialog extends HookConsumerWidget {
   const NarrationDialog({
     super.key,
@@ -51,8 +53,8 @@ class NarrationDialog extends HookConsumerWidget {
     final settings = useRef<NarrationSettings?>(null);
     useEffect(() {
       if (loaded.hasError) {
-        AppLogger.error(
-          '[Narration] configuration load failed',
+        _log.error(
+          'configuration load failed',
           error: loaded.error,
           stackTrace: loaded.stackTrace,
         );

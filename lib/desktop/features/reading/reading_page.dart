@@ -40,6 +40,8 @@ import '../../../shared/widgets/reading/reading_settings_controls.dart';
 import '../../../shared/widgets/reading/reading_theme_palette.dart';
 import '../../widgets/desktop_window_frame.dart';
 
+final _log = AppLogger.forModule('ReadingRestore');
+
 const _readingToolbarHeight = RevericSizes.buttonHeight + RevericSpacing.x2l;
 const _desktopReadingMaxWidth = 800.0;
 const _readingTocItemExtent =
@@ -117,7 +119,6 @@ class DesktopReadingPage extends HookConsumerWidget {
     final lastContinuousProgress =
         useRef<({String chapterId, double scrollOffset})?>(null);
     final debounceTimer = useRef<Timer?>(null);
-    final lastChapterLoadState = useRef<String?>(null);
 
     // dispose 时 cancel timer + flush 待写偏移
     useEffect(() {
@@ -187,12 +188,14 @@ class DesktopReadingPage extends HookConsumerWidget {
       }
       progressRestored.value = true;
       final preferredId = progress.chapterId ?? readableChapters.first.id;
-      AppLogger.debug(
-        '[ReadingRestore] desktop novel=$novelId '
-        'chapterId=${progress.chapterId} '
-        'scrollOffset=${progress.scrollOffset} '
-        'preferredId=$preferredId',
-      );
+      if (_log.isDebugEnabled) {
+        _log.debug(
+          'desktop novel=$novelId '
+          'chapterId=${progress.chapterId} '
+          'scrollOffset=${progress.scrollOffset} '
+          'preferredId=$preferredId',
+        );
+      }
       currentChapterId.value = preferredId;
       continuousAnchorChapterId.value = preferredId;
       if (progress.chapterId == null) {
@@ -224,22 +227,6 @@ class DesktopReadingPage extends HookConsumerWidget {
             ),
           );
     final currentChapter = currentChapterAsync?.value;
-    final chapterLoadState = switch (currentChapterAsync) {
-      null => 'no-selection',
-      AsyncLoading<Chapter?>() => 'loading',
-      AsyncData<Chapter?>(:final value) =>
-        value == null ? 'missing' : 'ready:${value.id}',
-      AsyncError<Chapter?>() => 'error',
-    };
-    final chapterLoadLog =
-        'selected=$selectedChapterId '
-        'anchor=${continuousAnchorChapterId.value} '
-        'state=$chapterLoadState';
-    if (lastChapterLoadState.value != chapterLoadLog) {
-      lastChapterLoadState.value = chapterLoadLog;
-      AppLogger.debug('[ReadingChapterLoad] $chapterLoadLog');
-    }
-
     // 当前章节序号
     final currentIndex = selectedChapterId == null
         ? -1
@@ -620,9 +607,7 @@ class _ReadingTopBar extends StatelessWidget {
           ),
           if (onPinnedChanged case final onPinnedChanged?) ...[
             _IconButton(
-              icon: pinned
-                  ? RevericIcons.push_pin_fill
-                  : RevericIcons.push_pin,
+              icon: pinned ? RevericIcons.push_pin_fill : RevericIcons.push_pin,
               color: palette.iconColor,
               tooltip: context.t(
                 pinned

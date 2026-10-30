@@ -154,7 +154,9 @@ class AssistantCoordinator {
     final displayName = message.address.displayName;
 
     if (userText.isEmpty) {
-      _log.debug('empty inbound text — ignoring chatId=$chatId');
+      if (_log.isDebugEnabled) {
+        _log.debug('empty inbound text — ignoring chatId=$chatId');
+      }
       return;
     }
 

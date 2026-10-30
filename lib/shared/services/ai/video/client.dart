@@ -24,6 +24,8 @@ import '../../../models/video/request.dart';
 import '../../../models/video/task_result.dart';
 import '../media_diagnostics.dart';
 
+final _log = AppLogger.forModule('VideoClient');
+
 abstract class VideoClient {
   VideoClient({
     required this.httpClient,
@@ -92,8 +94,8 @@ abstract class VideoClient {
         pollingUrl: queryUrl(id, request.modelId),
       );
     } catch (error) {
-      AppLogger.warning(
-        '[VideoClient] POST ${endpoint.origin}${endpoint.path} '
+      _log.warning(
+        'POST ${endpoint.origin}${endpoint.path} '
         'type=${error.runtimeType} message=${safeMediaDiagnostic(error, apiKey)}',
       );
       if (error is Error && error is! TypeError) {
@@ -148,8 +150,8 @@ abstract class VideoClient {
       if (result.status != VideoRemoteStatus.failed) {
         return result;
       }
-      AppLogger.warning(
-        '[VideoClient] GET ${expected.origin}${expected.path} '
+      _log.warning(
+        'GET ${expected.origin}${expected.path} '
         'status=200 taskStatus=failed message=${safeMediaDiagnostic(jsonEncode(json), apiKey)}',
       );
       final providerCode = tryReadProviderErrorCode(json);
@@ -173,8 +175,8 @@ abstract class VideoClient {
         detail: providerErrorDetail(providerCode, providerMessage, apiKey),
       );
     } catch (error) {
-      AppLogger.warning(
-        '[VideoClient] GET ${expected.origin}${expected.path} '
+      _log.warning(
+        'GET ${expected.origin}${expected.path} '
         'type=${error.runtimeType} message=${safeMediaDiagnostic(error, apiKey)}',
       );
       if (error is Error && error is! TypeError) {
@@ -227,8 +229,8 @@ abstract class VideoClient {
             message,
             tryReadProviderErrorCode((message: diagnosticBody)),
           );
-          AppLogger.warning(
-            '[VideoClient] $method ${uri.origin}${uri.path} '
+          _log.warning(
+            '$method ${uri.origin}${uri.path} '
             'status=$status type=VideoException '
             'message=${safeMediaDiagnostic(message ?? diagnosticBody, apiKey)}',
           );
@@ -247,14 +249,14 @@ abstract class VideoClient {
       rethrow;
     } catch (error) {
       if (httpFailure != null) {
-        AppLogger.warning(
-          '[VideoClient] $method ${uri.origin}${uri.path} '
+        _log.warning(
+          '$method ${uri.origin}${uri.path} '
           'status=${httpFailure!.statusCode} bodyReadError=${error.runtimeType}',
         );
         throw httpFailure!;
       }
-      AppLogger.warning(
-        '[VideoClient] $method ${uri.origin}${uri.path} '
+      _log.warning(
+        '$method ${uri.origin}${uri.path} '
         'type=${error.runtimeType} message=${safeMediaDiagnostic(error, apiKey)}',
       );
       if (error is Error && error is! TypeError) {

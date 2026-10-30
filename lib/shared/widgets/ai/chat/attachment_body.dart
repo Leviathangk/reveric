@@ -20,6 +20,8 @@ import '../../../theme/theme.dart';
 import '../../../utils/storage_paths.dart';
 import 'chat_message_parts.dart';
 
+final _log = AppLogger.forModule('ChatAttachment');
+
 class ChatAttachmentBody extends StatelessWidget {
   const ChatAttachmentBody({super.key, required this.blocks});
   final List<AiMessageBlock> blocks;
@@ -137,7 +139,7 @@ class ChatAttachmentBody extends StatelessWidget {
         ),
       );
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         'chat attachment preview failed id=${block.id}',
         error: error,
         stackTrace: stack,

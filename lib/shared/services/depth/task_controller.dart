@@ -20,6 +20,8 @@ import 'model_service.dart';
 import 'native_runner.dart';
 import 'orchestrator.dart';
 
+final _log = AppLogger.forModule('Depth');
+
 class DepthTask {
   const DepthTask({
     required this.id,
@@ -124,11 +126,7 @@ class DepthTaskController {
       await part.rename(_journal.path);
     });
     _writes = write.catchError((Object error, StackTrace stack) {
-      AppLogger.error(
-        '[Depth] task journal write failed',
-        error: error,
-        stackTrace: stack,
-      );
+      _log.error('task journal write failed', error: error, stackTrace: stack);
     });
     return write;
   }
@@ -230,16 +228,16 @@ class DepthTaskController {
           }
         });
       } catch (error, stack) {
-        AppLogger.error(
-          '[Depth] result kept in library; source attachment failed',
+        _log.error(
+          'result kept in library; source attachment failed',
           error: error,
           stackTrace: stack,
         );
       }
       report(DepthStage.complete, 1);
     } catch (error, stack) {
-      AppLogger.error(
-        '[Depth] task failed stage=${state.value?.stage.name} type=${error.runtimeType}',
+      _log.error(
+        'task failed stage=${state.value?.stage.name} type=${error.runtimeType}',
         error: error is FileSystemException ? error.osError : error,
         stackTrace: stack,
       );

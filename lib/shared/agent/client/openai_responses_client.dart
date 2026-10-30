@@ -535,10 +535,12 @@ class OpenAIResponsesClient implements ProviderClient {
         // Event names are intentionally logged without payloads; response
         // content and tool arguments may contain user data or novel content.
         if (eventCount <= 3 || sawTerminalEvent) {
-          _log.debug(
-            'responses stream event id=$streamId index=$eventCount '
-            'type=$eventType terminal=$sawTerminalEvent',
-          );
+          if (_log.isDebugEnabled) {
+            _log.debug(
+              'responses stream event id=$streamId index=$eventCount '
+              'type=$eventType terminal=$sawTerminalEvent',
+            );
+          }
         }
         if (requireTerminalEvent && sawTerminalEvent) {
           break;

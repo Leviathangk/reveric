@@ -30,6 +30,8 @@ import '../../theme/theme.dart';
 import '../media_asset_image.dart';
 import '../subject_photo_name.dart';
 
+final _log = AppLogger.forModule('Photo');
+
 class LocationPhotos extends HookConsumerWidget {
   const LocationPhotos({
     super.key,
@@ -92,8 +94,8 @@ class LocationPhotos extends HookConsumerWidget {
             imported.add(asset.id);
           } catch (error, stackTrace) {
             failed = true;
-            AppLogger.error(
-              '[Photo] Location photo import failed '
+            _log.error(
+              'Location photo import failed '
               'location=${location.id}',
               error: error,
               stackTrace: stackTrace,
@@ -107,8 +109,8 @@ class LocationPhotos extends HookConsumerWidget {
           showFailure();
         }
       } catch (error, stackTrace) {
-        AppLogger.error(
-          '[Photo] Location photo add failed location=${location.id}',
+        _log.error(
+          'Location photo add failed location=${location.id}',
           error: error,
           stackTrace: stackTrace,
         );

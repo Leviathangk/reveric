@@ -25,13 +25,10 @@ import '../../components/reveric_button.dart';
 import '../../components/reveric_switch.dart';
 import '../../localization/app_localization.dart';
 import '../../localization/locale_keys.dart';
-import '../../logger/app_logger.dart';
 import '../../providers/remote_bridge_providers.dart';
 import '../../services/remote/remote_bridge_service.dart';
 import '../../theme/theme.dart';
 import 'settings_section_widgets.dart';
-
-final _log = AppLogger.forModule('RemoteBridgeSettings');
 
 /// 远程桥接设置 section。
 ///
@@ -954,9 +951,7 @@ class _QrImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _log.debug('_QrImage build: qrImageUrl=$qrImageUrl, size=$size');
     if (qrImageUrl == null || qrImageUrl!.isEmpty) {
-      _log.debug('_QrImage: qrImageUrl is null or empty');
       return Container(
         width: size,
         height: size,
@@ -978,11 +973,7 @@ class _QrImage extends StatelessWidget {
       );
     }
 
-    _log.debug(
-      '_QrImage: qrImageUrl.length=${qrImageUrl!.length}, startsWith liteapp=${qrImageUrl!.startsWith('https://liteapp.weixin.qq.com/')}',
-    );
     if (_isWechatMiniAppUrl(qrImageUrl!)) {
-      _log.info('_QrImage: generating QR code for mini app URL');
       return ClipRRect(
         borderRadius: BorderRadius.circular(RevericRadius.medium),
         child: Container(

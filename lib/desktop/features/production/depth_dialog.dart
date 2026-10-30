@@ -25,6 +25,8 @@ import '../../../shared/services/depth/model.dart';
 import '../../../shared/services/production/ffmpeg_runner.dart';
 import '../../../shared/theme/theme.dart';
 
+final _log = AppLogger.forModule('Depth');
+
 Future<void> showDepthDialog(
   BuildContext context, {
   String? novelId,
@@ -101,11 +103,7 @@ class _DepthDialog extends HookConsumerWidget {
       localError.value = false;
       unawaited(
         action().catchError((Object error, StackTrace stack) {
-          AppLogger.error(
-            '[Depth] command failed',
-            error: error,
-            stackTrace: stack,
-          );
+          _log.error('command failed', error: error, stackTrace: stack);
           if (context.mounted) {
             localError.value = true;
           }

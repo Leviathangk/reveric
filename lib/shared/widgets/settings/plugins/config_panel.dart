@@ -20,6 +20,8 @@ import '../../../services/plugins/host.dart';
 import '../../../theme/theme.dart';
 import 'config_form.dart';
 
+final _log = AppLogger.forModule('PluginConfig');
+
 class PluginConfigPanel extends HookWidget {
   const PluginConfigPanel({
     super.key,
@@ -35,7 +37,7 @@ class PluginConfigPanel extends HookWidget {
       try {
         return await host.loadConfig(manifest.id);
       } catch (error, stack) {
-        AppLogger.error(
+        _log.error(
           'Load plugin config failed: ${manifest.id}',
           error: error,
           stackTrace: stack,

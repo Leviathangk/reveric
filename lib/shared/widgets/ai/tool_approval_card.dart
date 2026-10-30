@@ -28,6 +28,8 @@ import '../../theme/theme.dart';
 import 'tools/tool_card_descriptor.dart';
 import 'tool_permission_controls.dart';
 
+final _log = AppLogger.forModule('ToolApproval');
+
 /// 卡片左侧图标方块的边长；详情、提示与错误行按它缩进，和标题左边对齐。
 const _tileSize = 32.0;
 const _textIndent = _tileSize + RevericSpacing.md;
@@ -108,8 +110,8 @@ class ToolApprovalCard extends HookConsumerWidget {
           scope: allow && selection.value >= 0 ? scopes[selection.value] : null,
         );
       } catch (error, stackTrace) {
-        AppLogger.error(
-          '[ToolApproval] saving approval rule failed approval=${request.approvalId}',
+        _log.error(
+          'saving approval rule failed approval=${request.approvalId}',
           error: error,
           stackTrace: stackTrace,
         );

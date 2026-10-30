@@ -15,9 +15,6 @@ import '../../../../shared/components/reveric_button.dart';
 import '../../../../shared/localization/app_localization.dart';
 import '../../../../shared/localization/locale_keys.dart';
 import '../../../../shared/theme/theme.dart';
-import '../../../../shared/logger/app_logger.dart';
-
-final _log = AppLogger.forModule('ChatOnboarding');
 
 /// 气泡尾箭头朝向（指向目标的位置）
 enum OnboardingBubbleTail {
@@ -182,7 +179,6 @@ class ChatOnboardingBubble extends HookWidget {
                   label: context.t(LocaleKeys.aiChatOnboardingNext),
                   icon: RevericIcons.arrow_forward,
                   onPressed: () {
-                    _log.debug('Bubble Next tapped at step $stepIndex');
                     onNext!();
                   },
                 ),

@@ -52,6 +52,8 @@ import 'upload.dart';
 import 'popover.dart';
 import '../../widgets/settings/settings_dialog.dart';
 
+final _log = AppLogger.forModule('ProductionAudio');
+
 class ProductionAudioComposer extends HookWidget {
   const ProductionAudioComposer({
     super.key,
@@ -254,8 +256,8 @@ class _AudioForm extends HookConsumerWidget {
         }
         return true;
       } catch (failure, stack) {
-        AppLogger.error(
-          '[ProductionAudio] draft save failed node=${node.id}',
+        _log.error(
+          'draft save failed node=${node.id}',
           error: failure,
           stackTrace: stack,
         );

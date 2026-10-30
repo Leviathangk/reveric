@@ -13,6 +13,8 @@ import '../../logger/app_logger.dart';
 import '../../models/editing/document.dart';
 import '../../models/screenplay.dart';
 
+final _log = AppLogger.forModule('EpisodeEditing');
+
 class EpisodeEditingOrchestrator {
   Future<({VideoEditingRow editing, bool created})> ensureEpisodeEditing(
     NovelContentDatabase db,
@@ -64,7 +66,7 @@ class EpisodeEditingOrchestrator {
         return (editing: (await db.editingDao.get(id))!, created: true);
       });
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] table=video_editings,screenplay_episodes op=INSERT,UPDATE id=$episodeId',
         error: error,
         stackTrace: stack,

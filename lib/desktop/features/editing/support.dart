@@ -16,6 +16,8 @@ import '../../../shared/theme/theme.dart';
 import '../../../shared/utils/number_format.dart';
 import 'controller.dart';
 
+final _log = AppLogger.forModule('Editing');
+
 String editingEpisodeExportName(
   BuildContext context,
   int number,
@@ -40,11 +42,7 @@ Future<void> editingRun(
   try {
     await action();
   } catch (error, stack) {
-    AppLogger.error(
-      '[Editing] operation failed',
-      error: error,
-      stackTrace: stack,
-    );
+    _log.error('operation failed', error: error, stackTrace: stack);
     if (context.mounted) {
       editingSay(
         context,

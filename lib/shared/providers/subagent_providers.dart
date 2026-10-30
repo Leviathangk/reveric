@@ -138,7 +138,6 @@ bool _slugExists(Iterable<SubAgent> items, String slug, String currentId) {
 class GlobalSubAgents extends _$GlobalSubAgents {
   @override
   Future<List<SubAgent>> build() async {
-    _log.debug('global build start');
     final db = ref.watch(appDatabaseProvider);
     final agents = await db.globalAgentDao.getByScope(agentScopeGlobal);
     // Home 的 SubAgent 导航读这里。Council 角色也是 subagent（mode=council），
@@ -147,11 +146,6 @@ class GlobalSubAgents extends _$GlobalSubAgents {
         .where((agent) => agent.category == 'subagent')
         .map(_mapSubAgent)
         .toList();
-    _log.debug(
-      'global daoRows=${agents.length} '
-      'subagents=${subagents.length} '
-      'rows=${agents.map((agent) => '${agent.slug}:${agent.category}:${agent.enabled}').toList()}',
-    );
     return subagents;
   }
 
@@ -332,7 +326,6 @@ Stream<List<SubAgent>> globalSubAgentsStream(Ref ref) async* {
 class NovelSubAgents extends _$NovelSubAgents {
   @override
   Future<List<SubAgent>> build(String novelId) async {
-    _log.debug('novel build start novelId=$novelId');
     final db = AppDatabase();
     final agents = await db.globalAgentDao.getByScope(
       agentScopeNovel,
@@ -342,11 +335,6 @@ class NovelSubAgents extends _$NovelSubAgents {
         .where((agent) => agent.category == 'subagent')
         .map(_mapSubAgent)
         .toList();
-    _log.debug(
-      'novel novelId=$novelId daoRows=${agents.length} '
-      'subagents=${subagents.length} '
-      'rows=${agents.map((agent) => '${agent.slug}:${agent.category}:${agent.enabled}').toList()}',
-    );
     return subagents;
   }
 
@@ -484,9 +472,5 @@ List<SubAgent> mergedSubAgents(Ref ref) {
       ref.watch(globalSubAgentsProvider).value ?? const <SubAgent>[];
   final merged = [...globalAgents]
     ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-  _log.debug(
-    'merged global=${globalAgents.length} '
-    'merged=${merged.length} (novel scope temporarily disabled)',
-  );
   return merged;
 }

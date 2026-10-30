@@ -10,6 +10,8 @@ import '../../logger/app_logger.dart';
 import '../../models/narration.dart';
 import '../../models/audio/exception.dart';
 
+final _log = AppLogger.forModule('Narration');
+
 class NarrationAudio {
   const NarrationAudio(this.bytes, this.extension);
   final Uint8List bytes;
@@ -230,11 +232,7 @@ class NarrationOrchestrator extends ChangeNotifier {
         result = _AudioResult(audio: audio);
       } catch (failure, stack) {
         if (!pending.cancelled && !_closed) {
-          AppLogger.error(
-            '[Narration] generation failed',
-            error: failure,
-            stackTrace: stack,
-          );
+          _log.error('generation failed', error: failure, stackTrace: stack);
         }
         result = _AudioResult(error: failure);
       }
@@ -262,11 +260,7 @@ class NarrationOrchestrator extends ChangeNotifier {
       Object failure,
       StackTrace stack,
     ) {
-      AppLogger.error(
-        '[Narration] playback failed',
-        error: failure,
-        stackTrace: stack,
-      );
+      _log.error('playback failed', error: failure, stackTrace: stack);
       _fail(failure, epoch);
     });
     return _transport;

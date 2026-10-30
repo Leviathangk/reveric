@@ -71,13 +71,11 @@ final _log = AppLogger.forModule('AutoBackup');
 class AutoBackupScheduler {
   AutoBackupScheduler({
     required AutoBackupSchedule schedule,
-    required AutoBackupExecutor executeBackup,
-    required AutoBackupCompletion onBackupCompleted,
+    required this._executeBackup,
+    required this._onBackupCompleted,
     DateTime Function()? clock,
     AutoBackupTimerFactory? timerFactory,
   }) : _schedule = schedule.normalized(),
-       _executeBackup = executeBackup,
-       _onBackupCompleted = onBackupCompleted,
        _clock = clock ?? DateTime.now,
        _timerFactory = timerFactory ?? Timer.new;
 
@@ -197,7 +195,9 @@ class AutoBackupScheduler {
       return;
     }
     final delay = next.difference(now);
-    _log.debug('next automatic backup scheduled at $next');
+    if (_log.isDebugEnabled) {
+      _log.debug('next automatic backup scheduled at $next');
+    }
     _timer = _timerFactory(delay, () {
       unawaited(checkNow());
     });

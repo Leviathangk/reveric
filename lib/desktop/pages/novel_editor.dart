@@ -1139,9 +1139,6 @@ class NovelEditorPage extends HookConsumerWidget {
           return false;
         }
         final newSignal = '__new__${DateTime.now().microsecondsSinceEpoch}';
-        _log.debug(
-          'createNewAiChatSession: newSignal=$newSignal novelId=$novelId',
-        );
         activeAiSessionId.value = newSignal;
         return true;
       } finally {
@@ -2726,11 +2723,6 @@ class NovelEditorPage extends HookConsumerWidget {
       final dbPath =
           contentDatabasePath.value ??
           novelAsync.asData?.value?.contentDatabasePath;
-      _log.debug(
-        'saveCharacterAvatar: '
-        'characterId=$characterId avatarAssetId=${avatarAssetId.isEmpty ? "(empty)" : avatarAssetId} '
-        'dbPath=$dbPath',
-      );
       if (dbPath == null) return;
       try {
         await ref
@@ -2739,7 +2731,6 @@ class NovelEditorPage extends HookConsumerWidget {
               entryId: characterId,
               avatarAssetId: avatarAssetId,
             );
-        _log.debug('avatar saved successfully');
       } catch (e, s) {
         _log.error('saveCharacterAvatar FAILED: $e', error: e, stackTrace: s);
       }
@@ -4171,7 +4162,6 @@ class NovelEditorPage extends HookConsumerWidget {
     return PopScope(
       canPop: canPop,
       onPopInvokedWithResult: (didPop, _) {
-        _log.debug('onPopInvoked didPop=$didPop canPop=$canPop');
         if (didPop || canPop) {
           return;
         }
@@ -5455,9 +5445,6 @@ class NovelEditorPage extends HookConsumerWidget {
                                     if (!canSwitch) {
                                       return;
                                     }
-                                    _log.debug(
-                                      'onSelectAiChatSession: sessionId=$sessionId',
-                                    );
                                     activeAiSessionId.value = sessionId;
                                     openExpandedChat();
                                   },

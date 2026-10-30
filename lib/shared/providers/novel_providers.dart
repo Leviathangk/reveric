@@ -16,7 +16,6 @@ import '../database/app_database.dart';
 import '../database/novel_content_database.dart';
 import '../models/ai_session_mode.dart';
 import '../models/outline.dart';
-import '../logger/app_logger.dart';
 import '../services/ai/session_persistence.dart';
 import '../services/novel_content.dart';
 import '../services/novel_actions.dart';
@@ -73,30 +72,16 @@ Stream<List<ImageBatchSlotRow>> imageBatchSlots(Ref ref, String batchId) {
   return ref.watch(appDatabaseProvider).imageAssetDao.watchSlots(batchId);
 }
 
-final _log = AppLogger.forModule('Novel');
-
 @riverpod
 Stream<List<Novel>> novels(Ref ref) {
-  _log.debug('build');
   final database = ref.watch(appDatabaseProvider);
-  return database.novelDao.watchAll().map((novels) {
-    _log.debug(
-      'emitted count=${novels.length} ids=${novels.map((novel) => novel.id).toList()}',
-    );
-    return novels;
-  });
+  return database.novelDao.watchAll();
 }
 
 @riverpod
 Stream<Novel?> novel(Ref ref, String novelId) {
-  _log.debug('novel($novelId) called');
   final database = ref.watch(appDatabaseProvider);
-  return database.novelDao.watch(novelId).map((novel) {
-    _log.debug(
-      'novel($novelId) emitted novel=${novel?.id} hasDbPath=${novel?.contentDatabasePath != null}',
-    );
-    return novel;
-  });
+  return database.novelDao.watch(novelId);
 }
 
 @riverpod

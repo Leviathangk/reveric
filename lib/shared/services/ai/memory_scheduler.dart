@@ -18,26 +18,17 @@ const _memStateKeyDreamingPrefix = 'mem_last_dreaming_';
 
 class MemoryScheduler {
   MemoryScheduler({
-    required AppDatabase db,
-    required Future<void> Function(String novelId) onExtract,
-    required Future<void> Function(String novelId) onDream,
-    int extractionIntervalMinutes = 60,
-    int dreamingIntervalHours = 24,
-    bool extractionEnabled = true,
-    bool dreamingEnabled = true,
+    required this._db,
+    required this._onExtract,
+    required this._onDream,
+    this._extractionIntervalMinutes = 60,
+    this._dreamingIntervalHours = 24,
+    this._extractionEnabled = true,
+    this._dreamingEnabled = true,
     int checkIntervalSeconds = 30,
-    int maxConcurrentTasks = 2,
-    int maxRetries = 2,
-  }) : _db = db,
-       _onExtract = onExtract,
-       _onDream = onDream,
-       _extractionIntervalMinutes = extractionIntervalMinutes,
-       _dreamingIntervalHours = dreamingIntervalHours,
-       _extractionEnabled = extractionEnabled,
-       _dreamingEnabled = dreamingEnabled,
-       _checkInterval = Duration(seconds: checkIntervalSeconds),
-       _maxConcurrentTasks = maxConcurrentTasks,
-       _maxRetries = maxRetries;
+    this._maxConcurrentTasks = 2,
+    this._maxRetries = 2,
+  }) : _checkInterval = Duration(seconds: checkIntervalSeconds);
 
   final AppDatabase _db;
   final Future<void> Function(String novelId) _onExtract;
@@ -196,7 +187,9 @@ class MemoryScheduler {
 
     _extractingNovels.add(novelId);
     try {
-      _log.debug('extracting for novelId=$novelId');
+      if (_log.isDebugEnabled) {
+        _log.debug('extracting for novelId=$novelId');
+      }
       await _onExtract(novelId);
       await _db.appStateDao.set(
         key: '$_memStateKeyExtractionPrefix$novelId',
@@ -239,7 +232,9 @@ class MemoryScheduler {
 
     _dreamingNovels.add(novelId);
     try {
-      _log.debug('dreaming for novelId=$novelId');
+      if (_log.isDebugEnabled) {
+        _log.debug('dreaming for novelId=$novelId');
+      }
       await _onDream(novelId);
       await _db.appStateDao.set(
         key: '$_memStateKeyDreamingPrefix$novelId',

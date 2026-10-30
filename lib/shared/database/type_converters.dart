@@ -23,6 +23,8 @@ import '../models/entity_relation_history.dart';
 import '../models/video/request.dart';
 import '../models/editing/document.dart';
 
+final _log = AppLogger.forModule('JsonMapConverter');
+
 class ProductionInputsConverter
     extends TypeConverter<List<ProductionInput>, String> {
   const ProductionInputsConverter();
@@ -155,9 +157,7 @@ class JsonMapConverter extends TypeConverter<Map<String, dynamic>, String> {
       }
     } on FormatException {
       // 保留历史记录的可读性；不把可能含业务数据的 JSON 原文写进日志。
-      AppLogger.warning(
-        '[JsonMapConverter] Invalid stored JSON; using empty map',
-      );
+      _log.warning('Invalid stored JSON; using empty map');
     }
     return const {};
   }

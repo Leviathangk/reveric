@@ -28,6 +28,8 @@ import '../../../shared/services/ai/assets/client.dart'
     show ProviderAssetException;
 import '../../../shared/services/storyboard/service.dart';
 
+final _log = AppLogger.forModule('Production');
+
 /// 图片任务上游已受理、结果没取回时的提示与重试文案：有地址时重新下载，
 /// 只有任务 ID 时重新获取；其他错误码返回 null。
 ({String error, String action})? productionImageRefetch(String? errorCode) =>
@@ -74,11 +76,7 @@ Future<void> productionRun(
     await action();
   } catch (error, stack) {
     if (error is! VideoException && error is! AudioException) {
-      AppLogger.error(
-        '[Production] UI operation failed',
-        error: error,
-        stackTrace: stack,
-      );
+      _log.error('UI operation failed', error: error, stackTrace: stack);
     }
     if (context.mounted &&
         error is VideoException &&

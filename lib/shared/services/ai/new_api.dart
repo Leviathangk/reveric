@@ -27,6 +27,8 @@ import 'audio/gemini.dart';
 import 'audio/new_api.dart';
 import 'video/new_api.dart';
 
+final _log = AppLogger.forModule('NewApiModels');
+
 class NewApiClient {
   const NewApiClient(this.config);
   final AiProvider config;
@@ -61,8 +63,8 @@ class NewApiClient {
           .map((item) => NewApiModel.fromJson(item as Map<String, dynamic>))
           .toList();
     } catch (error) {
-      AppLogger.warning(
-        '[NewApiModels] GET ${uri.origin}${uri.path} '
+      _log.warning(
+        'GET ${uri.origin}${uri.path} '
         'type=${error.runtimeType} message=${safeMediaDiagnostic(error, config.effectiveApiKey)}',
       );
       rethrow;

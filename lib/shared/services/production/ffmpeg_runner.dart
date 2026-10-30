@@ -15,6 +15,8 @@ import '../../logger/app_logger.dart';
 import '../../models/production/media.dart';
 import 'runtime.dart';
 
+final _log = AppLogger.forModule('Media');
+
 /// FFmpegKit retains thread-local overwrite flags between executions. Reset
 /// both through FFmpeg's boolean negation options before applying this call's
 /// policy. FFprobe has no overwrite options and must not use this prefix.
@@ -84,8 +86,8 @@ Future<String> readFfmpegSessionOutput(
       ].join('\n'),
       arguments,
     );
-    AppLogger.error(
-      '[Media] native ${probe ? 'probe' : 'encode'} failed '
+    _log.error(
+      'native ${probe ? 'probe' : 'encode'} failed '
       'session=${session.getSessionId()} code=${code?.getValue()} '
       'detail=$message',
     );
@@ -198,8 +200,8 @@ class FfmpegRunner {
           cancelled: cancellation.cancelled,
         );
         if (outcome.exitCode != 0) {
-          AppLogger.error(
-            '[Media] native command failed session=${session.getSessionId()} '
+          _log.error(
+            'native command failed session=${session.getSessionId()} '
             'code=${outcome.exitCode} detail=${ffmpegFailureDetail(outcome.output, arguments)}',
           );
         }

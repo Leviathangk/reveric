@@ -13,6 +13,8 @@ import '../../models/director/document.dart';
 import '../../models/director/persistence.dart';
 import '../director/session.dart';
 
+final _log = AppLogger.forModule('Director');
+
 class VideoStagingBinding {
   VideoStagingBinding(this.dao, this.stagingId);
   final ScreenplayDao dao;
@@ -43,8 +45,8 @@ class VideoStagingBinding {
         await render(_persisted);
       }
     } catch (error, stack) {
-      AppLogger.error(
-        '[Director] close preview failed stagingId=$stagingId',
+      _log.error(
+        'close preview failed stagingId=$stagingId',
         error: error,
         stackTrace: stack,
       );

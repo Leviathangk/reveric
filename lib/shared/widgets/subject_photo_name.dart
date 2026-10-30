@@ -22,6 +22,8 @@ import '../logger/app_logger.dart';
 import '../models/subject_photo.dart';
 import '../theme/theme.dart';
 
+final _log = AppLogger.forModule('Photo');
+
 class SubjectPhotoName extends StatelessWidget {
   const SubjectPhotoName({
     super.key,
@@ -102,11 +104,7 @@ class _NameForm extends HookWidget {
           Navigator.of(context).pop();
         }
       } catch (failure, stackTrace) {
-        AppLogger.error(
-          '[Photo] Rename failed',
-          error: failure,
-          stackTrace: stackTrace,
-        );
+        _log.error('Rename failed', error: failure, stackTrace: stackTrace);
         if (context.mounted) {
           error.value = context.t(LocaleKeys.commonSaveFailed);
         }

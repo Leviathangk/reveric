@@ -11,6 +11,8 @@ import '../../models/ai_provider.dart';
 
 part 'ai_provider_dao.drift.dart';
 
+final _log = AppLogger.forModule('AiProviderDao');
+
 @DriftAccessor(tables: [AiProviders])
 class AiProviderDao extends DatabaseAccessor<AppDatabase>
     with _$AiProviderDaoMixin {
@@ -89,7 +91,7 @@ class AiProviderDao extends DatabaseAccessor<AppDatabase>
         );
       });
     } catch (error, stackTrace) {
-      AppLogger.error(
+      _log.error(
         '[DB] ai_providers INSERT/UPDATE id=${provider.id}',
         error: error,
         stackTrace: stackTrace,
@@ -121,7 +123,7 @@ class AiProviderDao extends DatabaseAccessor<AppDatabase>
         ),
       );
     } catch (error, stackTrace) {
-      AppLogger.error(
+      _log.error(
         '[DB] ai_providers UPDATE softDelete id=$id',
         error: error,
         stackTrace: stackTrace,
@@ -141,7 +143,7 @@ class AiProviderDao extends DatabaseAccessor<AppDatabase>
         ),
       );
     } catch (error, stackTrace) {
-      AppLogger.error(
+      _log.error(
         '[DB] ai_providers UPDATE restore id=$id',
         error: error,
         stackTrace: stackTrace,

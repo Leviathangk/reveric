@@ -21,6 +21,8 @@ import 'controller.dart';
 import 'painter.dart';
 import 'texture.dart';
 
+final _log = AppLogger.forModule('Panorama');
+
 class PanoramaViewer extends HookWidget {
   const PanoramaViewer({
     super.key,
@@ -59,8 +61,8 @@ class PanoramaViewer extends HookWidget {
             resource.shader.dispose();
             resource.texture.dispose();
           },
-          onError: (Object error, StackTrace stack) => AppLogger.error(
-            '[Panorama] texture/shader failed',
+          onError: (Object error, StackTrace stack) => _log.error(
+            'texture/shader failed',
             error: error,
             stackTrace: stack,
           ),

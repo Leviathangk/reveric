@@ -24,6 +24,8 @@ import 'audio_service.dart';
 import 'canvas_service.dart';
 import 'library_service.dart';
 
+final _log = AppLogger.forModule('AudioTasks');
+
 typedef ProductionAudioInvoke =
     Future<AudioGenerationResult> Function(
       AiProvider provider,
@@ -82,8 +84,8 @@ class ProductionAudioGenerateOrchestrator {
       try {
         references.add(await File(library.resolve(asset!)).readAsBytes());
       } on FileSystemException catch (error, stack) {
-        AppLogger.error(
-          '[AudioTasks] reference read failed type=${error.runtimeType} code=${error.osError?.errorCode}',
+        _log.error(
+          'reference read failed type=${error.runtimeType} code=${error.osError?.errorCode}',
           stackTrace: stack,
         );
         throw const AudioException('invalid_reference');

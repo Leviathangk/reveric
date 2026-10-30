@@ -23,6 +23,8 @@ import '../models/mcp/config.dart';
 import '../utils/storage_paths.dart';
 import '../utils/windows_safe_path.dart';
 
+final _log = AppLogger.forModule('Backup');
+
 /// 是否支持把备份写入用户自选目录，同时决定是否支持自动备份。
 ///
 /// 移动端 scoped storage 只允许应用写自己的私有目录：系统目录选择器返回的裸路径
@@ -165,19 +167,17 @@ class BackupService {
   ///
   /// 使用 SQLite backup API 生成数据库快照，并打包小说封面、AI 图片、Agent 头像。
   Future<BackupResult> backupToZip({String? outputDirectory}) async {
-    AppLogger.info(
-      '[Backup] backupToZip started, outputDirectory=$outputDirectory',
-    );
+    _log.info('backupToZip started, outputDirectory=$outputDirectory');
     final warnings = <BackupWarning>[];
     try {
       final appSupportDir = await getApplicationSupportDirectory();
-      AppLogger.info('[Backup] appSupportDir=${appSupportDir.path}');
+      _log.info('appSupportDir=${appSupportDir.path}');
       final outputDir = outputDirectory ?? appSupportDir.path;
-      AppLogger.info('[Backup] outputDir=$outputDir');
+      _log.info('outputDir=$outputDir');
       await _ensureOutputDirectoryWritable(outputDir);
-      AppLogger.info('[Backup] output directory writable check passed');
+      _log.info('output directory writable check passed');
       await _preflightSqliteSnapshots(appSupportDir);
-      AppLogger.info('[Backup] preflight SQLite snapshots passed');
+      _log.info('preflight SQLite snapshots passed');
 
       // 创建临时目录用于组装备份内容
       final tempDir = Directory(
@@ -187,24 +187,24 @@ class BackupService {
         ),
       );
       await tempDir.create(recursive: true);
-      AppLogger.info('[Backup] tempDir created: ${tempDir.path}');
+      _log.info('tempDir created: ${tempDir.path}');
 
       try {
         // 1. 复制主数据库快照
-        AppLogger.info('[Backup] Step 1/8: copying main SQLite snapshot');
+        _log.info('Step 1/8: copying main SQLite snapshot');
         await _copySqliteSnapshotIfExists(
           p.join(appSupportDir.path, 'reveric.sqlite'),
           p.join(tempDir.path, 'reveric.sqlite'),
         );
-        AppLogger.info('[Backup] Step 1/8: done');
+        _log.info('Step 1/8: done');
 
         // 2. 复制小说工作区数据库快照
-        AppLogger.info('[Backup] Step 2/8: copying novel workspace DBs');
+        _log.info('Step 2/8: copying novel workspace DBs');
         await _copyNovelWorkspaceDatabasesIfExists(
           p.join(appSupportDir.path, 'novel_workspaces'),
           p.join(tempDir.path, 'novel_workspaces'),
         );
-        AppLogger.info('[Backup] Step 2/8: done');
+        _log.info('Step 2/8: done');
 
         // 媒体文件集合只取决于目录，不查询资产或业务引用。
         for (final directory in _backupEntries.where(
@@ -236,7 +236,7 @@ class BackupService {
         final zipName =
             'reveric_backup_${ts.year}${_pad(ts.month)}${_pad(ts.day)}_${_pad(ts.hour)}${_pad(ts.minute)}${_pad(ts.second)}.zip';
 
-        AppLogger.info('[Backup] Starting zip in isolate');
+        _log.info('Starting zip in isolate');
         final zipPath = await Isolate.run(
           () => _createZipFromDir(
             tempDirPath: tempDir.path,
@@ -244,7 +244,7 @@ class BackupService {
             zipName: zipName,
           ),
         );
-        AppLogger.info('[Backup] zip created: $zipPath');
+        _log.info('zip created: $zipPath');
 
         return BackupResult(
           success: true,
@@ -257,7 +257,7 @@ class BackupService {
         }
       }
     } on _BackupFailure catch (e) {
-      AppLogger.error('[Backup] Backup failed: ${e.message}', error: e);
+      _log.error('Backup failed: ${e.message}', error: e);
       return BackupResult(
         success: false,
         failureReason: e.reason,
@@ -265,7 +265,7 @@ class BackupService {
         warnings: List.unmodifiable(warnings),
       );
     } catch (e) {
-      AppLogger.error('[Backup] Backup failed', error: e);
+      _log.error('Backup failed', error: e);
       return BackupResult(
         success: false,
         failureReason: BackupFailureReason.unknown,
@@ -321,8 +321,8 @@ class BackupService {
         failureReason: error.reason,
       );
     } catch (error, stackTrace) {
-      AppLogger.error(
-        '[Backup] Restore inspection failed path=$zipPath',
+      _log.error(
+        'Restore inspection failed path=$zipPath',
         error: error,
         stackTrace: stackTrace,
       );
@@ -357,7 +357,7 @@ class BackupService {
         );
       }
 
-      AppLogger.info('[Backup] Restore: extracting zip in isolate');
+      _log.info('Restore: extracting zip in isolate');
       extractDir = await _createRestoreExtractDirectory();
       await Isolate.run(
         () => _extractZipSafely(
@@ -365,7 +365,7 @@ class BackupService {
           extractDirPath: extractDir!.path,
         ),
       );
-      AppLogger.info('[Backup] Restore: zip extracted');
+      _log.info('Restore: zip extracted');
 
       final appSupportDir = await getApplicationSupportDirectory();
       final backup = _readExtractedBackup(
@@ -416,11 +416,9 @@ class BackupService {
 
       needsRestart = true;
       if (onBeforeFileRestore != null) {
-        AppLogger.info(
-          '[Backup] Restore: running pre-file-restore hook mode=${mode.name}',
-        );
+        _log.info('Restore: running pre-file-restore hook mode=${mode.name}');
         await onBeforeFileRestore();
-        AppLogger.info('[Backup] Restore: pre-file-restore hook completed');
+        _log.info('Restore: pre-file-restore hook completed');
       }
 
       if (mode == RestoreMode.fullReplacement) {
@@ -437,8 +435,8 @@ class BackupService {
         );
       }
 
-      AppLogger.info(
-        '[Backup] Restore completed mode=${mode.name} novelCount=${selectedIds.length}',
+      _log.info(
+        'Restore completed mode=${mode.name} novelCount=${selectedIds.length}',
       );
       return RestoreResult(
         success: true,
@@ -454,8 +452,8 @@ class BackupService {
         safetyBackupPath: safetyBackupPath,
       );
     } on _RestoreApplyFailure catch (error, stackTrace) {
-      AppLogger.error(
-        '[Backup] Restore apply failed rollbackFailed=${error.rollbackFailed}',
+      _log.error(
+        'Restore apply failed rollbackFailed=${error.rollbackFailed}',
         error: error.cause,
         stackTrace: stackTrace,
       );
@@ -468,11 +466,7 @@ class BackupService {
         safetyBackupPath: safetyBackupPath,
       );
     } catch (error, stackTrace) {
-      AppLogger.error(
-        '[Backup] Restore failed',
-        error: error,
-        stackTrace: stackTrace,
-      );
+      _log.error('Restore failed', error: error, stackTrace: stackTrace);
       return RestoreResult(
         success: false,
         failureReason: RestoreFailureReason.applyFailed,
@@ -494,8 +488,8 @@ class BackupService {
     final result = await backupToZip(outputDirectory: safetyDirectory.path);
     final sourcePath = result.backupPath;
     if (!result.success || result.hasWarnings || sourcePath == null) {
-      AppLogger.error(
-        '[Backup] Restore safety backup failed success=${result.success} warnings=${result.warnings.length}',
+      _log.error(
+        'Restore safety backup failed success=${result.success} warnings=${result.warnings.length}',
       );
       return null;
     }
@@ -506,7 +500,7 @@ class BackupService {
       'reveric_before_restore_$timestamp.zip',
     );
     await File(sourcePath).rename(safetyPath);
-    AppLogger.info('[Backup] Restore safety backup created path=$safetyPath');
+    _log.info('Restore safety backup created path=$safetyPath');
     return safetyPath;
   }
 
@@ -701,16 +695,16 @@ Future<void> _replaceAllBackupEntries({
     _disableRestoredMcpServers(p.join(appSupportDir.path, 'reveric.sqlite'));
     await ledger.discard();
   } catch (error, stackTrace) {
-    AppLogger.error(
-      '[Backup] Full restore failed, rolling back',
+    _log.error(
+      'Full restore failed, rolling back',
       error: error,
       stackTrace: stackTrace,
     );
     try {
       await ledger.rollback();
     } catch (rollbackError, rollbackStackTrace) {
-      AppLogger.error(
-        '[Backup] Full restore rollback failed',
+      _log.error(
+        'Full restore rollback failed',
         error: rollbackError,
         stackTrace: rollbackStackTrace,
       );
@@ -744,7 +738,7 @@ void _disableRestoredMcpServers(String databasePath) {
       McpSettings.key,
     ]);
   } catch (error, stackTrace) {
-    AppLogger.error(
+    _log.error(
       '[DB] app_settings UPDATE id=mcp_servers during restore failed',
       error: rawConfiguration == null
           ? error.toString()
@@ -811,16 +805,16 @@ Future<void> _replaceSelectedNovels({
     );
     await ledger.discard();
   } catch (error, stackTrace) {
-    AppLogger.error(
-      '[Backup] Selected novel restore failed, rolling back',
+    _log.error(
+      'Selected novel restore failed, rolling back',
       error: error,
       stackTrace: stackTrace,
     );
     try {
       await ledger.rollback();
     } catch (rollbackError, rollbackStackTrace) {
-      AppLogger.error(
-        '[Backup] Selected novel restore rollback failed',
+      _log.error(
+        'Selected novel restore rollback failed',
         error: rollbackError,
         stackTrace: rollbackStackTrace,
       );
@@ -950,18 +944,18 @@ void _upsertSelectedNovelRows({
           values.values.toList(),
         );
       }
-      AppLogger.info('[DB][$table][UPSERT] restored count=${incoming.length}');
+      _log.info('[DB][$table][UPSERT] restored count=${incoming.length}');
     }
     currentDb.execute('COMMIT');
     transactionStarted = false;
-    AppLogger.info(
+    _log.info(
       '[DB][novels][UPSERT] restore succeeded ids=${plans.map((plan) => plan.id).join(',')}',
     );
   } catch (error, stackTrace) {
     if (transactionStarted) {
       currentDb.execute('ROLLBACK');
     }
-    AppLogger.error(
+    _log.error(
       '[DB][novels][UPSERT] restore failed ids=${plans.map((plan) => plan.id).join(',')}',
       error: error,
       stackTrace: stackTrace,
@@ -1131,8 +1125,8 @@ class _RollbackLedger {
         }
       }
     } catch (error, stackTrace) {
-      AppLogger.error(
-        '[Backup] Could not remove restore rollback files',
+      _log.error(
+        'Could not remove restore rollback files',
         error: error,
         stackTrace: stackTrace,
       );
@@ -1270,13 +1264,11 @@ bool _isAscii(String value) {
 Future<void> _copySqliteSnapshotIfExists(String source, String dest) async {
   final file = File(source);
   if (!await file.exists()) {
-    AppLogger.info(
-      '[Backup] SQLite snapshot source does not exist, skipping: $source',
-    );
+    _log.info('SQLite snapshot source does not exist, skipping: $source');
     return;
   }
 
-  AppLogger.info('[Backup] Starting SQLite backup: $source -> $dest');
+  _log.info('Starting SQLite backup: $source -> $dest');
   Database? lastSourceDb;
   Database? lastDestDb;
   for (var attempt = 0; attempt < 3; attempt += 1) {
@@ -1288,24 +1280,20 @@ Future<void> _copySqliteSnapshotIfExists(String source, String dest) async {
       lastSourceDb = sourceDb;
       final destDb = sqlite3.open(toWindowsSafePath(dest));
       lastDestDb = destDb;
-      AppLogger.info(
-        '[Backup] Source and dest DBs opened, starting backup (nPage=-1)',
-      );
+      _log.info('Source and dest DBs opened, starting backup (nPage=-1)');
       int pageCount = 0;
       await for (final _ in sourceDb.backup(destDb, nPage: -1)) {
         pageCount++;
       }
-      AppLogger.info(
-        '[Backup] SQLite backup completed, total pages: $pageCount',
-      );
+      _log.info('SQLite backup completed, total pages: $pageCount');
       destDb.close();
       sourceDb.close();
       lastDestDb = null;
       lastSourceDb = null;
       return;
     } on Object catch (e, stack) {
-      AppLogger.error(
-        '[Backup] SQLite backup attempt $attempt failed',
+      _log.error(
+        'SQLite backup attempt $attempt failed',
         error: e,
         stackTrace: stack,
       );

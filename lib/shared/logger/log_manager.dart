@@ -29,7 +29,18 @@ class LogManager {
   AdvancedFileOutput? _fileOutput;
   bool _isInitialized = false;
   String? _logDirectory;
-  Level _currentLevel = Level.info;
+  Level _currentLevel = _defaultLevel();
+
+  static Level _defaultLevel() {
+    final debugEnv = Platform.environment['REVERIC_DEBUG'];
+    if (debugEnv == '1' || debugEnv == 'true') {
+      return Level.trace;
+    }
+    return kReleaseMode ? Level.info : Level.debug;
+  }
+
+  bool isEnabled(Level level) =>
+      level >= Level.trace && level <= Level.fatal && level >= _currentLevel;
 
   bool get isInitialized => _isInitialized;
   Level get currentLevel => _currentLevel;
@@ -63,7 +74,6 @@ class LogManager {
         maxBufferSize: 100,
         writeImmediately: [Level.error, Level.fatal, Level.warning],
       );
-      await _fileOutput!.init();
 
       final debugEnv = Platform.environment['REVERIC_DEBUG'];
       final isDebugMode = debugEnv == '1' || debugEnv == 'true';
@@ -73,19 +83,13 @@ class LogManager {
         outputs.add(ConsoleOutput());
       }
 
-      _currentLevel =
-          level ??
-          (isDebugMode
-              ? Level.trace
-              : kReleaseMode
-              ? Level.info
-              : Level.debug);
+      _currentLevel = level ?? _defaultLevel();
       _logger = Logger(
-        filter: _AlwaysOnLogFilter(),
-        level: _currentLevel,
+        filter: _AlwaysOnLogFilter(isEnabled),
         printer: CompactLogPrinter(),
         output: MultiOutput(outputs),
       );
+      await _logger!.init;
 
       _isInitialized = true;
       info(
@@ -106,19 +110,10 @@ class LogManager {
   }
 
   void setLogLevel(Level level) {
-    if (level == _currentLevel || !_isInitialized) return;
-    _currentLevel = level;
-    _logger!.close();
-    final outputs = <LogOutput>[_fileOutput!];
-    if (!kReleaseMode) {
-      outputs.add(ConsoleOutput());
+    if (level == _currentLevel || !_isInitialized) {
+      return;
     }
-    _logger = Logger(
-      filter: _AlwaysOnLogFilter(),
-      level: level,
-      printer: CompactLogPrinter(),
-      output: MultiOutput(outputs),
-    );
+    _currentLevel = level;
     info('Log level changed to $level');
   }
 
@@ -171,11 +166,15 @@ class LogManager {
   }
 
   void trace(String message) {
-    _logger?.t(message);
+    if (isEnabled(Level.trace)) {
+      _logger?.t(message);
+    }
   }
 
   void debug(String message) {
-    _logger?.d(message);
+    if (isEnabled(Level.debug)) {
+      _logger?.d(message);
+    }
   }
 
   void info(String message, {Map<String, dynamic>? extra}) {
@@ -271,7 +270,9 @@ class LogManager {
     for (final file in filesToDelete) {
       try {
         await file.delete();
-        debug('Deleted old log file: ${file.path}');
+        if (isEnabled(Level.debug)) {
+          debug('Deleted old log file: ${file.path}');
+        }
       } catch (e) {
         warning('Failed to delete old log file: ${file.path} | Error: $e');
       }
@@ -279,8 +280,12 @@ class LogManager {
   }
 
   Future<void> dispose() async {
-    await _fileOutput?.destroy();
-    _logger?.close();
+    await _logger?.close();
+    _logger = null;
+    _fileOutput = null;
+    _isInitialized = false;
+    _logDirectory = null;
+    _currentLevel = _defaultLevel();
   }
 
   Future<bool> openApplicationDirectory() async {
@@ -321,8 +326,12 @@ class LogManager {
 }
 
 class _AlwaysOnLogFilter extends LogFilter {
+  _AlwaysOnLogFilter(this.isEnabled);
+
+  final bool Function(Level) isEnabled;
+
   @override
   bool shouldLog(LogEvent event) {
-    return event.level >= level!;
+    return isEnabled(event.level);
   }
 }

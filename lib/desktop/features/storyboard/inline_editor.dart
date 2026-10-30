@@ -26,6 +26,8 @@ import '../production/edit_session.dart';
 import '../production/prompt_controller.dart';
 import '../production/prompt_field.dart';
 
+final _log = AppLogger.forModule('Storyboard');
+
 class InlineShotEditor extends HookConsumerWidget {
   const InlineShotEditor({
     super.key,
@@ -78,11 +80,7 @@ class InlineShotEditor extends HookConsumerWidget {
           baseline.value = source;
           return true;
         } catch (error, stack) {
-          AppLogger.error(
-            '[Storyboard] Prompt autosave failed',
-            error: error,
-            stackTrace: stack,
-          );
+          _log.error('Prompt autosave failed', error: error, stackTrace: stack);
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(context.t(LocaleKeys.productionFailed))),

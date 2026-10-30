@@ -20,6 +20,8 @@ import '../../theme/theme.dart';
 import '../../logger/app_logger.dart';
 import 'strings.dart';
 
+final _log = AppLogger.forModule('DirectorHistory');
+
 String _stamp(DateTime time) {
   final t = time.toLocal();
   String two(int v) => v.toString().padLeft(2, '0');
@@ -47,7 +49,7 @@ class DirectorHistoryPanel extends HookWidget {
     final snapshot = useFuture(entries);
     useEffect(() {
       if (snapshot.hasError) {
-        AppLogger.error(
+        _log.error(
           'director history failed',
           error: snapshot.error,
           stackTrace: snapshot.stackTrace,
@@ -124,9 +126,7 @@ class DirectorHistoryPanel extends HookWidget {
             ),
           Flexible(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(
-                vertical: RevericSpacing.xxs,
-              ),
+              padding: const EdgeInsets.symmetric(vertical: RevericSpacing.xxs),
               child: Column(
                 children: [
                   for (final e in items)

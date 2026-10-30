@@ -9,6 +9,8 @@ import '../../logger/app_logger.dart';
 import '../../models/mcp/config.dart';
 import '../../models/mcp/tool_descriptor.dart';
 
+final _log = AppLogger.forModule('McpSettings');
+
 class McpSettingsOrchestrator {
   Future<McpSettings> update({
     required AppDatabase database,
@@ -30,7 +32,7 @@ class McpSettingsOrchestrator {
       });
     } catch (error, stack) {
       final diagnostic = error.toString();
-      AppLogger.error(
+      _log.error(
         '[DB] app_settings UPSERT id=mcp_servers failed',
         error: payload == null
             ? diagnostic

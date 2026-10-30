@@ -467,7 +467,9 @@ class RemoteBridgeService extends ChangeNotifier {
     try {
       await _adapter.onMessageStart(chatId);
     } catch (error) {
-      _log.debug('notifyProcessingStart chatId=$chatId failed: $error');
+      if (_log.isDebugEnabled) {
+        _log.debug('notifyProcessingStart chatId=$chatId failed: $error');
+      }
     }
   }
 
@@ -476,7 +478,9 @@ class RemoteBridgeService extends ChangeNotifier {
     try {
       await _adapter.onMessageEnd(chatId);
     } catch (error) {
-      _log.debug('notifyProcessingEnd chatId=$chatId failed: $error');
+      if (_log.isDebugEnabled) {
+        _log.debug('notifyProcessingEnd chatId=$chatId failed: $error');
+      }
     }
   }
 

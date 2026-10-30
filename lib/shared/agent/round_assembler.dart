@@ -31,6 +31,8 @@ import 'agent_event.dart'
 import 'message.dart' show ToolCall;
 import 'client.dart' show AiUsage;
 
+final _log = AppLogger.forModule('assembleRound');
+
 /// 将 [ProviderClient.chatStream] 的原始事件流组装为 Agent runtime 可消费的 round 事件流。
 Stream<AgentRoundStreamEvent> assembleRound(Stream<StreamEvent> source) async* {
   final textBuf = StringBuffer();
@@ -103,7 +105,7 @@ Stream<AgentRoundStreamEvent> assembleRound(Stream<StreamEvent> source) async* {
         finalFinishReason = reason;
 
       case StreamError(:final message):
-        AppLogger.warning('[assembleRound] stream error: $message');
+        _log.warning('stream error: $message');
         yield AgentRoundComplete(
           AgentRoundResult(
             text: textBuf.toString(),

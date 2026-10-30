@@ -12,6 +12,8 @@ import '../../utils/random_id.dart';
 import '../app_database.dart';
 part 'tool_permission_dao.drift.dart';
 
+final _log = AppLogger.forModule('ToolPermissionDao');
+
 @DriftAccessor(tables: [ToolPermissionRules])
 class ToolPermissionDao extends DatabaseAccessor<AppDatabase>
     with _$ToolPermissionDaoMixin {
@@ -75,7 +77,7 @@ class ToolPermissionDao extends DatabaseAccessor<AppDatabase>
         }
       });
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] table=tool_permission_rules op=INSERT,UPDATE scope=${scope.type.name}/${scope.id} action=$action',
         error: error,
         stackTrace: stack,

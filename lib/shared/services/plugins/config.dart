@@ -10,6 +10,8 @@ import '../../logger/app_logger.dart';
 import '../../models/plugin/manifest.dart';
 import '../../models/plugin/setting_field.dart';
 
+final _log = AppLogger.forModule('PluginConfig');
+
 /// 普通配置与已保存凭据的名称；不向界面返回凭据原文。
 typedef PluginConfig = ({
   Map<String, Object?> values,
@@ -115,7 +117,7 @@ class PluginConfigOrchestrator {
         return true;
       });
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] plugin_storage/plugin_secrets/plugin_registry UPSERT plugin=${manifest.id}',
         error: error,
         stackTrace: stack,

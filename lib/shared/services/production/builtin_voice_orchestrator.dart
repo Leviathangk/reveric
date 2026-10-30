@@ -17,6 +17,8 @@ import '../../models/production/builtin_voices.dart';
 import 'ffmpeg_runner.dart';
 import 'library_service.dart';
 
+final _log = AppLogger.forModule('BuiltinVoice');
+
 class BuiltinVoiceOrchestrator {
   Future<AssetRow> run({
     required MediaLibraryService library,
@@ -30,7 +32,7 @@ class BuiltinVoiceOrchestrator {
     }
     Directory? temporary;
     try {
-      AppLogger.info('[BuiltinVoice] materialize started id=${voice.id}');
+      _log.info('materialize started id=${voice.id}');
       final data = await (bundle ?? rootBundle).load(voice.bundlePath);
       final bytes = data.buffer.asUint8List(
         data.offsetInBytes,
@@ -53,13 +55,11 @@ class BuiltinVoiceOrchestrator {
         cancellation: MediaCancellation(),
         source: 'bundled',
       );
-      AppLogger.info(
-        '[BuiltinVoice] materialize completed id=${voice.id} asset=${asset.id}',
-      );
+      _log.info('materialize completed id=${voice.id} asset=${asset.id}');
       return asset;
     } catch (error, stack) {
-      AppLogger.error(
-        '[BuiltinVoice] materialize failed id=${voice.id}',
+      _log.error(
+        'materialize failed id=${voice.id}',
         error: error,
         stackTrace: stack,
       );

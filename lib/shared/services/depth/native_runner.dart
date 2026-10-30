@@ -10,6 +10,8 @@ import '../../logger/app_logger.dart';
 import '../production/ffmpeg_runner.dart';
 import 'model.dart';
 
+final _log = AppLogger.forModule('Depth');
+
 class DepthNativeRunner {
   const DepthNativeRunner(this.executable);
   final String executable;
@@ -77,7 +79,7 @@ class DepthNativeRunner {
               );
             }
           } catch (error) {
-            AppLogger.warning('[Depth] invalid native progress record');
+            _log.warning('invalid native progress record');
           }
         });
     final eventsDone = events.asFuture<void>();
@@ -98,8 +100,8 @@ class DepthNativeRunner {
       await errorsDone;
       checkDepthCancellation(cancellation);
       if (code != 0 || !complete) {
-        AppLogger.error(
-          '[Depth] native exit=$code detail=${ffmpegFailureDetail(diagnostics, [executable, ...arguments])}',
+        _log.error(
+          'native exit=$code detail=${ffmpegFailureDetail(diagnostics, [executable, ...arguments])}',
         );
         throw const DepthException(DepthFailure.native_failed);
       }

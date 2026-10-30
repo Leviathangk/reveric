@@ -11,6 +11,8 @@ import '../../models/editing/document.dart';
 import '../novel_content_database.dart';
 part 'editing_dao.drift.dart';
 
+final _log = AppLogger.forModule('EditingDao');
+
 class EditingConflict implements Exception {
   const EditingConflict();
 }
@@ -39,7 +41,7 @@ class EditingDao extends DatabaseAccessor<NovelContentDatabase>
         VideoEditingsCompanion.insert(id: id, title: title, document: document),
       );
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] table=video_editings op=INSERT id=$id',
         error: error,
         stackTrace: stack,
@@ -78,7 +80,7 @@ class EditingDao extends DatabaseAccessor<NovelContentDatabase>
       }
       return expectedRevision + 1;
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] table=video_editings op=UPDATE id=$id',
         error: error,
         stackTrace: stack,
@@ -100,7 +102,7 @@ class EditingDao extends DatabaseAccessor<NovelContentDatabase>
             ),
           );
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] table=video_editings op=UPDATE id=$id',
         error: error,
         stackTrace: stack,

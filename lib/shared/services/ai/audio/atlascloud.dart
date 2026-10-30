@@ -18,6 +18,8 @@ import '../../../models/audio/request.dart';
 import '../media_diagnostics.dart';
 import 'client.dart';
 
+final _log = AppLogger.forModule('AtlasCloudAudio');
+
 class AtlasCloudAudioClient extends AudioClient {
   AtlasCloudAudioClient(
     super.client,
@@ -113,10 +115,12 @@ class AtlasCloudAudioClient extends AudioClient {
 
   @override
   AudioGenerationResult decodeResult(Map<String, dynamic> json) {
-    AppLogger.debug(
-      '[AtlasCloudAudio] response code=${json['code']} '
-      'status=${(json['data'] as Map?)?['status']}',
-    );
+    if (_log.isDebugEnabled) {
+      _log.debug(
+        'response code=${json['code']} '
+        'status=${(json['data'] as Map?)?['status']}',
+      );
+    }
     final data = json['data'] as Map<String, dynamic>?;
     if ((json['code'] != null && json['code'] != 200) ||
         json['error'] != null) {

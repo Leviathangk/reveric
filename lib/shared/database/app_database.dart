@@ -1251,26 +1251,18 @@ final _log = AppLogger.forModule('Database');
 )
 class AppDatabase extends _$AppDatabase {
   factory AppDatabase() {
-    _log.debug('factory() START');
     final cachedDatabase = _cachedDatabase;
     if (cachedDatabase != null) {
-      _log.debug(
-        'factory() returning cached instance, refCount=${cachedDatabase.referenceCount}',
-      );
       cachedDatabase.referenceCount += 1;
       return cachedDatabase.database;
     }
 
-    _log.debug('factory() creating new instance');
     final database = AppDatabase._internal();
     _cachedDatabase = _CachedAppDatabase(database: database);
-    _log.debug('factory() new instance created');
     return database;
   }
 
-  AppDatabase._internal() : super(_openConnection()) {
-    _log.debug('_internal() constructor called');
-  }
+  AppDatabase._internal() : super(_openConnection());
 
   @visibleForTesting
   AppDatabase.forTest(super.executor);
@@ -1294,7 +1286,7 @@ class AppDatabase extends _$AppDatabase {
           await migrator.createTable(pluginStorage);
           await migrator.createTable(pluginSecrets);
         } catch (error, stackTrace) {
-          AppLogger.error(
+          _log.error(
             '[DB] CREATE plugin_registry/plugin_storage/plugin_secrets schema=2',
             error: error,
             stackTrace: stackTrace,
@@ -1395,7 +1387,6 @@ class AppDatabase extends _$AppDatabase {
 }
 
 QueryExecutor _openConnection() {
-  _log.debug('_openConnection() called');
   return driftDatabase(
     name: 'reveric',
     native: DriftNativeOptions(
@@ -1406,7 +1397,9 @@ QueryExecutor _openConnection() {
         }
         final safeDir = toWindowsSafePath(dir.path);
         final dbPath = p.join(safeDir, 'reveric.sqlite');
-        _log.debug('resolved path: $dbPath');
+        if (_log.isDebugEnabled) {
+          _log.debug('resolved path: $dbPath');
+        }
         return dbPath;
       },
       tempDirectoryPath: () async {

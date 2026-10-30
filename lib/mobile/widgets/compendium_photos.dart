@@ -28,6 +28,8 @@ import '../../shared/theme/theme.dart';
 import '../../shared/widgets/media_asset_image.dart';
 import '../../shared/widgets/subject_photo_name.dart';
 
+final _log = AppLogger.forModule('Photo');
+
 class MobileCompendiumPhotos extends HookConsumerWidget {
   const MobileCompendiumPhotos({
     super.key,
@@ -53,8 +55,8 @@ class MobileCompendiumPhotos extends HookConsumerWidget {
       try {
         await action();
       } catch (error, stackTrace) {
-        AppLogger.error(
-          '[Photo] Compendium photo update failed id=${item.id}',
+        _log.error(
+          'Compendium photo update failed id=${item.id}',
           error: error,
           stackTrace: stackTrace,
         );

@@ -25,6 +25,8 @@ import '../image_library_service.dart';
 import '../storyboard/service.dart';
 import 'image_generate_orchestrator.dart';
 
+final _log = AppLogger.forModule('ImageTasks');
+
 class ImageTaskService {
   ImageTaskService({
     required this.database,
@@ -492,11 +494,7 @@ class ImageTaskService {
   }
 
   Future<void> recordFailure(String id, Object error, StackTrace stack) async {
-    AppLogger.error(
-      '[ImageTasks] run failed id=$id',
-      error: error,
-      stackTrace: stack,
-    );
+    _log.error('run failed id=$id', error: error, stackTrace: stack);
     if (_disposed) {
       return;
     }

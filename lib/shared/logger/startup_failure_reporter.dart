@@ -87,7 +87,9 @@ class StartupFailureReporter {
     required StackTrace stackTrace,
   }) async {
     if (!await _getEnabled()) {
-      _log.debug('skipped: reporting disabled phase=$phase');
+      if (_log.isDebugEnabled) {
+        _log.debug('skipped: reporting disabled phase=$phase');
+      }
       return StartupFailureReportOutcome.skipped;
     }
 

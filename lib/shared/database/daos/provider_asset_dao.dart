@@ -12,6 +12,8 @@ import '../../utils/random_id.dart';
 import '../app_database.dart';
 part 'provider_asset_dao.drift.dart';
 
+final _log = AppLogger.forModule('ProviderAssetDao');
+
 @DriftAccessor(tables: [ProviderAssets])
 class ProviderAssetDao extends DatabaseAccessor<AppDatabase>
     with _$ProviderAssetDaoMixin {
@@ -67,7 +69,7 @@ class ProviderAssetDao extends DatabaseAccessor<AppDatabase>
         return (await find(assetId, providerId))!;
       });
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] table=provider_assets op=INSERT,UPDATE asset=$assetId provider=$providerId',
         error: error,
         stackTrace: stack,
@@ -82,7 +84,7 @@ class ProviderAssetDao extends DatabaseAccessor<AppDatabase>
         values.copyWith(updatedAt: Value(DateTime.now())),
       );
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] table=provider_assets op=UPDATE id=$id',
         error: error,
         stackTrace: stack,

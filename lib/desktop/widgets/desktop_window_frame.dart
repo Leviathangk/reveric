@@ -15,6 +15,8 @@ import 'package:window_manager/window_manager.dart';
 import '../../shared/logger/app_logger.dart';
 import '../../shared/widgets/app_background.dart';
 
+final _log = AppLogger.forModule('WindowFrame');
+
 /// 内容铺到窗口顶部，标题栏覆盖其上；各区域自行消费避让尺寸。
 /// 使用原生标题栏的窗口通过 showCustomTitleBar 关闭自绘覆盖。
 class DesktopWindowFrame extends ConsumerWidget {
@@ -246,7 +248,7 @@ class _CaptionDragAreaState extends State<_CaptionDragArea> {
       onPanStart: (details) {
         // checkpoint 立即落盘：startDragging 走 vendored window_manager 原生
         // 代码（0.9.1 引入），若崩溃发生在窗口拖拽中，最后一条日志即此处。
-        AppLogger.checkpoint('[WindowFrame] title bar drag started (native)');
+        _log.checkpoint('title bar drag started (native)');
         windowManager.startDragging();
       },
       onDoubleTap: () async {

@@ -12,6 +12,8 @@ import '../app_database.dart';
 
 part 'production_style_dao.drift.dart';
 
+final _log = AppLogger.forModule('ProductionStyleDao');
+
 @DriftAccessor(tables: [ProductionStyles])
 class ProductionStyleDao extends DatabaseAccessor<AppDatabase>
     with _$ProductionStyleDaoMixin {
@@ -74,7 +76,7 @@ class ProductionStyleDao extends DatabaseAccessor<AppDatabase>
         ),
       );
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] production_styles INSERT id=$id',
         error: error,
         stackTrace: stack,
@@ -101,7 +103,7 @@ class ProductionStyleDao extends DatabaseAccessor<AppDatabase>
         ),
       );
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] production_styles UPDATE id=$id',
         error: error,
         stackTrace: stack,
@@ -119,7 +121,7 @@ class ProductionStyleDao extends DatabaseAccessor<AppDatabase>
         ),
       );
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] production_styles UPDATE soft-delete id=$id',
         error: error,
         stackTrace: stack,

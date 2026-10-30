@@ -126,7 +126,6 @@ class UpdateService {
           receiveTimeout: const Duration(seconds: 60),
         ),
         onReceiveProgress: (received, total) {
-          _log.debug('download progress received=$received total=$total');
           if (total > 0) {
             _setProgress(UpdateProgress.downloading(received / total));
           }

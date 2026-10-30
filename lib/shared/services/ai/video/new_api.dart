@@ -11,6 +11,8 @@ import '../../../models/video/request.dart';
 import '../../../models/video/task_result.dart';
 import 'client.dart';
 
+final _log = AppLogger.forModule('NewApiVideo');
+
 class NewApiVideoClient extends VideoClient {
   NewApiVideoClient({
     required super.httpClient,
@@ -81,8 +83,8 @@ class NewApiVideoClient extends VideoClient {
             Uri.dataFromBytes(bytes, mimeType: ref.mimeType).toString(),
           ];
         } catch (error) {
-          AppLogger.warning(
-            '[NewApiVideo] reference GET ${ref.url.origin}${ref.url.path} '
+          _log.warning(
+            'reference GET ${ref.url.origin}${ref.url.path} '
             'type=${error.runtimeType} message=${safeMediaDiagnostic(error, apiKey)}',
           );
           throw const VideoException(VideoErrorCode.unavailable);

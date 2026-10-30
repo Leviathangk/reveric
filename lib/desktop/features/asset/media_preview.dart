@@ -30,6 +30,8 @@ import '../../../shared/providers/production_media.dart';
 import '../../../shared/theme/theme.dart';
 import 'playback_controls.dart';
 
+final _log = AppLogger.forModule('MediaPreview');
+
 class MediaPreviewDialog extends HookConsumerWidget {
   MediaPreviewDialog({super.key, required AssetRow asset})
     : path = asset.path!,
@@ -66,8 +68,8 @@ class MediaPreviewDialog extends HookConsumerWidget {
               ready.value = true;
             }
           } catch (error, stack) {
-            AppLogger.error(
-              '[MediaPreview] open failed path=$path',
+            _log.error(
+              'open failed path=$path',
               error: error,
               stackTrace: stack,
             );

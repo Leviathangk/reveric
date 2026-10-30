@@ -175,7 +175,6 @@ class CanvasRegion extends HookConsumerWidget {
 
     /// 保存画布：节点/边/便签内容已实时写入 DB，这里刷新引用标题缓存并提示用户。
     Future<void> handleSave() async {
-      _log.debug('handleSave called canvasId=$canvasId locked=false');
       try {
         await editSession.flushAndWait();
         if (!context.mounted) {
@@ -205,19 +204,10 @@ class CanvasRegion extends HookConsumerWidget {
 
     // 便签：在视口中心新建一张空白便签(带默认纸色)。
     Future<void> handleAddSticky() async {
-      _log.debug(
-        'action=add_sticky phase=click canvasId=$canvasId '
-        'locked=false',
-      );
-
       final center = controller.getViewportCenter();
-      _log.debug(
-        'action=add_sticky phase=write_start canvasId=$canvasId '
-        'x=${center.dx} y=${center.dy}',
-      );
       try {
         final service = ref.read(canvasServiceProvider(databasePath));
-        final nodeId = await editSession.write(
+        await editSession.write(
           'add-sticky',
           () => service.addNode(
             canvasId: canvasId,
@@ -227,10 +217,6 @@ class CanvasRegion extends HookConsumerWidget {
             y: center.dy,
             style: const {canvasNodeColorStyleKey: canvasStickyColorDefault},
           ),
-        );
-        _log.debug(
-          'action=add_sticky phase=write_success canvasId=$canvasId '
-          'nodeId=$nodeId',
         );
       } catch (error, stackTrace) {
         _log.error(
@@ -306,10 +292,6 @@ class CanvasRegion extends HookConsumerWidget {
 
     // 清理失效：循环软删所有失效引用节点(stream 自动刷新)。
     Future<void> handleCleanDead() async {
-      _log.debug(
-        'handleCleanDead clicked canvasId=$canvasId invalidCount=${invalidIds.length} locked=false',
-      );
-
       final service = ref.read(canvasServiceProvider(databasePath));
       for (final id in invalidIds) {
         await editSession.write('delete:$id', () => service.softDeleteNode(id));
@@ -318,8 +300,6 @@ class CanvasRegion extends HookConsumerWidget {
 
     // 引用：打开资源选择器浮层。
     Future<void> handleAddReference() async {
-      _log.debug('handleAddReference clicked canvasId=$canvasId locked=false');
-
       final center = controller.getViewportCenter();
       await showCanvasResourcePicker(
         context: context,

@@ -18,6 +18,8 @@ import 'ffmpeg_runner.dart';
 import 'import_orchestrator.dart';
 import 'media_service.dart';
 
+final _log = AppLogger.forModule('MediaLibrary');
+
 class MediaLibraryService {
   MediaLibraryService(this.database, this.media, this.root);
   final AppDatabase database;
@@ -32,8 +34,8 @@ class MediaLibraryService {
     final file = File(resolvePath(path));
     final stat = await file.stat();
     if (stat.type != FileSystemEntityType.file || stat.size == 0) {
-      AppLogger.warning(
-        '[MediaMetadata] file unavailable name=${p.basename(path)}',
+      _log.warning(
+        'operation=metadata file unavailable name=${p.basename(path)}',
       );
       throw const MediaException(MediaFailure.invalid_media);
     }
@@ -51,8 +53,8 @@ class MediaLibraryService {
       if (identical(_metadata[key], pending)) {
         _metadata.remove(key);
       }
-      AppLogger.error(
-        '[MediaMetadata] probe failed file=${p.basename(path)}',
+      _log.error(
+        'operation=metadata probe failed file=${p.basename(path)}',
         error: error,
         stackTrace: stack,
       );
@@ -142,10 +144,10 @@ class MediaLibraryService {
       await target.create(exclusive: true);
       created = true;
       await source.openRead().pipe(target.openWrite());
-      AppLogger.info('[MediaExport] completed id=${asset.id}');
+      _log.info('operation=export completed id=${asset.id}');
     } catch (error, stack) {
-      AppLogger.error(
-        '[MediaExport] failed id=${asset.id}',
+      _log.error(
+        'operation=export failed id=${asset.id}',
         error: error,
         stackTrace: stack,
       );

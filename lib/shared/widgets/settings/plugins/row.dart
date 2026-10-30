@@ -22,6 +22,8 @@ import '../../../services/plugins/host.dart';
 import '../../../theme/theme.dart';
 import 'config_panel.dart';
 
+final _log = AppLogger.forModule('Plugin');
+
 String pluginFailureKey(String? failure) {
   final text = failure?.toLowerCase() ?? '';
   if (text.contains('unsupported plugin api')) {
@@ -98,8 +100,8 @@ class PluginSettingsRow extends HookConsumerWidget {
       try {
         await host.setEnabled(status.id, value);
       } catch (error, stack) {
-        AppLogger.error(
-          '[Plugin] Enable preference failed: ${status.id}',
+        _log.error(
+          'Enable preference failed: ${status.id}',
           error: error,
           stackTrace: stack,
         );

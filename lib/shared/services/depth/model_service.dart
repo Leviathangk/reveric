@@ -12,6 +12,8 @@ import '../editing/disk_space.dart';
 import 'model.dart';
 import '../../logger/app_logger.dart';
 
+final _log = AppLogger.forModule('Depth');
+
 class DepthModelService {
   DepthModelService(
     this.directory,
@@ -83,8 +85,8 @@ class DepthModelService {
         final response = await request.close().timeout(
           const Duration(seconds: 30),
         );
-        AppLogger.info(
-          '[Depth] model response host=${uri.host} status=${response.statusCode}',
+        _log.info(
+          'model response host=${uri.host} status=${response.statusCode}',
         );
         if (response.statusCode != 200 ||
             (response.contentLength >= 0 &&
@@ -140,8 +142,8 @@ class DepthModelService {
           error is TlsException ||
           error is SocksClientException ||
           error is TimeoutException) {
-        AppLogger.error(
-          '[Depth] model download failed host=${Uri.tryParse(manifest.source)?.host} type=${error.runtimeType}',
+        _log.error(
+          'model download failed host=${Uri.tryParse(manifest.source)?.host} type=${error.runtimeType}',
           error: error.toString().replaceAll(RegExp(r'https?://\S+'), '<url>'),
           stackTrace: stack,
         );

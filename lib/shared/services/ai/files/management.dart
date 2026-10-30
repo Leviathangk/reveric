@@ -12,6 +12,8 @@ import '../../../utils/storage_paths.dart';
 import 'session_files.dart';
 import 'command_paths.dart';
 
+final _log = AppLogger.forModule('Files');
+
 typedef _Identity = ({
   String resolved,
   FileSystemEntityType type,
@@ -22,9 +24,8 @@ typedef _Identity = ({
 });
 
 class ManagedFiles {
-  ManagedFiles(this.files, this.sessionId, {bool external = false})
-    : _external = external,
-      _root = CommandPaths(files).root {
+  ManagedFiles(this.files, this.sessionId, {this._external = false})
+    : _root = CommandPaths(files).root {
     SessionFiles.validateId(sessionId);
   }
   final bool _external;
@@ -330,8 +331,8 @@ class ManagedFiles {
       }
       return ManagedFileSelection._(this, path, remove, recursive, matches);
     } on FileSystemException catch (error, stack) {
-      AppLogger.error(
-        '[Files] selection failed type=${error.runtimeType}',
+      _log.error(
+        'selection failed type=${error.runtimeType}',
         error: error.osError,
         stackTrace: stack,
       );
@@ -446,7 +447,7 @@ class ManagedFileSelection {
         return depth == 0 ? a.compareTo(b) : depth;
       });
     final removed = <String>[];
-    AppLogger.info('[Files] removal started entries=${ordered.length}');
+    _log.info('removal started entries=${ordered.length}');
     try {
       for (final path in ordered) {
         if (cancelled()) {
@@ -474,11 +475,11 @@ class ManagedFileSelection {
         }
         removed.add(path);
       }
-      AppLogger.info('[Files] removal completed entries=${removed.length}');
+      _log.info('removal completed entries=${removed.length}');
       return {'ok': true, 'removed': removed};
     } catch (error, stack) {
-      AppLogger.error(
-        '[Files] removal failed removed=${removed.length} type=${error.runtimeType}',
+      _log.error(
+        'removal failed removed=${removed.length} type=${error.runtimeType}',
         error: error is ToolOperationException
             ? error.code
             : error is FileSystemException

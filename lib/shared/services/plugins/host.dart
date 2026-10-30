@@ -18,6 +18,8 @@ import 'http.dart';
 import 'registry.dart';
 import 'runtime.dart';
 
+final _log = AppLogger.forModule('Plugin');
+
 class PluginPackage {
   PluginPackage(this.path, this.manifest, this.code, {this.source = 'bundled'});
   final String path, code, source;
@@ -112,8 +114,8 @@ class PluginHostService {
           state: 'failed',
           error: error.toString(),
         );
-        AppLogger.error(
-          '[Plugin] Manifest load failed: $path',
+        _log.error(
+          'Manifest load failed: $path',
           error: error,
           stackTrace: stack,
         );
@@ -209,8 +211,8 @@ class PluginHostService {
     } catch (error, stack) {
       status.state = 'failed';
       status.error = error.toString();
-      AppLogger.error(
-        '[Plugin] Activation failed: $pluginId',
+      _log.error(
+        'Activation failed: $pluginId',
         error: error,
         stackTrace: stack,
       );
@@ -392,8 +394,8 @@ class PluginHostService {
         if (value != null && value.isNotEmpty) value,
     ];
     PluginActionResult failed(String code, String message) {
-      AppLogger.warning(
-        '[Plugin] Action failed: $pluginId.$name $code '
+      _log.warning(
+        'Action failed: $pluginId.$name $code '
         '${_redact(message, redactions)}',
       );
       return (ok: false, code: code);
@@ -495,9 +497,7 @@ class PluginHostService {
           'Log message must be a string',
         );
       }
-      AppLogger.info(
-        '[Plugin:$id] $method ${_redact(jsonEncode(args), secrets)}',
-      );
+      _log.info('plugin=$id $method ${_redact(jsonEncode(args), secrets)}');
       return null;
     }
     throw PluginHostError('unavailable', 'Host API not implemented: $method');

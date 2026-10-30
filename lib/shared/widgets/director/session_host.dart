@@ -20,6 +20,8 @@ import '../../services/director/session.dart';
 import '../../theme/theme.dart';
 import 'strings.dart';
 
+final _log = AppLogger.forModule('DirectorSession');
+
 class DirectorSessionHost extends HookWidget {
   const DirectorSessionHost({
     super.key,
@@ -49,7 +51,7 @@ class DirectorSessionHost extends HookWidget {
           }
         },
         onError: (Object error, StackTrace stack) {
-          AppLogger.error(
+          _log.error(
             'director initialization failed type=${error.runtimeType}',
             stackTrace: stack,
           );

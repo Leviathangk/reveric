@@ -25,6 +25,8 @@ import '../../../shared/logger/app_logger.dart';
 import '../../../shared/providers/production_media.dart';
 import '../../../shared/theme/theme.dart';
 
+final _log = AppLogger.forModule('ProductionTrim');
+
 /// 保留区间至少这么长。
 const _minLength = Duration(milliseconds: 100);
 
@@ -56,11 +58,7 @@ class _TrimDialog extends HookConsumerWidget {
         try {
           await playback.open(owner: owner, path: library.resolvePath(path));
         } catch (error, stack) {
-          AppLogger.error(
-            '[ProductionTrim] open failed',
-            error: error,
-            stackTrace: stack,
-          );
+          _log.error('open failed', error: error, stackTrace: stack);
           if (alive) {
             failed.value = true;
           }

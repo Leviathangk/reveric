@@ -66,17 +66,12 @@ class AnonymousOutboxEventInput {
 /// 将 endpoint 专属事件持久化后按固定协议批量上报。
 class AnonymousOutboxService {
   AnonymousOutboxService({
-    required AppDatabase database,
-    required http.Client httpClient,
-    required String? Function() getBaseUrl,
-    required bool Function() getEnabled,
-    bool autoFlush = true,
-  }) : _database = database,
-       _httpClient = httpClient,
-       _getBaseUrl = getBaseUrl,
-       _getEnabled = getEnabled,
-       _autoFlush = autoFlush,
-       _dispatchZone = Zone.current;
+    required this._database,
+    required this._httpClient,
+    required this._getBaseUrl,
+    required this._getEnabled,
+    this._autoFlush = true,
+  }) : _dispatchZone = Zone.current;
 
   final AppDatabase _database;
   final http.Client _httpClient;
@@ -97,15 +92,19 @@ class AnonymousOutboxService {
   /// 写入成功后触发后台 flush；调用方不必等待网络完成。
   Future<void> enqueue(AnonymousOutboxEventInput input) async {
     if (_disposed) {
-      _log.debug(
-        'enqueue skipped: disposed=true channel=${input.channel.name}',
-      );
+      if (_log.isDebugEnabled) {
+        _log.debug(
+          'enqueue skipped: disposed=true channel=${input.channel.name}',
+        );
+      }
       return;
     }
     if (!_getEnabled()) {
-      _log.debug(
-        'enqueue skipped: reporting disabled channel=${input.channel.name}',
-      );
+      if (_log.isDebugEnabled) {
+        _log.debug(
+          'enqueue skipped: reporting disabled channel=${input.channel.name}',
+        );
+      }
       return;
     }
 
@@ -288,9 +287,11 @@ class AnonymousOutboxService {
           .post(Uri.parse(url), headers: headers, body: body)
           .timeout(const Duration(seconds: 10));
       if (response.statusCode == 204) {
-        _log.debug(
-          'flush accepted endpoint=${endpoint.name} count=${batch.length}',
-        );
+        if (_log.isDebugEnabled) {
+          _log.debug(
+            'flush accepted endpoint=${endpoint.name} count=${batch.length}',
+          );
+        }
         return true;
       }
       _log.warning(

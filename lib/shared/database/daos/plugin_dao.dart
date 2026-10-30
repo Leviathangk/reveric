@@ -6,6 +6,8 @@ import '../app_database.dart';
 import '../../logger/app_logger.dart';
 part 'plugin_dao.drift.dart';
 
+final _log = AppLogger.forModule('PluginDao');
+
 @DriftAccessor(tables: [PluginRegistry, PluginStorage, PluginSecrets])
 class PluginDao extends DatabaseAccessor<AppDatabase> with _$PluginDaoMixin {
   PluginDao(super.db);
@@ -25,7 +27,7 @@ class PluginDao extends DatabaseAccessor<AppDatabase> with _$PluginDaoMixin {
     try {
       return await action();
     } catch (error, stack) {
-      AppLogger.error(
+      _log.error(
         '[DB] $table $operation plugin=$pluginId',
         error: error,
         stackTrace: stack,
