@@ -40,6 +40,10 @@ List<AppInitializationTask> defaultAppInitializationTasks() {
       run: seedDefaultThirdPartyProviders,
     ),
     AppInitializationTask(
+      id: 'default_metaso_provider_v1',
+      run: seedDefaultMetasoProvider,
+    ),
+    AppInitializationTask(
       id: 'default_api88_provider_v1',
       run: seedDefaultApi88Provider,
     ),

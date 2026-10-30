@@ -86,11 +86,11 @@ class AtlasCloudVideoRoute {
 class VideoChannelModel {
   const VideoChannelModel({
     required this.catalogId,
-    VideoModelCapabilities capabilities = const VideoModelCapabilities(),
-    VideoRequestDefaults requestDefaults = const VideoRequestDefaults(),
+    this._capabilities = const VideoModelCapabilities(),
+    this._requestDefaults = const VideoRequestDefaults(),
     this.protocolOptions = const VideoProtocolOptions(),
-  }) : _capabilities = capabilities,
-       _requestDefaults = requestDefaults;
+    this.maxDurationByResolution = const {},
+  });
   final String catalogId;
   final VideoModelCapabilities _capabilities;
   final VideoRequestDefaults _requestDefaults;
@@ -103,6 +103,14 @@ class VideoChannelModel {
   Set<String> get resolutions => capabilities.resolutions;
   Set<String> get ratios => capabilities.ratios;
   Set<int> get durations => capabilities.durations;
+  final Map<String, int> maxDurationByResolution;
+  Set<int> durationsForResolution(String resolution) {
+    final maximum = maxDurationByResolution[resolution];
+    return maximum == null
+        ? durations
+        : durations.where((seconds) => seconds <= maximum).toSet();
+  }
+
   int get minDurationSeconds => durations.reduce(min);
   int get maxDurationSeconds => durations.reduce(max);
 
@@ -1978,8 +1986,54 @@ const videoChannelModels = <VideoProtocol, Map<String, VideoChannelModel>>{
   },
 };
 
+const _metasoH3 = VideoChannelModel(
+  catalogId: 'MiniMax-H3',
+  capabilities: VideoModelCapabilities(
+    maxPromptCharacters: ConfigValue(10000),
+    resolutions: {'480p', '768P', '1080p', '2K'},
+    // dart format off
+    durations: {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30},
+    // dart format on
+  ),
+  maxDurationByResolution: {'2K': 15},
+  protocolOptions: VideoProtocolOptions(framesRequireAdaptiveRatio: true),
+);
+
+// Public model catalog and API examples: https://metaso.cn/minimax-h3
+const _providerVideoModels = <String, Map<String, VideoChannelModel>>{
+  'metaso': {
+    'MiniMax-H3': _metasoH3,
+    'MiniMax-H3-priority': _metasoH3,
+    'seedance-2.0': VideoChannelModel(
+      catalogId: 'doubao-seedance-2-0-260128',
+      requestDefaults: VideoRequestDefaults(audio: ConfigValue(null)),
+      capabilities: VideoModelCapabilities(
+        references: {
+          VideoMediaKind.video: VideoReferenceLimits(
+            maxSizeMb: ConfigValue(50),
+          ),
+        },
+      ),
+    ),
+    'seedance-2.0-mini': VideoChannelModel(
+      catalogId: 'doubao-seedance-2-0-mini-260615',
+      requestDefaults: VideoRequestDefaults(audio: ConfigValue(null)),
+      capabilities: VideoModelCapabilities(
+        references: {
+          VideoMediaKind.video: VideoReferenceLimits(
+            maxSizeMb: ConfigValue(50),
+          ),
+        },
+      ),
+    ),
+  },
+};
+
 List<String> videoModelsForProvider(String providerType) =>
-    videoChannelModels[aiProviderTypeConfigFor(providerType)?.videoProtocol]
+    (_providerVideoModels[providerType] ??
+            videoChannelModels[aiProviderTypeConfigFor(
+              providerType,
+            )?.videoProtocol])
         ?.keys
         .toList(growable: false) ??
     const [];
@@ -1991,7 +2045,9 @@ VideoChannelModel? lookupVideoChannelModel(
   String? modelId,
 ) {
   final config = aiProviderTypeConfigFor(providerType);
-  final models = videoChannelModels[config?.videoProtocol];
+  final models =
+      _providerVideoModels[providerType] ??
+      videoChannelModels[config?.videoProtocol];
   if (config == null || models == null) {
     return null;
   }

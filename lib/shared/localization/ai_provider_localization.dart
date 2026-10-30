@@ -27,6 +27,7 @@ String localizedBuiltinAiProviderName(
   required String fallbackName,
 }) {
   final key = switch (providerId) {
+    'metaso' => LocaleKeys.settingsBuiltinProviderMetaso,
     'deepseek' => LocaleKeys.settingsBuiltinProviderDeepseek,
     'doubao' => LocaleKeys.settingsBuiltinProviderDoubao,
     'moonshot' => LocaleKeys.settingsBuiltinProviderMoonshot,
@@ -72,6 +73,7 @@ String localizedProviderTypeDescription(
     AiProviderType.doubao => LocaleKeys.settingsProviderDescriptionDoubao,
     AiProviderType.volcengine =>
       LocaleKeys.settingsProviderDescriptionVolcengine,
+    AiProviderType.metaso => LocaleKeys.settingsProviderDescriptionMetaso,
     AiProviderType.minimax => LocaleKeys.settingsProviderDescriptionMinimax,
     AiProviderType.agnes => LocaleKeys.settingsProviderDescriptionAgnes,
     AiProviderType.atlascloud =>

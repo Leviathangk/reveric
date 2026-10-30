@@ -37,7 +37,7 @@
 
 <table width="100%">
   <tr>
-    <td align="center" valign="top">
+    <td width="50%" align="center" valign="top">
       <a href="https://88api.ai/sign-up?aff=5q8X">
         <img src=".github/images/88api-logo.png" alt="88API Token Aggregation Platform" height="80"/>
         <br/>
@@ -54,6 +54,25 @@
       <p align="left">
         Website: <a href="https://88api.ai/">88api.ai</a><br/>
         API Base URL: <code>https://api.88api.ai</code>
+      </p>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="https://metaso.cn/minimax-h3/?s=Reveric">
+        <img src=".github/images/metaso-logo.png" alt="METASO" height="80"/>
+        <br/>
+        <strong>MiniMax H3 Video Generation API | METASO</strong>
+      </a>
+      <p align="center">
+        <a href="https://metaso.cn/minimax-h3/?s=Reveric">
+          <img src=".github/images/metaso-banner.png" alt="METASO · metaso.cn" width="600"/>
+        </a>
+      </p>
+      <p align="left"><strong>Thank you to METASO for sponsoring this project!</strong></p>
+      <p align="left">METASO offers cost-effective MiniMax H3 video generation: <strong>768P from just ¥0.09/s and 2K from just ¥0.15/s</strong>. It supports clips up to 30 seconds, native 2K, and synced audio. The API is <strong>OpenAI-compatible</strong> and also works with <strong>ComfyUI</strong>, so there is no GPU to deploy yourself.</p>
+      <p align="left">🎁 <a href="https://metaso.cn/minimax-h3/?s=Reveric">Register through the Reveric referral link</a> to receive bonus credits and exclusive offers.</p>
+      <p align="left">
+        Website: <a href="https://metaso.cn/minimax-h3/?s=Reveric">metaso.cn</a><br/>
+        API Base URL: <code>https://metaso.cn/api/minimax</code>
       </p>
     </td>
   </tr>

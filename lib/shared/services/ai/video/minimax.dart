@@ -1,4 +1,4 @@
-// 职责: 将 MiniMax H3 请求与回执转换为 V2 视频协议。
+// 职责: 将 MiniMax V2 视频请求与回执转换为渠道协议，并映射秘塔 H3 优先通道别名。
 // 关联文件:
 //   lib/shared/services/ai/video/client.dart
 //   lib/shared/models/video/request.dart
@@ -24,13 +24,19 @@ class MinimaxVideoClient extends VideoClient {
   Map<String, dynamic> encode(
     VideoRequest request,
     List<VideoReference> references,
-  ) => {
-    'model': request.modelId,
-    'content': videoContent(request, references),
-    'resolution': request.resolution,
-    'duration': request.durationSeconds,
-    'ratio': request.ratio,
-  };
+  ) {
+    final priority =
+        providerType == 'metaso' && request.modelId == 'MiniMax-H3-priority';
+    return {
+      'model': priority ? 'MiniMax-H3' : request.modelId,
+      if (priority) 'fast_mode': true,
+      'content': videoContent(request, references),
+      'resolution': request.resolution,
+      'duration': request.durationSeconds,
+      'ratio': request.ratio,
+    };
+  }
+
   @override
   String submissionId(Map<String, dynamic> json) => json['task_id'] as String;
   @override

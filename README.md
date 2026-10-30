@@ -37,7 +37,7 @@
 
 <table width="100%">
   <tr>
-    <td align="center" valign="top">
+    <td width="50%" align="center" valign="top">
       <a href="https://88api.ai/sign-up?aff=5q8X">
         <img src=".github/images/88api-logo.png" alt="88API Token 聚合平台" height="80"/>
         <br/>
@@ -54,6 +54,25 @@
       <p align="left">
         官网：<a href="https://88api.ai/">88api.ai</a><br/>
         请求地址：<code>https://api.88api.ai</code>
+      </p>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="https://metaso.cn/minimax-h3/?s=Reveric">
+        <img src=".github/images/metaso-logo.png" alt="秘塔科技" height="80"/>
+        <br/>
+        <strong>MiniMax H3 视频生成 API｜秘塔科技</strong>
+      </a>
+      <p align="center">
+        <a href="https://metaso.cn/minimax-h3/?s=Reveric">
+          <img src=".github/images/metaso-banner.png" alt="秘塔科技 · metaso.cn" width="600"/>
+        </a>
+      </p>
+      <p align="left"><strong>感谢秘塔科技赞助本项目！</strong></p>
+      <p align="left">秘塔科技提供高性价比的 MiniMax H3 视频生成服务：<strong>768P 仅 0.09 元/秒，2K 仅 0.15 元/秒</strong>。支持 30 秒、支持原生 2K、音画同步，API 兼容 <strong>OpenAI 协议</strong>，同时支持 <strong>ComfyUI</strong>，无需自行部署 GPU。</p>
+      <p align="left">🎁 通过 <a href="https://metaso.cn/minimax-h3/?s=Reveric">Reveric 专属链接注册</a>，即可领取赠送额度及专属优惠。</p>
+      <p align="left">
+        官网：<a href="https://metaso.cn/minimax-h3/?s=Reveric">metaso.cn</a><br/>
+        请求地址：<code>https://metaso.cn/api/minimax</code>
       </p>
     </td>
   </tr>

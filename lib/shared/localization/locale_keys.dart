@@ -3984,6 +3984,45 @@ abstract final class LocaleKeys {
   static const settingsAiAgentsDescription = 'settings.ai_agents_description';
   static const settingsAiAgentsSection = 'settings.ai_agents_section';
   static const settingsAiApiKey = 'settings.ai_api_key';
+  static const settingsBuiltinProviderMetaso =
+      'settings.builtin_provider_metaso';
+  static const settingsProviderDescriptionMetaso =
+      'settings.provider_description_metaso';
+  static const settingsProviderSearchHint = 'settings.provider_search_hint';
+  static const settingsProviderSponsoredBadge =
+      'settings.provider_sponsored_badge';
+  static const settingsProviderMetasoLink = 'settings.provider_metaso_link';
+  static const settingsProviderMetasoCategory =
+      'settings.provider_metaso_category';
+  static const settingsProviderMetasoTagline =
+      'settings.provider_metaso_tagline';
+  static const settingsProviderMetasoSummary =
+      'settings.provider_metaso_summary';
+  static const settingsProviderMetasoMaxDuration =
+      'settings.provider_metaso_max_duration';
+  static const settingsProviderMetasoSeconds =
+      'settings.provider_metaso_seconds';
+  static const settingsProviderMetasoPriceUnit =
+      'settings.provider_metaso_price_unit';
+  static const settingsProviderMetasoHd = 'settings.provider_metaso_hd';
+  static const settingsProviderMetasoNative2k =
+      'settings.provider_metaso_native_2k';
+  static const settingsProviderMetasoResolutionTitle =
+      'settings.provider_metaso_resolution_title';
+  static const settingsProviderMetasoResolutionDescription =
+      'settings.provider_metaso_resolution_description';
+  static const settingsProviderMetasoAudioTitle =
+      'settings.provider_metaso_audio_title';
+  static const settingsProviderMetasoAudioDescription =
+      'settings.provider_metaso_audio_description';
+  static const settingsProviderMetasoOpenaiCompatible =
+      'settings.provider_metaso_openai_compatible';
+  static const settingsProviderMetasoCanvas = 'settings.provider_metaso_canvas';
+  static const settingsProviderMetasoNoGpu = 'settings.provider_metaso_no_gpu';
+  static const settingsProviderMetasoPricingNote =
+      'settings.provider_metaso_pricing_note';
+  static const settingsProviderMetasoListTagline =
+      'settings.provider_metaso_list_tagline';
   static const settingsAiGetApiKey = 'settings.ai_get_api_key';
   static const settingsAiOpenApiKeyFailed = 'settings.ai_open_api_key_failed';
   static const settingsCodexCheckLogin = 'settings.codex_check_login';

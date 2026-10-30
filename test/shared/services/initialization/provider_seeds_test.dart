@@ -72,6 +72,44 @@ void main() {
     },
   );
 
+  test(
+    'METASO seed supplies video models once and preserves user configuration',
+    () async {
+      final tasks = defaultAppInitializationTasks()
+          .where((task) => task.id == 'default_metaso_provider_v1')
+          .toList();
+      expect(tasks, hasLength(1));
+      await ensureAppInitializationTasks(database: database, tasks: tasks);
+      final provider = (await database.aiProviderDao.getById('metaso'))!;
+      expect(provider.enabled, false);
+      expect(provider.apiKey, isEmpty);
+      expect(provider.videoModels, [
+        'MiniMax-H3',
+        'MiniMax-H3-priority',
+        'seedance-2.0',
+        'seedance-2.0-mini',
+      ]);
+      await database.aiProviderDao.upsert(
+        provider.copyWith(
+          apiKey: 'user-key',
+          enabled: true,
+          videoModels: ['MiniMax-H3'],
+        ),
+      );
+      await seedDefaultMetasoProvider(database);
+      expect(
+        (await database.aiProviderDao.getById('metaso'))!.apiKey,
+        'user-key',
+      );
+      expect((await database.aiProviderDao.getById('metaso'))!.videoModels, [
+        'MiniMax-H3',
+      ]);
+      await database.aiProviderDao.softDelete('metaso');
+      await seedDefaultMetasoProvider(database);
+      expect(await database.aiProviderDao.getById('metaso'), isNull);
+    },
+  );
+
   for (final deleted in [false, true]) {
     test(
       '88API seed uses its fixed ID independently of custom providers, deleted=$deleted',

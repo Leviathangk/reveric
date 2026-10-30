@@ -76,6 +76,7 @@ String? _extract(Object? value, {required bool code, required int depth}) {
       value['raw'],
       if (value['data'] is Map) value['data'],
       if (value['output'] is Map) value['output'],
+      if (value['task'] is Map) value['task'],
     ]) {
       final result = _extract(nested, code: code, depth: depth + 1);
       if (result != null) {

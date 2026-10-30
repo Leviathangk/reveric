@@ -107,6 +107,7 @@ void main() {
         ('volcengine', VideoProtocol.ark_video),
         ('qwen', VideoProtocol.wan_video),
         ('minimax', VideoProtocol.minimax_video_v2),
+        ('metaso', VideoProtocol.minimax_video_v2),
         ('agnes', VideoProtocol.agnes_video),
         ('atlascloud', VideoProtocol.atlascloud_video),
       ]) {

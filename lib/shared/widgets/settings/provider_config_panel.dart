@@ -28,7 +28,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../components/dialog_feedback.dart';
 import '../../components/reveric_search_field.dart';
@@ -38,6 +37,8 @@ import '../../localization/ai_provider_localization.dart';
 import '../../localization/app_localization.dart';
 import '../../localization/locale_keys.dart';
 import '../../logger/app_logger.dart';
+import 'provider_overview.dart';
+import 'provider_logo.dart';
 import '../../models/ai_provider.dart';
 import '../../services/ai/new_api.dart';
 import '../../models/network_proxy.dart';
@@ -214,25 +215,33 @@ class ProviderConfigPanel extends HookConsumerWidget {
           ),
           child: Row(
             children: [
+              ProviderLogo(type: config.type),
+              const SizedBox(width: RevericSpacing.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: RevericSpacing.sm,
+                      runSpacing: RevericSpacing.xxs,
                       children: [
                         Text(
                           providerName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: typo.uiSemibold.copyWith(
                             color: colors.textPrimary,
                           ),
                         ),
-                        ...[
-                          const SizedBox(width: RevericSpacing.sm),
-                          StatusBadge(isValid: config.isValid),
-                        ],
+                        StatusBadge(isValid: config.isValid),
                       ],
                     ),
-                    ...[
+                    if (!config.isTypeSupported ||
+                        providerName !=
+                            localizedProviderTypeName(
+                              context,
+                              config.typeEnum,
+                            )) ...[
                       const SizedBox(height: RevericSpacing.xxs),
                       Row(
                         children: [
@@ -368,11 +377,8 @@ class ProviderConfigPanel extends HookConsumerWidget {
           ),
           const SizedBox(height: RevericSpacing.xs),
         ],
-        Text(
-          localizedProviderTypeDescription(context, config.typeEnum),
-          style: typo.uiSmall.copyWith(color: colors.textMuted),
-        ),
-        const SizedBox(height: RevericSpacing.lg),
+        ProviderOverview(config: config),
+        const SizedBox(height: RevericSpacing.x4l),
         if (config.hasFixedBaseUrl)
           _buildReadOnlyField(
             context: context,
@@ -429,13 +435,6 @@ class ProviderConfigPanel extends HookConsumerWidget {
                   onChanged: () => saveConfig(),
                 ),
               ),
-              if (_apiKeyUrls[config.type] case final url?) ...[
-                const SizedBox(width: RevericSpacing.sm),
-                RevericButton.text(
-                  label: context.t(LocaleKeys.settingsAiGetApiKey),
-                  onPressed: () => _openApiKeyUrl(context, url),
-                ),
-              ],
             ],
           ),
         if (!config.isCodex && !config.hasApiKey) ...[
@@ -467,9 +466,7 @@ class ProviderConfigPanel extends HookConsumerWidget {
             style: typo.uiSmall.copyWith(color: colors.textMuted),
           ),
         ],
-        if (Theme.of(context).platform != TargetPlatform.android &&
-            Theme.of(context).platform != TargetPlatform.iOS &&
-            config.supportsModelKind(AiModelKind.video)) ...[
+        if (config.supportsModelKind(AiModelKind.video)) ...[
           const SizedBox(height: RevericSpacing.lg),
           ProviderVideoModels(
             config: config,
@@ -645,53 +642,6 @@ class ProviderConfigPanel extends HookConsumerWidget {
           onChanged(selected.toList());
         }
       },
-    );
-  }
-
-  static const _apiKeyUrls = {
-    'api88': 'https://88api.ai/sign-up?aff=5q8X',
-    'openai': 'https://platform.openai.com/api-keys',
-    'openrouter': 'https://openrouter.ai/settings/keys',
-    'xai': 'https://console.x.ai/',
-    'anthropic': 'https://platform.claude.com/settings/keys',
-    'qwen': 'https://platform.qianwenai.com/api-keys',
-    'gemini': 'https://aistudio.google.com/apikey',
-    'deepseek': 'https://platform.deepseek.com/api_keys',
-    'moonshot': 'https://platform.kimi.com/console/api-keys',
-    'zhipu': 'https://z.ai/manage-apikey/apikey-list',
-    'doubao': 'https://console.volcengine.com/ark/region:cn-beijing/apiKey',
-    'volcengine': 'https://console.volcengine.com/ark/region:cn-beijing/apiKey',
-    'minimax': 'https://platform.minimax.io/console/access',
-    'agnes': 'https://platform.agnes-ai.com/',
-    'atlascloud': 'https://www.atlascloud.ai?ref=6MQKFA',
-  };
-
-  Future<void> _openApiKeyUrl(BuildContext context, String url) async {
-    try {
-      if (await launchUrl(
-        Uri.parse(url),
-        mode: LaunchMode.externalApplication,
-      )) {
-        return;
-      }
-      AppLogger.warning('[ProviderConfig] URL launch returned false: $url');
-    } catch (error, stackTrace) {
-      AppLogger.error(
-        '[ProviderConfig] Failed to open API key page: $url',
-        error: error,
-        stackTrace: stackTrace,
-      );
-    }
-    if (!context.mounted) {
-      return;
-    }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: DialogToast(
-          variant: DialogToastVariant.error,
-          child: Text(context.t(LocaleKeys.settingsAiOpenApiKeyFailed)),
-        ),
-      ),
     );
   }
 

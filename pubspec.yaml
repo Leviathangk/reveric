@@ -193,6 +193,7 @@ flutter:
     - assets/prompts/fragments/
     - assets/logo/
     - assets/illustrations/
+    - assets/icons/providers/
     - assets/icons/ai_assistant/
     - assets/icons/phosphor/ # Phosphor Icons (MIT), https://github.com/phosphor-icons/core
     - assets/icons/collapse.svg

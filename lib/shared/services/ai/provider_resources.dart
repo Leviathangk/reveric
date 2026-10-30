@@ -144,6 +144,8 @@ Map<String, dynamic>? _video(AiProvider provider, String model) {
       'ratios': channel.ratios.toList(),
       'resolutions': channel.resolutions.toList(),
       'durations': channel.durations.toList(),
+      if (channel.maxDurationByResolution.isNotEmpty)
+        'max_duration_by_resolution': channel.maxDurationByResolution,
       'supports_draft': channel.protocolOptions.supportsDraft,
       if (channel.protocolOptions.supportsDraft)
         'draft': {

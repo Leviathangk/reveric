@@ -25,6 +25,11 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../components/reveric_badge.dart';
+import '../../components/reveric_search_field.dart';
+import '../../components/reveric_icon_button.dart';
+import 'provider_logo.dart';
+import 'provider_overview.dart';
+import 'providers/registry.dart';
 import '../../components/reveric_placeholder.dart';
 import '../../components/reveric_select.dart';
 import '../../components/reveric_text_field.dart';
@@ -101,7 +106,9 @@ class AiProvidersSection extends HookConsumerWidget {
           final id = buildRandomId('prv', length: 6);
           final config = AiProvider(
             audioModels: const [],
-            videoModels: const [],
+            videoModels: format == AiProviderType.metaso
+                ? aiProviderBuiltinById('metaso')!.videoModels
+                : const [],
             id: id,
             name: name,
             builtin: false,
@@ -267,67 +274,78 @@ class _ProviderConfigRoute extends StatelessWidget {
 // Provider List
 // ─────────────────────────────────────────────────────────────────────────────
 
-class ProviderList extends StatelessWidget {
-  final List<AiProvider> configs;
-
-  final String? selectedId;
-
-  final ValueChanged<String> onSelect;
-  final VoidCallback onAddCustom;
-
+class ProviderList extends HookWidget {
   const ProviderList({
     super.key,
     required this.configs,
-
     required this.selectedId,
-
     required this.onSelect,
     required this.onAddCustom,
   });
+  final List<AiProvider> configs;
+  final String? selectedId;
+  final ValueChanged<String> onSelect;
+  final VoidCallback onAddCustom;
 
   @override
   Widget build(BuildContext context) {
     final colors = RevericTheme.colorsOf(context);
-
-    return Container(
+    final search = useDebouncedSearch();
+    final filtered = configs
+        .where(
+          (config) =>
+              '${localizedAiProviderName(context, config)} ${config.type} ${config.videoModels.join(' ')}'
+                  .toLowerCase()
+                  .contains(search.query),
+        )
+        .toList();
+    return ColoredBox(
       color: colors.surfaceDim,
       child: Column(
         children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(
-                horizontal: RevericSpacing.xs,
-                vertical: RevericSpacing.sm,
-              ),
-              itemCount: configs.length,
-              itemBuilder: (ctx, i) {
-                final config = configs[i];
-                final isSelected = config.id == selectedId;
-                return ProviderListItem(
-                  config: config,
-
-                  isSelected: isSelected,
-                  locked: false,
-                  onTap: () => onSelect(config.id),
-                );
-              },
-            ),
-          ),
-          Container(
-            height: RevericSizes.dividerThickness,
-            color: colors.border,
-          ),
           Padding(
             padding: const EdgeInsets.all(RevericSpacing.sm),
-            child: SizedBox(
-              width: double.infinity,
-              child: RevericButton.secondary(
-                label: context.t(LocaleKeys.settingsAddCustomProvider),
-                icon: RevericIcons.add,
-                size: RevericButtonSize.compact,
-                onPressed: onAddCustom,
-              ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: RevericSearchField(
+                    controller: search.controller,
+                    hint: context.t(LocaleKeys.settingsProviderSearchHint),
+                  ),
+                ),
+                const SizedBox(width: RevericSpacing.xxs),
+                RevericIconButton(
+                  icon: RevericIcons.add,
+                  tooltip: context.t(LocaleKeys.commonAdd),
+                  onPressed: onAddCustom,
+                ),
+              ],
             ),
+          ),
+          Expanded(
+            child: filtered.isEmpty
+                ? Center(
+                    child: Text(
+                      context.t(LocaleKeys.commonNoResults),
+                      style: RevericTheme.typographyOf(
+                        context,
+                      ).uiSmall.copyWith(color: colors.textMuted),
+                    ),
+                  )
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: RevericSpacing.xs,
+                      vertical: RevericSpacing.sm,
+                    ),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, _) =>
+                        const SizedBox(height: RevericSpacing.xxs),
+                    itemBuilder: (_, i) => ProviderListItem(
+                      config: filtered[i],
+                      isSelected: filtered[i].id == selectedId,
+                      onTap: () => onSelect(filtered[i].id),
+                    ),
+                  ),
           ),
         ],
       ),
@@ -355,9 +373,10 @@ class ProviderListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = RevericTheme.colorsOf(context);
     final typo = RevericTheme.typographyOf(context);
+    final showcase = providerShowcases[config.type];
 
     return Material(
-      color: isSelected ? colors.selected : Colors.transparent,
+      color: isSelected ? colors.selected : colors.surfaceDim,
       borderRadius: BorderRadius.circular(RevericRadius.medium),
       child: InkWell(
         onTap: onTap,
@@ -370,10 +389,7 @@ class ProviderListItem extends StatelessWidget {
           ),
           child: Row(
             children: [
-              ProviderStatusDot(
-                active: config.isValid,
-                size: RevericSizes.statusDotSize,
-              ),
+              ProviderLogo(type: config.type),
               const SizedBox(width: RevericSpacing.sm),
               Expanded(
                 child: Column(
@@ -396,6 +412,14 @@ class ProviderListItem extends StatelessWidget {
                         ),
                       ],
                     ),
+                    const SizedBox(height: RevericSpacing.xxs),
+                    Text(
+                      showcase?.listTagline?.call(context) ??
+                          providerCapabilitySummary(context, config),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: typo.uiTiny.copyWith(color: colors.textMuted),
+                    ),
                     if (!config.isTypeSupported || !config.isBuiltin) ...[
                       const SizedBox(height: RevericSpacing.xxs),
                       RevericBadge(
@@ -411,6 +435,11 @@ class ProviderListItem extends StatelessWidget {
                     ],
                   ],
                 ),
+              ),
+              const SizedBox(width: RevericSpacing.xs),
+              ProviderStatusDot(
+                active: config.isValid,
+                size: RevericSizes.statusDotSize,
               ),
             ],
           ),
@@ -509,12 +538,7 @@ class AddCustomProviderDialog extends HookWidget {
             label: context.t(LocaleKeys.settingsAddCustomProviderTypeLabel),
             value: selectedFormat.value,
             items: [
-              for (final format in customAiProviderTypes.where(
-                (type) =>
-                    type != AiProviderType.minimax ||
-                    (Theme.of(context).platform != TargetPlatform.android &&
-                        Theme.of(context).platform != TargetPlatform.iOS),
-              ))
+              for (final format in customAiProviderTypes)
                 if (format != AiProviderType.codex ||
                     (defaultTargetPlatform != TargetPlatform.android &&
                         defaultTargetPlatform != TargetPlatform.iOS))
@@ -553,6 +577,9 @@ class AddCustomProviderDialog extends HookWidget {
 
 /// Provider 类型展示名；兼容协议名称及有中英文品牌名的渠道走 locale key。
 String localizedProviderTypeName(BuildContext context, AiProviderType type) {
+  if (type == AiProviderType.metaso) {
+    return context.t(LocaleKeys.settingsBuiltinProviderMetaso);
+  }
   if (type == AiProviderType.volcengine) {
     return context.t(LocaleKeys.settingsProviderTypeVolcengine);
   }

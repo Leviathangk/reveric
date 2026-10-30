@@ -18,6 +18,7 @@ void main() {
   test('SDK, JSON, SSE and HTTP wrappers preserve code and message', () {
     for (final error in <Object>[
       body,
+      {'task': body},
       jsonEncode(body),
       (message: jsonEncode(body)),
       (message: 'data: ${jsonEncode(body)}'),

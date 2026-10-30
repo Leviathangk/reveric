@@ -1,4 +1,4 @@
-// 职责: 一次性预置 DeepSeek 和 88API 供应商，保留已有配置与软删除记录。
+// 职责: 一次性预置 DeepSeek、88API 和秘塔 供应商，保留已有配置与软删除记录。
 // 关联文件:
 //   lib/shared/services/app_initialization.dart
 //   lib/shared/models/ai_provider.dart
@@ -27,5 +27,15 @@ Future<void> seedDefaultApi88Provider(AppDatabase database) async {
       return;
     }
     await database.aiProviderDao.upsert(aiProviderBuiltinById('api88')!);
+  });
+}
+
+Future<void> seedDefaultMetasoProvider(AppDatabase database) async {
+  await database.transaction(() async {
+    final existing = await database.aiProviderDao.getAllIncludingDeleted();
+    if (existing.any((provider) => provider.id == 'metaso')) {
+      return;
+    }
+    await database.aiProviderDao.upsert(aiProviderBuiltinById('metaso')!);
   });
 }

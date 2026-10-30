@@ -910,9 +910,14 @@ class _ComposerForm extends HookConsumerWidget {
                                         '',
                                   );
                                   if (currentDuration == null ||
-                                      !next.durations.contains(
-                                        currentDuration,
-                                      )) {
+                                      !next
+                                          .durationsForResolution(
+                                            form.getValue<String>(
+                                                  ShotField.resolution,
+                                                ) ??
+                                                next.resolutions.first,
+                                          )
+                                          .contains(currentDuration)) {
                                     form.updateValue(
                                       ShotField.duration,
                                       '${next.minDurationSeconds}',
@@ -964,6 +969,18 @@ class _ComposerForm extends HookConsumerWidget {
                         }
                         if (resolution != null) {
                           form.updateValue(ShotField.resolution, resolution);
+                          final duration = int.tryParse(
+                            form.getValue<String>(ShotField.duration) ?? '',
+                          );
+                          final allowed = modelConfig?.durationsForResolution(
+                            resolution,
+                          );
+                          if (allowed != null && !allowed.contains(duration)) {
+                            form.updateValue(
+                              ShotField.duration,
+                              '${allowed.last}',
+                            );
+                          }
                         }
                       },
                     ),
@@ -976,7 +993,10 @@ class _ComposerForm extends HookConsumerWidget {
                             s <= modelConfig.maxDurationSeconds;
                             s++
                           )
-                            if (modelConfig.durations.contains(s)) '$s',
+                            if (modelConfig
+                                .durationsForResolution(resolution)
+                                .contains(s))
+                              '$s',
                       ],
                       width: 40,
                       label: (s) => '${s}s',

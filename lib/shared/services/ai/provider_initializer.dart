@@ -29,17 +29,13 @@ import '../debug/debug_provider_client.dart';
 
 class AiProviderInitializer {
   AiProviderInitializer({
-    required AiProvider config,
-    required String chatModel,
+    required this._config,
+    required this._chatModel,
     http.Client? httpClient,
-    TraceHeadersProvider? traceHeadersProvider,
-    String? cacheKeyUserId,
-  }) : _config = config,
-       _chatModel = chatModel,
-       _httpClient = httpClient,
-       _ownsHttpClient = httpClient == null,
-       _traceHeadersProvider = traceHeadersProvider,
-       _cacheKeyUserId = cacheKeyUserId;
+    this._traceHeadersProvider,
+    this._cacheKeyUserId,
+  }) : _httpClient = httpClient,
+       _ownsHttpClient = httpClient == null;
 
   final AiProvider _config;
   final String _chatModel;
@@ -116,6 +112,8 @@ class AiProviderInitializer {
         throw UnsupportedError(
           'Agnes is configured for image and video generation only',
         );
+      case AiProviderType.metaso:
+        throw UnsupportedError('METASO supports video generation only');
       case AiProviderType.minimax:
         throw UnsupportedError(
           'MiniMax is configured for video generation only',

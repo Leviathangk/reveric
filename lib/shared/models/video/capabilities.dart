@@ -41,7 +41,12 @@ class VideoCapabilities {
       );
     }
     _check(channel.resolutions.contains(request.resolution), 'resolution');
-    _check(channel.durations.contains(request.durationSeconds), 'duration');
+    _check(
+      channel
+          .durationsForResolution(request.resolution)
+          .contains(request.durationSeconds),
+      'duration',
+    );
     _check(
       roles
           .where(

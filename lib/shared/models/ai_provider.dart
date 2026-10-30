@@ -45,6 +45,7 @@ enum AiProviderType {
   doubao,
   volcengine,
   minimax,
+  metaso,
   agnes,
   atlascloud,
 }
@@ -78,12 +79,12 @@ class AiProviderTypeConfig {
   const AiProviderTypeConfig({
     required this.displayName,
     required this.modelIdSource,
-    Set<AiModelKind> textModelKinds = const {},
+    this._textModelKinds = const {},
     this.imageProtocol,
     this.videoProtocol,
     this.audioProtocol,
     this.fixedBaseUrl = false,
-  }) : _textModelKinds = textModelKinds;
+  });
 
   Set<AiModelKind> get supportedModelKinds => {
     ..._textModelKinds,
@@ -202,6 +203,12 @@ const Map<AiProviderType, AiProviderTypeConfig> aiProviderTypeConfigs = {
     audioProtocol: AudioProtocol.seed_audio,
     fixedBaseUrl: true,
   ),
+  AiProviderType.metaso: AiProviderTypeConfig(
+    displayName: 'METASO',
+    modelIdSource: ModelIdSource.registered,
+    videoProtocol: VideoProtocol.minimax_video_v2,
+    fixedBaseUrl: true,
+  ),
   AiProviderType.minimax: AiProviderTypeConfig(
     displayName: 'MiniMax',
     modelIdSource: ModelIdSource.open,
@@ -230,6 +237,7 @@ final List<AiProviderType> customAiProviderTypes = List.unmodifiable(
 );
 
 String aiProviderFixedBaseUrl(AiProviderType type) => switch (type) {
+  AiProviderType.metaso => 'https://metaso.cn/api/minimax',
   AiProviderType.api88 => 'https://api.88api.ai/v1',
   AiProviderType.atlascloud => 'https://api.atlascloud.ai/v1',
   AiProviderType.codex => 'https://chatgpt.com/backend-api/codex',
@@ -259,6 +267,32 @@ String qwenBaseUrl(String value) {
 // ==================== Builtin 默认值 ====================
 
 final List<AiProvider> aiProviderBuiltinDefaults = [
+  AiProvider(
+    id: 'metaso',
+    name: 'METASO',
+    builtin: true,
+    type: 'metaso',
+    enabled: false,
+    apiKey: '',
+    baseUrl: aiProviderFixedBaseUrl(AiProviderType.metaso),
+    models: const [],
+    imageModels: const [],
+    audioModels: const [],
+    videoModels: const [
+      'MiniMax-H3',
+      'MiniMax-H3-priority',
+      'seedance-2.0',
+      'seedance-2.0-mini',
+    ],
+    embeddingModels: const [],
+    temperature: 0.7,
+    maxTurns: 512,
+    proxyUrl: '',
+    proxyUsername: '',
+    proxyPassword: '',
+    updatedAt: _builtinEpoch,
+    deletedAt: notDeletedSentinel,
+  ),
   AiProvider(
     id: 'api88',
     name: '88API',
